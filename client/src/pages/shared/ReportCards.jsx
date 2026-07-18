@@ -1,0 +1,131 @@
+import { useEffect, useState } from 'react';
+import { useQueries, useQuery } from '@tanstack/react-query';
+import { api } from '../../api/client.js';
+import { PageLoader, SectionHeader, EmptyState } from '../../components/ui.jsx';
+
+function ReportCardPage({ result, settings }) {
+  return (
+    <div className="report-card bg-white p-8 w-[210mm] min-h-[297mm] mx-auto mb-6 print:mb-0 print:break-after-page border border-slate-100 print:border-none">
+      <div className="text-center border-b-2 border-primary-500 pb-4 mb-4">
+        {settings?.logo_url && <img src={settings.logo_url} alt="" className="h-14 mx-auto mb-2" />}
+        <h1 className="text-xl font-bold text-slate-900">{settings?.name}</h1>
+        <p className="text-xs text-slate-500">{settings?.address} · {settings?.phone}</p>
+        {settings?.motto && <p className="text-xs italic text-slate-400 mt-1">"{settings.motto}"</p>}
+        <p className="font-semibold text-sm mt-2">TERMINAL REPORT</p>
+      </div>
+
+      <div className="grid grid-cols-2 gap-2 text-sm mb-4">
+        <p><span className="text-slate-500">Name:</span> <strong>{result.student.full_name}</strong></p>
+        <p><span className="text-slate-500">Class:</span> {result.student.class_name}</p>
+        <p><span className="text-slate-500">Attendance:</span> {result.attendance.present}/{result.attendance.total} days</p>
+        <p><span className="text-slate-500">Class position:</span> {result.class_position} of {result.class_size}</p>
+      </div>
+
+      <table className="w-full text-xs border-collapse mb-4">
+        <thead>
+          <tr className="bg-slate-50">
+            <th className="border border-slate-200 p-1.5 text-left">Subject</th>
+            <th className="border border-slate-200 p-1.5">Class score</th>
+            <th className="border border-slate-200 p-1.5">Exam score</th>
+            <th className="border border-slate-200 p-1.5">Total</th>
+            <th className="border border-slate-200 p-1.5">Grade</th>
+            <th className="border border-slate-200 p-1.5">Position</th>
+            <th className="border border-slate-200 p-1.5">Remark</th>
+          </tr>
+        </thead>
+        <tbody>
+          {result.subjects.map((s) => (
+            <tr key={s.class_subject_id}>
+              <td className="border border-slate-200 p-1.5">{s.subject_name}</td>
+              <td className="border border-slate-200 p-1.5 text-center">{s.class_score}</td>
+              <td className="border border-slate-200 p-1.5 text-center">{s.exam_score}</td>
+              <td className="border border-slate-200 p-1.5 text-center font-semibold">{s.total}</td>
+              <td className="border border-slate-200 p-1.5 text-center">{s.grade}</td>
+              <td className="border border-slate-200 p-1.5 text-center">{s.position}</td>
+              <td className="border border-slate-200 p-1.5">{s.remark}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+
+      <div className="grid grid-cols-2 gap-4 text-sm mb-6">
+        <p><span className="text-slate-500">Overall total:</span> <strong>{result.total.toFixed(1)}</strong></p>
+        <p><span className="text-slate-500">Average:</span> <strong>{result.average.toFixed(1)}</strong></p>
+      </div>
+
+      <div className="space-y-3 text-sm">
+        <p><span className="text-slate-500">Class teacher's remark:</span> {result.remarks?.class_teacher_remark || '—'}</p>
+        <p><span className="text-slate-500">Head teacher's remark:</span> {result.remarks?.head_teacher_remark || (result.average >= 70 ? 'Excellent performance, keep it up.' : result.average >= 50 ? 'Good effort, room to improve.' : 'Needs significant improvement — please see class teacher.')}</p>
+      </div>
+
+      <div className="flex justify-between mt-10 text-xs text-slate-500">
+        <p>Class teacher's signature: __________________</p>
+        <p>Next term begins: __________________</p>
+      </div>
+    </div>
+  );
+}
+
+export default function ReportCards() {
+  const { data: classes } = useQuery({ queryKey: ['classes'], queryFn: () => api.get('/classes').then((r) => r.data) });
+  const { data: terms } = useQuery({ queryKey: ['terms'], queryFn: () => api.get('/terms').then((r) => r.data) });
+  const { data: settings } = useQuery({ queryKey: ['settings'], queryFn: () => api.get('/settings').then((r) => r.data) });
+  const currentTerm = terms?.find((t) => t.is_current);
+
+  const [classId, setClassId] = useState('');
+  const [termId, setTermId] = useState('');
+  useEffect(() => { if (currentTerm && !termId) setTermId(String(currentTerm.id)); }, [currentTerm, termId]);
+
+  const { data: broadsheet } = useQuery({
+    queryKey: ['broadsheet', classId, termId],
+    queryFn: () => api.get('/results/broadsheet', { params: { class_id: classId, term_id: termId } }).then((r) => r.data),
+    enabled: Boolean(classId && termId),
+  });
+
+  const results = useQueries({
+    queries: (broadsheet?.students || []).map((s) => ({
+      queryKey: ['result', s.student_id, termId],
+      queryFn: () => api.get(`/results/student/${s.student_id}`, { params: { term_id: termId } }).then((r) => r.data),
+      enabled: Boolean(termId),
+    })),
+  });
+
+  const loaded = results.every((r) => r.isSuccess);
+
+  return (
+    <div>
+      <SectionHeader
+        title="Report cards"
+        description="Batch print — one page per student"
+        action={
+          <div className="flex gap-2 no-print">
+            <select className="input" value={classId} onChange={(e) => setClassId(e.target.value)}>
+              <option value="">Choose class…</option>
+              {classes?.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+            </select>
+            <select className="input" value={termId} onChange={(e) => setTermId(e.target.value)}>
+              {terms?.map((t) => <option key={t.id} value={t.id}>{t.year} {t.term}</option>)}
+            </select>
+            {loaded && Boolean(results.length) && (
+              <button className="btn-primary" onClick={() => window.print()}>🖨 Print all</button>
+            )}
+          </div>
+        }
+      />
+
+      {!classId ? (
+        <div className="card no-print"><EmptyState icon="🧾" title="Choose a class and term" /></div>
+      ) : !loaded ? (
+        <PageLoader />
+      ) : !results.length ? (
+        <div className="card no-print"><EmptyState icon="🧾" title="No students in this class" /></div>
+      ) : (
+        <div>
+          {results.map((r) => (
+            <ReportCardPage key={r.data.student.id} result={r.data} settings={settings} />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}

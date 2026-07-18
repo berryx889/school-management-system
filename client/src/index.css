@@ -1,0 +1,69 @@
+@import "tailwindcss";
+
+@theme {
+  --color-primary-50: #f0eefd;
+  --color-primary-100: #e1defb;
+  --color-primary-200: #c3bcf8;
+  --color-primary-300: #a59bf4;
+  --color-primary-400: #8779f0;
+  --color-primary-500: #5b4fe9;
+  --color-primary-600: #4a3fd1;
+  --color-primary-700: #3a30a8;
+  --color-primary-800: #2b247e;
+  --color-primary-900: #1c1854;
+
+  --color-surface: #f5f6fa;
+
+  --radius-card: 16px;
+
+  --shadow-card: 0 1px 2px rgba(20, 20, 43, 0.04), 0 8px 24px rgba(20, 20, 43, 0.06);
+}
+
+@layer base {
+  html, body, #root {
+    height: 100%;
+  }
+  body {
+    @apply bg-surface text-slate-800 antialiased;
+    margin: 0;
+  }
+  :focus-visible {
+    @apply outline-2 outline-offset-2 outline-primary-500;
+  }
+}
+
+@layer components {
+  .card {
+    @apply bg-white rounded-card shadow-card border border-slate-100;
+  }
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition
+      disabled:opacity-50 disabled:pointer-events-none
+      bg-primary-500 text-white hover:bg-primary-600 shadow-sm shadow-primary-500/20;
+  }
+  .btn-secondary {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition
+      disabled:opacity-50 disabled:pointer-events-none
+      bg-white text-slate-700 border border-slate-200 hover:bg-slate-50;
+  }
+  .btn-danger {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition
+      disabled:opacity-50 disabled:pointer-events-none
+      bg-red-50 text-red-600 hover:bg-red-100;
+  }
+  .input {
+    @apply w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-slate-800
+      placeholder:text-slate-400 focus:border-primary-400 focus:ring-4 focus:ring-primary-100 outline-none transition;
+  }
+  .label {
+    @apply block text-sm font-medium text-slate-600 mb-1.5;
+  }
+  .badge {
+    @apply inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold;
+  }
+}
+
+@media print {
+  .no-print { display: none !important; }
+  body { background: white !important; }
+}
