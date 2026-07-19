@@ -3,6 +3,118 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api, apiErrorMessage } from '../../api/client.js';
 import { PageLoader, SectionHeader } from '../../components/ui.jsx';
 import { useToast } from '../../components/Toast.jsx';
+import { IconX } from '../../components/Icon.jsx';
+
+const PRESETS = {
+  ges6: {
+    label: 'GES 1–6 scale',
+    bands: [
+      { min_score: 80, max_score: 100, grade: '1', remark: 'Excellent' },
+      { min_score: 70, max_score: 79, grade: '2', remark: 'Very good' },
+      { min_score: 60, max_score: 69, grade: '3', remark: 'Good' },
+      { min_score: 55, max_score: 59, grade: '4', remark: 'Credit' },
+      { min_score: 50, max_score: 54, grade: '5', remark: 'Pass' },
+      { min_score: 0, max_score: 49, grade: '6', remark: 'Fail' },
+    ],
+  },
+  wassce9: {
+    label: 'WASSCE/BECE A1–F9 scale',
+    bands: [
+      { min_score: 80, max_score: 100, grade: 'A1', remark: 'Excellent' },
+      { min_score: 70, max_score: 79, grade: 'B2', remark: 'Very good' },
+      { min_score: 60, max_score: 69, grade: 'B3', remark: 'Good' },
+      { min_score: 55, max_score: 59, grade: 'C4', remark: 'Credit' },
+      { min_score: 50, max_score: 54, grade: 'C5', remark: 'Credit' },
+      { min_score: 45, max_score: 49, grade: 'C6', remark: 'Credit' },
+      { min_score: 40, max_score: 44, grade: 'D7', remark: 'Pass' },
+      { min_score: 35, max_score: 39, grade: 'E8', remark: 'Pass' },
+      { min_score: 0, max_score: 34, grade: 'F9', remark: 'Fail' },
+    ],
+  },
+};
+
+function GradeBandsEditor({ initialBands }) {
+  const [bands, setBands] = useState(initialBands);
+  const toast = useToast();
+  const qc = useQueryClient();
+
+  const save = useMutation({
+    mutationFn: (payload) => api.put('/settings/grade-bands', { bands: payload }),
+    onSuccess: (res) => {
+      qc.invalidateQueries({ queryKey: ['settings'] });
+      setBands(res.data);
+      toast('Grade bands saved.', 'success');
+    },
+    onError: (err) => toast(apiErrorMessage(err), 'error'),
+  });
+
+  function updateRow(index, field, value) {
+    setBands((rows) => rows.map((r, i) => (i === index ? { ...r, [field]: value } : r)));
+  }
+
+  function addRow() {
+    setBands((rows) => [...rows, { min_score: 0, max_score: 0, grade: '', remark: '' }]);
+  }
+
+  function removeRow(index) {
+    setBands((rows) => rows.filter((_, i) => i !== index));
+  }
+
+  return (
+    <div className="border-t border-slate-100 pt-5">
+      <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
+        <p className="font-semibold text-slate-800">Grade bands</p>
+        <div className="flex gap-2">
+          {Object.entries(PRESETS).map(([key, preset]) => (
+            <button
+              key={key}
+              type="button"
+              className="btn-secondary text-xs !py-1.5"
+              onClick={() => setBands(preset.bands)}
+            >
+              Use {preset.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="space-y-2 mb-3">
+        <div className="grid grid-cols-[1fr_1fr_1fr_2fr_auto] gap-2 text-xs font-medium text-slate-500 px-1">
+          <span>Min score</span>
+          <span>Max score</span>
+          <span>Grade</span>
+          <span>Remark</span>
+          <span />
+        </div>
+        {bands.map((b, i) => (
+          <div key={i} className="grid grid-cols-[1fr_1fr_1fr_2fr_auto] gap-2 items-center">
+            <input type="number" min="0" max="100" className="input !py-1.5" value={b.min_score}
+              onChange={(e) => updateRow(i, 'min_score', e.target.value)} />
+            <input type="number" min="0" max="100" className="input !py-1.5" value={b.max_score}
+              onChange={(e) => updateRow(i, 'max_score', e.target.value)} />
+            <input className="input !py-1.5" value={b.grade}
+              onChange={(e) => updateRow(i, 'grade', e.target.value)} />
+            <input className="input !py-1.5" value={b.remark}
+              onChange={(e) => updateRow(i, 'remark', e.target.value)} />
+            <button type="button" className="text-slate-400 hover:text-red-600 p-1.5" onClick={() => removeRow(i)} aria-label="Remove band">
+              <IconX className="h-4 w-4" />
+            </button>
+          </div>
+        ))}
+      </div>
+
+      <div className="flex items-center gap-3">
+        <button type="button" className="btn-secondary text-sm" onClick={addRow}>+ Add band</button>
+        <button type="button" className="btn-primary text-sm" disabled={save.isPending} onClick={() => save.mutate(bands)}>
+          {save.isPending ? 'Saving…' : 'Save grade bands'}
+        </button>
+      </div>
+      <p className="text-xs text-slate-400 mt-2">
+        Used to compute grades and remarks on report cards and results. Ranges must be 0–100 and must not overlap.
+      </p>
+    </div>
+  );
+}
 
 export default function Settings() {
   const { data, isLoading } = useQuery({ queryKey: ['settings'], queryFn: () => api.get('/settings').then((r) => r.data) });
@@ -93,23 +205,12 @@ export default function Settings() {
           </label>
         </div>
 
-        <div className="border-t border-slate-100 pt-5">
-          <p className="font-semibold text-slate-800 mb-2">Grade bands</p>
-          <table className="w-full text-sm">
-            <tbody>
-              {data.grade_bands.map((b) => (
-                <tr key={b.id} className="border-b border-slate-50 last:border-0">
-                  <td className="py-1.5 text-slate-500">{b.min_score}–{b.max_score}</td>
-                  <td className="py-1.5 font-semibold">{b.grade}</td>
-                  <td className="py-1.5 text-slate-500">{b.remark}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-
         <button className="btn-primary" disabled={save.isPending}>{save.isPending ? 'Saving…' : 'Save settings'}</button>
       </form>
+
+      <div className="card p-6 max-w-2xl mt-6">
+        <GradeBandsEditor initialBands={data.grade_bands} />
+      </div>
     </div>
   );
 }
