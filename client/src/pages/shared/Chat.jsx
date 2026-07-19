@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '../../auth/AuthContext.jsx';
 import { api } from '../../api/client.js';
 import { PageLoader, EmptyState } from '../../components/ui.jsx';
+import { IconMessageCircle } from '../../components/Icon.jsx';
 
 export default function Chat({ students }) {
   const { user } = useAuth();
@@ -30,7 +31,7 @@ export default function Chat({ students }) {
     },
   });
 
-  if (!students?.length) return <div className="card"><EmptyState icon="💬" title="No conversations yet" /></div>;
+  if (!students?.length) return <div className="card"><EmptyState icon={IconMessageCircle} title="No conversations yet" /></div>;
 
   return (
     <div className="card overflow-hidden flex flex-col" style={{ height: '70vh' }}>

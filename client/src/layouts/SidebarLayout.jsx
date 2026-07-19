@@ -3,6 +3,7 @@ import { NavLink, Outlet, useLocation } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext.jsx';
 import { Avatar } from '../components/ui.jsx';
 import ErrorBoundary from '../components/ErrorBoundary.jsx';
+import { IconMenu } from '../components/Icon.jsx';
 
 export default function SidebarLayout({ nav, brand = 'Bright Future Basic School' }) {
   const { user, logout } = useAuth();
@@ -38,7 +39,7 @@ export default function SidebarLayout({ nav, brand = 'Bright Future Basic School
                 ${isActive ? 'bg-primary-50 text-primary-700' : 'text-slate-600 hover:bg-slate-50'}`
               }
             >
-              <span className="text-base">{item.icon}</span>
+              <item.icon className="h-[18px] w-[18px] shrink-0" />
               {item.label}
             </NavLink>
           ))}
@@ -61,7 +62,7 @@ export default function SidebarLayout({ nav, brand = 'Bright Future Basic School
       <div className="flex-1 min-w-0">
         <header className="lg:hidden h-14 bg-white border-b border-slate-100 flex items-center px-4 sticky top-0 z-20 no-print">
           <button onClick={() => setOpen(true)} className="text-slate-600" aria-label="Open menu">
-            ☰
+            <IconMenu className="h-5 w-5" />
           </button>
           <span className="ml-3 font-bold text-slate-900 text-sm">{brand}</span>
         </header>

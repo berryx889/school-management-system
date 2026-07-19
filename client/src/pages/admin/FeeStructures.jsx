@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api, apiErrorMessage } from '../../api/client.js';
 import { PageLoader, SectionHeader, EmptyState } from '../../components/ui.jsx';
 import { useToast } from '../../components/Toast.jsx';
+import { IconReceipt } from '../../components/Icon.jsx';
 
 export default function FeeStructures() {
   const { data: classes } = useQuery({ queryKey: ['classes'], queryFn: () => api.get('/classes').then((r) => r.data) });
@@ -67,7 +68,7 @@ export default function FeeStructures() {
         {isLoading ? (
           <PageLoader />
         ) : !structures?.length ? (
-          <EmptyState icon="🧾" title="No fee items yet" description="Add items like tuition, feeding, PTA below." />
+          <EmptyState icon={IconReceipt} title="No fee items yet" description="Add items like tuition, feeding, PTA below." />
         ) : (
           <ul className="divide-y divide-slate-50 mb-4">
             {structures.map((s) => (

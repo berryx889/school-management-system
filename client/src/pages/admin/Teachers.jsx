@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api, apiErrorMessage } from '../../api/client.js';
 import { PageLoader, SectionHeader, EmptyState, Modal, Avatar, Badge } from '../../components/ui.jsx';
 import { useToast } from '../../components/Toast.jsx';
+import { IconUser } from '../../components/Icon.jsx';
 
 export default function Teachers() {
   const [modalOpen, setModalOpen] = useState(false);
@@ -40,7 +41,7 @@ export default function Teachers() {
         {isLoading ? (
           <PageLoader />
         ) : data.data.length === 0 ? (
-          <EmptyState icon="🍎" title="No teachers yet" action={<button className="btn-primary" onClick={() => setModalOpen(true)}>+ Add teacher</button>} />
+          <EmptyState icon={IconUser} title="No teachers yet" action={<button className="btn-primary" onClick={() => setModalOpen(true)}>+ Add teacher</button>} />
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">

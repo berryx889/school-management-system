@@ -2,6 +2,7 @@ import { createContext, useContext, useEffect, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { api } from '../api/client.js';
 import { PageLoader, EmptyState } from '../components/ui.jsx';
+import { IconGraduationCap } from '../components/Icon.jsx';
 
 const ParentContext = createContext(null);
 
@@ -18,7 +19,7 @@ export function ParentProvider({ children }) {
 
   if (isLoading) return <PageLoader />;
   if (!kids?.length) {
-    return <div className="card m-4"><EmptyState icon="🎓" title="No children linked yet" description="Contact the school office to link your child's account to this number." /></div>;
+    return <div className="card m-4"><EmptyState icon={IconGraduationCap} title="No children linked yet" description="Contact the school office to link your child's account to this number." /></div>;
   }
 
   const selectedChild = kids.find((k) => k.id === selectedId) || kids[0];

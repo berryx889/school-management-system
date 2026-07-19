@@ -3,6 +3,10 @@ import { PieChart, Pie, Cell, ResponsiveContainer, LineChart, Line, XAxis, YAxis
 import { api } from '../../api/client.js';
 import { StatCard, PageLoader, SectionHeader, EmptyState } from '../../components/ui.jsx';
 import { format } from 'date-fns';
+import {
+  IconGraduationCap, IconUser, IconCheckCircle, IconAlertTriangle, IconClock, IconWallet,
+  IconReceipt, IconClipboardList, IconTrendingUp, IconCreditCard, IconMegaphone,
+} from '../../components/Icon.jsx';
 
 export default function AdminDashboard() {
   const { data, isLoading } = useQuery({
@@ -23,14 +27,16 @@ export default function AdminDashboard() {
     <div>
       <SectionHeader title="Dashboard" description={`Today, ${format(new Date(), 'EEEE d MMMM yyyy')}`} />
 
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        <StatCard label="Total students" value={data.total_students} icon="🎓" />
-        <StatCard label="Total teachers" value={data.total_teachers} icon="🍎" />
-        <StatCard label="Present today" value={data.present_today} icon="✅" tone="green" />
-        <StatCard label="Absent today" value={data.absent_today} icon="⚠️" tone="red" />
-        <StatCard label="Late today" value={data.late_today} icon="⏰" tone="amber" />
-        <StatCard label="Fees collected (term)" value={`GHS ${data.fees_collected.toLocaleString()}`} icon="💰" tone="green" />
-        <StatCard label="Fees outstanding" value={`GHS ${data.fees_outstanding.toLocaleString()}`} icon="🧾" tone="amber" />
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+        <StatCard label="Total students" value={data.total_students} icon={IconGraduationCap} />
+        <StatCard label="Total teachers" value={data.total_teachers} icon={IconUser} />
+        <StatCard label="Present today" value={data.present_today} icon={IconCheckCircle} tone="green" />
+        <StatCard label="Absent today" value={data.absent_today} icon={IconAlertTriangle} tone="red" />
+      </div>
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+        <StatCard label="Late today" value={data.late_today} icon={IconClock} tone="amber" />
+        <StatCard label="Fees collected (term)" value={`GHS ${data.fees_collected.toLocaleString()}`} icon={IconWallet} tone="green" />
+        <StatCard label="Fees outstanding" value={`GHS ${data.fees_outstanding.toLocaleString()}`} icon={IconReceipt} tone="amber" />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
@@ -57,7 +63,7 @@ export default function AdminDashboard() {
               </div>
             </div>
           ) : (
-            <EmptyState icon="📋" title="No attendance yet" description="Nothing recorded for today yet." />
+            <EmptyState icon={IconClipboardList} title="No attendance yet" description="Nothing recorded for today yet." />
           )}
         </div>
 
@@ -76,7 +82,7 @@ export default function AdminDashboard() {
               </ResponsiveContainer>
             </div>
           ) : (
-            <EmptyState icon="📈" title="No trend data yet" description="Trend appears once attendance is recorded." />
+            <EmptyState icon={IconTrendingUp} title="No trend data yet" description="Trend appears once attendance is recorded." />
           )}
         </div>
       </div>
@@ -94,7 +100,7 @@ export default function AdminDashboard() {
               ))}
             </ul>
           ) : (
-            <EmptyState icon="💳" title="No payments yet" />
+            <EmptyState icon={IconCreditCard} title="No payments yet" />
           )}
         </div>
 
@@ -110,7 +116,7 @@ export default function AdminDashboard() {
               ))}
             </ul>
           ) : (
-            <EmptyState icon="📣" title="No announcements yet" />
+            <EmptyState icon={IconMegaphone} title="No announcements yet" />
           )}
         </div>
       </div>

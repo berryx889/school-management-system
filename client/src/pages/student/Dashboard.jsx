@@ -4,12 +4,13 @@ import { format } from 'date-fns';
 import { useAuth } from '../../auth/AuthContext.jsx';
 import { api } from '../../api/client.js';
 import { Avatar, PageLoader } from '../../components/ui.jsx';
+import { IconCalendar, IconBarChart, IconMegaphone } from '../../components/Icon.jsx';
 
 const QUICK_LINKS = [
-  { to: '/student/attendance', icon: '📅', label: 'Attendance' },
-  { to: '/student/results', icon: '📊', label: 'Results' },
-  { to: '/student/timetable', icon: '🗓️', label: 'Timetable' },
-  { to: '/student/notices', icon: '📣', label: 'Notices' },
+  { to: '/student/attendance', icon: IconCalendar, label: 'Attendance' },
+  { to: '/student/results', icon: IconBarChart, label: 'Results' },
+  { to: '/student/timetable', icon: IconCalendar, label: 'Timetable' },
+  { to: '/student/notices', icon: IconMegaphone, label: 'Notices' },
 ];
 
 export default function StudentDashboard() {
@@ -38,7 +39,9 @@ export default function StudentDashboard() {
       <div className="grid grid-cols-4 gap-3 mb-6">
         {QUICK_LINKS.map((q) => (
           <Link key={q.to} to={q.to} className="card p-4 flex flex-col items-center gap-2 hover:border-primary-200">
-            <span className="text-2xl">{q.icon}</span>
+            <span className="h-10 w-10 rounded-xl bg-primary-50 text-primary-600 flex items-center justify-center">
+              <q.icon className="h-5 w-5" />
+            </span>
             <span className="text-xs font-medium text-slate-600 text-center">{q.label}</span>
           </Link>
         ))}

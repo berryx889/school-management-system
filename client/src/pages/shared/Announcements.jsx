@@ -5,6 +5,7 @@ import { api, apiErrorMessage } from '../../api/client.js';
 import { PageLoader, SectionHeader, EmptyState, Badge } from '../../components/ui.jsx';
 import { useToast } from '../../components/Toast.jsx';
 import { format } from 'date-fns';
+import { IconMegaphone } from '../../components/Icon.jsx';
 
 const AUDIENCES = [
   { id: 'all', label: 'Everyone' },
@@ -77,7 +78,7 @@ export default function Announcements() {
       {isLoading ? (
         <PageLoader />
       ) : !data.length ? (
-        <div className="card"><EmptyState icon="📣" title="No announcements yet" /></div>
+        <div className="card"><EmptyState icon={IconMegaphone} title="No announcements yet" /></div>
       ) : (
         <div className="space-y-3">
           {data.map((a) => (

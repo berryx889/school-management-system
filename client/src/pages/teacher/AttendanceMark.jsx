@@ -4,6 +4,7 @@ import { useAuth } from '../../auth/AuthContext.jsx';
 import { api, apiErrorMessage } from '../../api/client.js';
 import { PageLoader, SectionHeader, Avatar, EmptyState } from '../../components/ui.jsx';
 import { useToast } from '../../components/Toast.jsx';
+import { IconGraduationCap } from '../../components/Icon.jsx';
 
 const STATUSES = [
   { id: 'present', label: 'Present', tone: 'bg-emerald-500 text-white' },
@@ -68,7 +69,7 @@ export default function AttendanceMark() {
       {isLoading ? (
         <PageLoader />
       ) : !roster?.length ? (
-        <div className="card"><EmptyState icon="🧑‍🎓" title="No students in this class" /></div>
+        <div className="card"><EmptyState icon={IconGraduationCap} title="No students in this class" /></div>
       ) : (
         <div className="card divide-y divide-slate-50">
           {roster.map((s) => {

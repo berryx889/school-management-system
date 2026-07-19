@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api, apiErrorMessage } from '../../api/client.js';
 import { PageLoader, SectionHeader, EmptyState } from '../../components/ui.jsx';
 import { useToast } from '../../components/Toast.jsx';
+import { IconLink } from '../../components/Icon.jsx';
 
 export default function ClassSubjects() {
   const [classId, setClassId] = useState('');
@@ -67,7 +68,7 @@ export default function ClassSubjects() {
         {isLoading ? (
           <PageLoader />
         ) : !mappings?.length ? (
-          <EmptyState icon="🔗" title="No assignments yet" description="Choose a class above and assign subjects to teachers." />
+          <EmptyState icon={IconLink} title="No assignments yet" description="Choose a class above and assign subjects to teachers." />
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">

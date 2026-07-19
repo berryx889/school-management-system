@@ -4,6 +4,7 @@ import { useAuth } from '../../auth/AuthContext.jsx';
 import { api, apiErrorMessage } from '../../api/client.js';
 import { PageLoader, SectionHeader, EmptyState, Modal, Badge } from '../../components/ui.jsx';
 import { useToast } from '../../components/Toast.jsx';
+import { IconEdit, IconFileText } from '../../components/Icon.jsx';
 
 export default function MarksEntry() {
   const { user } = useAuth();
@@ -105,11 +106,11 @@ export default function MarksEntry() {
       )}
 
       {!classSubjectId ? (
-        <div className="card"><EmptyState icon="📝" title="Choose a class-subject" /></div>
+        <div className="card"><EmptyState icon={IconEdit} title="Choose a class-subject" /></div>
       ) : loadingAssessments ? (
         <PageLoader />
       ) : !assessmentId ? (
-        <div className="card"><EmptyState icon="🗒️" title="Choose or create an assessment" /></div>
+        <div className="card"><EmptyState icon={IconFileText} title="Choose or create an assessment" /></div>
       ) : loadingRoster ? (
         <PageLoader />
       ) : (

@@ -24,7 +24,7 @@ export default function MobileLayout({ tabs }) {
                 ${isActive ? 'text-primary-600' : 'text-slate-400'}`
               }
             >
-              <span className="text-lg">{tab.icon}</span>
+              <tab.icon className="h-[22px] w-[22px]" />
               {tab.label}
             </NavLink>
           ))}

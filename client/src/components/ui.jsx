@@ -1,4 +1,6 @@
-export function StatCard({ label, value, icon, tone = 'primary' }) {
+import { IconInbox } from './Icon.jsx';
+
+export function StatCard({ label, value, icon: Icon, tone = 'primary' }) {
   const tones = {
     primary: 'bg-primary-50 text-primary-600',
     green: 'bg-emerald-50 text-emerald-600',
@@ -7,8 +9,8 @@ export function StatCard({ label, value, icon, tone = 'primary' }) {
   };
   return (
     <div className="card p-5 flex items-center gap-4">
-      <div className={`h-11 w-11 rounded-xl flex items-center justify-center text-xl shrink-0 ${tones[tone]}`}>
-        {icon}
+      <div className={`h-11 w-11 rounded-xl flex items-center justify-center shrink-0 ${tones[tone]}`}>
+        <Icon className="h-5 w-5" />
       </div>
       <div className="min-w-0">
         <p className="text-sm text-slate-500 truncate">{label}</p>
@@ -18,10 +20,12 @@ export function StatCard({ label, value, icon, tone = 'primary' }) {
   );
 }
 
-export function EmptyState({ icon = '📭', title, description, action }) {
+export function EmptyState({ icon: Icon = IconInbox, title, description, action }) {
   return (
     <div className="flex flex-col items-center justify-center text-center py-16 px-6">
-      <div className="text-4xl mb-3">{icon}</div>
+      <div className="h-14 w-14 rounded-2xl bg-slate-100 text-slate-400 flex items-center justify-center mb-4">
+        <Icon className="h-7 w-7" />
+      </div>
       <p className="font-semibold text-slate-800">{title}</p>
       {description && <p className="text-sm text-slate-500 mt-1 max-w-sm">{description}</p>}
       {action && <div className="mt-4">{action}</div>}

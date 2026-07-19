@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { api } from '../../api/client.js';
 import { PageLoader, EmptyState } from '../../components/ui.jsx';
+import { IconCalendar } from '../../components/Icon.jsx';
 
 const DAYS = [
   { id: 1, label: 'Monday' }, { id: 2, label: 'Tuesday' }, { id: 3, label: 'Wednesday' },
@@ -15,7 +16,7 @@ export default function TimetableView({ classId, teacherId, title = 'Timetable' 
   });
 
   if (isLoading) return <PageLoader />;
-  if (!data?.length) return <div className="card"><EmptyState icon="🗓️" title="No timetable yet" /></div>;
+  if (!data?.length) return <div className="card"><EmptyState icon={IconCalendar} title="No timetable yet" /></div>;
 
   const byDay = Object.fromEntries(DAYS.map((d) => [d.id, data.filter((c) => c.day_of_week === d.id).sort((a, b) => a.period_no - b.period_no)]));
 

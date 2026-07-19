@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { api } from '../../api/client.js';
 import { PageLoader, SectionHeader, EmptyState } from '../../components/ui.jsx';
+import { IconPrinter, IconBarChart } from '../../components/Icon.jsx';
 
 export default function Broadsheet() {
   const { data: classes } = useQuery({ queryKey: ['classes'], queryFn: () => api.get('/classes').then((r) => r.data) });
@@ -33,18 +34,18 @@ export default function Broadsheet() {
               {terms?.map((t) => <option key={t.id} value={t.id}>{t.year} {t.term}</option>)}
             </select>
             {Boolean(data?.students?.length) && (
-              <button className="btn-primary" onClick={() => window.print()}>🖨 Print</button>
+              <button className="btn-primary" onClick={() => window.print()}><IconPrinter className="h-4 w-4" /> Print</button>
             )}
           </div>
         }
       />
 
       {!classId ? (
-        <div className="card"><EmptyState icon="📊" title="Choose a class" /></div>
+        <div className="card"><EmptyState icon={IconBarChart} title="Choose a class" /></div>
       ) : isLoading ? (
         <PageLoader />
       ) : !data.students.length ? (
-        <div className="card"><EmptyState icon="📊" title="No students in this class" /></div>
+        <div className="card"><EmptyState icon={IconBarChart} title="No students in this class" /></div>
       ) : (
         <div className="card overflow-x-auto print:shadow-none print:border-none">
           <table className="w-full text-xs border-collapse min-w-[800px]">

@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api, apiErrorMessage } from '../../api/client.js';
 import { PageLoader, SectionHeader, EmptyState, Modal } from '../../components/ui.jsx';
 import { useToast } from '../../components/Toast.jsx';
+import { IconBuilding } from '../../components/Icon.jsx';
 
 export default function Classes() {
   const [modalOpen, setModalOpen] = useState(false);
@@ -31,7 +32,7 @@ export default function Classes() {
       {isLoading ? (
         <PageLoader />
       ) : classes.length === 0 ? (
-        <div className="card"><EmptyState icon="🏫" title="No classes yet" action={<button className="btn-primary" onClick={() => setModalOpen(true)}>+ Add class</button>} /></div>
+        <div className="card"><EmptyState icon={IconBuilding} title="No classes yet" action={<button className="btn-primary" onClick={() => setModalOpen(true)}>+ Add class</button>} /></div>
       ) : (
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {classes.map((c) => (

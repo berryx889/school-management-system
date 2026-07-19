@@ -3,15 +3,16 @@ import { format } from 'date-fns';
 import { useParentChild } from '../../auth/ParentContext.jsx';
 import { Avatar } from '../../components/ui.jsx';
 import ChildSwitcher from './ChildSwitcher.jsx';
+import { IconCalendar, IconBarChart, IconCreditCard, IconTrendingUp, IconMegaphone, IconMessageCircle } from '../../components/Icon.jsx';
 
 const QUICK_LINKS = [
-  { to: '/parent/attendance', icon: '📅', label: 'Attendance' },
-  { to: '/parent/results', icon: '📊', label: 'Results' },
-  { to: '/parent/fees', icon: '💳', label: 'Fees' },
-  { to: '/parent/timetable', icon: '🗓️', label: 'Timetable' },
-  { to: '/parent/progress', icon: '📈', label: 'Progress' },
-  { to: '/parent/notices', icon: '📣', label: 'Notices' },
-  { to: '/parent/chat', icon: '💬', label: 'Chat' },
+  { to: '/parent/attendance', icon: IconCalendar, label: 'Attendance' },
+  { to: '/parent/results', icon: IconBarChart, label: 'Results' },
+  { to: '/parent/fees', icon: IconCreditCard, label: 'Fees' },
+  { to: '/parent/timetable', icon: IconCalendar, label: 'Timetable' },
+  { to: '/parent/progress', icon: IconTrendingUp, label: 'Progress' },
+  { to: '/parent/notices', icon: IconMegaphone, label: 'Notices' },
+  { to: '/parent/chat', icon: IconMessageCircle, label: 'Chat' },
 ];
 
 export default function ParentDashboard() {
@@ -34,7 +35,9 @@ export default function ParentDashboard() {
       <div className="grid grid-cols-4 gap-3">
         {QUICK_LINKS.map((q) => (
           <Link key={q.to} to={q.to} className="card p-4 flex flex-col items-center gap-2 hover:border-primary-200">
-            <span className="text-2xl">{q.icon}</span>
+            <span className="h-10 w-10 rounded-xl bg-primary-50 text-primary-600 flex items-center justify-center">
+              <q.icon className="h-5 w-5" />
+            </span>
             <span className="text-xs font-medium text-slate-600 text-center">{q.label}</span>
           </Link>
         ))}

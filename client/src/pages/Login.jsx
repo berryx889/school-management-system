@@ -3,12 +3,13 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext.jsx';
 import { api, apiErrorMessage } from '../api/client.js';
 import { useToast } from '../components/Toast.jsx';
+import { IconShield, IconUser, IconGraduationCap, IconUsers, IconArrowLeft } from '../components/Icon.jsx';
 
 const ROLES = [
-  { id: 'admin', label: 'Admin', icon: '🛡️', hint: 'Username' },
-  { id: 'teacher', label: 'Teacher', icon: '🍎', hint: 'Username' },
-  { id: 'student', label: 'Student', icon: '🎓', hint: 'Student ID' },
-  { id: 'parent', label: 'Parent', icon: '👪', hint: 'Phone number' },
+  { id: 'admin', label: 'Admin', icon: IconShield, hint: 'Username' },
+  { id: 'teacher', label: 'Teacher', icon: IconUser, hint: 'Username' },
+  { id: 'student', label: 'Student', icon: IconGraduationCap, hint: 'Student ID' },
+  { id: 'parent', label: 'Parent', icon: IconUsers, hint: 'Phone number' },
 ];
 
 export default function Login() {
@@ -84,9 +85,11 @@ export default function Login() {
                   <button
                     key={r.id}
                     onClick={() => setRole(r)}
-                    className="flex flex-col items-center gap-2 rounded-2xl border border-slate-200 p-5 hover:border-primary-300 hover:bg-primary-50 transition"
+                    className="flex flex-col items-center gap-2.5 rounded-2xl border border-slate-200 p-5 hover:border-primary-300 hover:bg-primary-50 transition"
                   >
-                    <span className="text-3xl">{r.icon}</span>
+                    <span className="h-11 w-11 rounded-xl bg-primary-50 text-primary-600 flex items-center justify-center">
+                      <r.icon className="h-5 w-5" />
+                    </span>
                     <span className="text-sm font-semibold text-slate-700">{r.label}</span>
                   </button>
                 ))}
@@ -98,11 +101,13 @@ export default function Login() {
                 onClick={() => { setRole(null); setOtpMode(false); setOtpSent(false); }}
                 className="text-sm text-primary-600 font-medium mb-4 flex items-center gap-1"
               >
-                ← Change role
+                <IconArrowLeft className="h-4 w-4" /> Change role
               </button>
 
-              <div className="flex items-center gap-2 mb-5">
-                <span className="text-2xl">{role.icon}</span>
+              <div className="flex items-center gap-2.5 mb-5">
+                <span className="h-9 w-9 rounded-lg bg-primary-50 text-primary-600 flex items-center justify-center">
+                  <role.icon className="h-4 w-4" />
+                </span>
                 <span className="font-bold text-slate-900">{role.label} login</span>
               </div>
 

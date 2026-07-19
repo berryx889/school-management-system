@@ -3,6 +3,7 @@ import { useParams } from 'react-router-dom';
 import { format } from 'date-fns';
 import { api } from '../../api/client.js';
 import { PageLoader } from '../../components/ui.jsx';
+import { IconPrinter } from '../../components/Icon.jsx';
 
 const ONES = ['', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine'];
 const TEENS = ['Ten', 'Eleven', 'Twelve', 'Thirteen', 'Fourteen', 'Fifteen', 'Sixteen', 'Seventeen', 'Eighteen', 'Nineteen'];
@@ -35,7 +36,7 @@ export default function Receipt() {
   return (
     <div>
       <div className="no-print flex justify-end mb-4">
-        <button className="btn-primary" onClick={() => window.print()}>🖨 Print</button>
+        <button className="btn-primary" onClick={() => window.print()}><IconPrinter className="h-4 w-4" /> Print</button>
       </div>
 
       <div className="bg-white p-8 max-w-xl mx-auto border border-slate-100 rounded-card">

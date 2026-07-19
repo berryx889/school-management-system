@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import { api, apiErrorMessage } from '../../api/client.js';
 import { PageLoader, SectionHeader, EmptyState, Modal, Avatar, Badge } from '../../components/ui.jsx';
 import { useToast } from '../../components/Toast.jsx';
+import { IconDownload, IconUpload, IconGraduationCap } from '../../components/Icon.jsx';
 
 function StudentFormModal({ open, onClose, classes }) {
   const [form, setForm] = useState({ full_name: '', dob: '', gender: 'male', class_id: '', parent_name: '', parent_phone: '' });
@@ -122,9 +123,9 @@ export default function Students() {
         description={`${data?.total ?? 0} total`}
         action={
           <div className="flex gap-2 flex-wrap">
-            <button className="btn-secondary" onClick={downloadTemplate}>⬇ Template</button>
+            <button className="btn-secondary" onClick={downloadTemplate}><IconDownload className="h-4 w-4" /> Template</button>
             <label className="btn-secondary cursor-pointer">
-              ⬆ Import Excel
+              <IconUpload className="h-4 w-4" /> Import Excel
               <input type="file" accept=".xlsx,.xls" className="hidden" onChange={handleImport} />
             </label>
             <button className="btn-primary" onClick={() => setModalOpen(true)}>+ Add student</button>
@@ -146,7 +147,7 @@ export default function Students() {
         {isLoading ? (
           <PageLoader />
         ) : data.data.length === 0 ? (
-          <EmptyState icon="🎓" title="No students yet" description="Add your first student to get started." action={<button className="btn-primary" onClick={() => setModalOpen(true)}>+ Add student</button>} />
+          <EmptyState icon={IconGraduationCap} title="No students yet" description="Add your first student to get started." action={<button className="btn-primary" onClick={() => setModalOpen(true)}>+ Add student</button>} />
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">

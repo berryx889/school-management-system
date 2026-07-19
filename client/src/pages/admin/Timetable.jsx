@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api, apiErrorMessage } from '../../api/client.js';
 import { PageLoader, SectionHeader, EmptyState } from '../../components/ui.jsx';
 import { useToast } from '../../components/Toast.jsx';
+import { IconCalendar } from '../../components/Icon.jsx';
 
 const DAYS = [
   { id: 1, label: 'Monday' },
@@ -63,7 +64,7 @@ export default function Timetable() {
       </select>
 
       {!classId ? (
-        <div className="card"><EmptyState icon="🗓️" title="Choose a class" description="Select a class above to edit its timetable." /></div>
+        <div className="card"><EmptyState icon={IconCalendar} title="Choose a class" description="Select a class above to edit its timetable." /></div>
       ) : isLoading ? (
         <PageLoader />
       ) : (

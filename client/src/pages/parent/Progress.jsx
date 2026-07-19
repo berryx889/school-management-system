@@ -4,6 +4,7 @@ import { useParentChild } from '../../auth/ParentContext.jsx';
 import { api } from '../../api/client.js';
 import { PageLoader, EmptyState } from '../../components/ui.jsx';
 import ChildSwitcher from './ChildSwitcher.jsx';
+import { IconTrendingUp } from '../../components/Icon.jsx';
 
 const COLORS = ['#5b4fe9', '#10b981', '#f59e0b', '#ef4444', '#0ea5e9', '#a855f7'];
 
@@ -42,7 +43,7 @@ export default function ParentProgress() {
       {!loaded ? (
         <PageLoader />
       ) : chartData.length < 1 || !subjectNames.length ? (
-        <div className="card"><EmptyState icon="📈" title="Not enough data yet" description="Progress appears once results are released for at least one term." /></div>
+        <div className="card"><EmptyState icon={IconTrendingUp} title="Not enough data yet" description="Progress appears once results are released for at least one term." /></div>
       ) : (
         <div className="card p-5">
           <div className="h-72">

@@ -4,6 +4,11 @@ import ProtectedRoute from './auth/ProtectedRoute.jsx';
 import { ParentProvider } from './auth/ParentContext.jsx';
 import SidebarLayout from './layouts/SidebarLayout.jsx';
 import MobileLayout from './layouts/MobileLayout.jsx';
+import {
+  IconHome, IconGraduationCap, IconUser, IconBuilding, IconBook, IconLink, IconCalendar,
+  IconCamera, IconUtensils, IconEdit, IconBarChart, IconFileText, IconUnlock, IconWallet,
+  IconClipboardList, IconMegaphone, IconSettings, IconCreditCard, IconMessageCircle,
+} from './components/Icon.jsx';
 
 import Login from './pages/Login.jsx';
 
@@ -49,50 +54,50 @@ import Announcements from './pages/shared/Announcements.jsx';
 import Receipt from './pages/shared/Receipt.jsx';
 
 const ADMIN_NAV = [
-  { to: '/admin', end: true, icon: '🏠', label: 'Dashboard' },
-  { to: '/admin/students', icon: '🎓', label: 'Students' },
-  { to: '/admin/teachers', icon: '🍎', label: 'Teachers' },
-  { to: '/admin/classes', icon: '🏫', label: 'Classes' },
-  { to: '/admin/subjects', icon: '📘', label: 'Subjects' },
-  { to: '/admin/class-subjects', icon: '🔗', label: 'Subject teachers' },
-  { to: '/admin/timetable', icon: '🗓️', label: 'Timetable' },
-  { to: '/admin/attendance/scanner', icon: '📷', label: 'Gate scanner' },
-  { to: '/admin/kitchen', icon: '🍽️', label: 'Kitchen report' },
-  { to: '/admin/grading/marks', icon: '📝', label: 'Marks entry' },
-  { to: '/admin/grading/broadsheet', icon: '📊', label: 'Broadsheet' },
-  { to: '/admin/grading/report-cards', icon: '🧾', label: 'Report cards' },
-  { to: '/admin/grading/release', icon: '🔓', label: 'Results release' },
-  { to: '/admin/fees/structures', icon: '💰', label: 'Fee structures' },
-  { to: '/admin/fees/debtors', icon: '📋', label: 'Debtors' },
-  { to: '/admin/announcements', icon: '📣', label: 'Announcements' },
-  { to: '/admin/settings', icon: '⚙️', label: 'Settings' },
+  { to: '/admin', end: true, icon: IconHome, label: 'Dashboard' },
+  { to: '/admin/students', icon: IconGraduationCap, label: 'Students' },
+  { to: '/admin/teachers', icon: IconUser, label: 'Teachers' },
+  { to: '/admin/classes', icon: IconBuilding, label: 'Classes' },
+  { to: '/admin/subjects', icon: IconBook, label: 'Subjects' },
+  { to: '/admin/class-subjects', icon: IconLink, label: 'Subject teachers' },
+  { to: '/admin/timetable', icon: IconCalendar, label: 'Timetable' },
+  { to: '/admin/attendance/scanner', icon: IconCamera, label: 'Gate scanner' },
+  { to: '/admin/kitchen', icon: IconUtensils, label: 'Kitchen report' },
+  { to: '/admin/grading/marks', icon: IconEdit, label: 'Marks entry' },
+  { to: '/admin/grading/broadsheet', icon: IconBarChart, label: 'Broadsheet' },
+  { to: '/admin/grading/report-cards', icon: IconFileText, label: 'Report cards' },
+  { to: '/admin/grading/release', icon: IconUnlock, label: 'Results release' },
+  { to: '/admin/fees/structures', icon: IconWallet, label: 'Fee structures' },
+  { to: '/admin/fees/debtors', icon: IconClipboardList, label: 'Debtors' },
+  { to: '/admin/announcements', icon: IconMegaphone, label: 'Announcements' },
+  { to: '/admin/settings', icon: IconSettings, label: 'Settings' },
 ];
 
 const TEACHER_NAV = [
-  { to: '/teacher', end: true, icon: '🏠', label: 'Dashboard' },
-  { to: '/teacher/attendance', icon: '📅', label: 'Attendance' },
-  { to: '/teacher/marks', icon: '📝', label: 'Marks entry' },
-  { to: '/teacher/timetable', icon: '🗓️', label: 'My timetable' },
-  { to: '/teacher/chat', icon: '💬', label: 'Parent chat' },
-  { to: '/teacher/announcements', icon: '📣', label: 'Announcements' },
+  { to: '/teacher', end: true, icon: IconHome, label: 'Dashboard' },
+  { to: '/teacher/attendance', icon: IconCalendar, label: 'Attendance' },
+  { to: '/teacher/marks', icon: IconEdit, label: 'Marks entry' },
+  { to: '/teacher/timetable', icon: IconCalendar, label: 'My timetable' },
+  { to: '/teacher/chat', icon: IconMessageCircle, label: 'Parent chat' },
+  { to: '/teacher/announcements', icon: IconMegaphone, label: 'Announcements' },
 ];
 
-const KITCHEN_NAV = [{ to: '/kitchen', end: true, icon: '🍽️', label: 'Headcount' }];
+const KITCHEN_NAV = [{ to: '/kitchen', end: true, icon: IconUtensils, label: 'Headcount' }];
 
 const STUDENT_TABS = [
-  { to: '/student', end: true, icon: '🏠', label: 'Home' },
-  { to: '/student/attendance', icon: '📅', label: 'Attendance' },
-  { to: '/student/results', icon: '📊', label: 'Results' },
-  { to: '/student/timetable', icon: '🗓️', label: 'Timetable' },
-  { to: '/student/notices', icon: '📣', label: 'More' },
+  { to: '/student', end: true, icon: IconHome, label: 'Home' },
+  { to: '/student/attendance', icon: IconCalendar, label: 'Attendance' },
+  { to: '/student/results', icon: IconBarChart, label: 'Results' },
+  { to: '/student/timetable', icon: IconCalendar, label: 'Timetable' },
+  { to: '/student/notices', icon: IconMegaphone, label: 'More' },
 ];
 
 const PARENT_TABS = [
-  { to: '/parent', end: true, icon: '🏠', label: 'Home' },
-  { to: '/parent/attendance', icon: '📅', label: 'Attendance' },
-  { to: '/parent/results', icon: '📊', label: 'Results' },
-  { to: '/parent/fees', icon: '💳', label: 'Fees' },
-  { to: '/parent/notices', icon: '📣', label: 'More' },
+  { to: '/parent', end: true, icon: IconHome, label: 'Home' },
+  { to: '/parent/attendance', icon: IconCalendar, label: 'Attendance' },
+  { to: '/parent/results', icon: IconBarChart, label: 'Results' },
+  { to: '/parent/fees', icon: IconCreditCard, label: 'Fees' },
+  { to: '/parent/notices', icon: IconMegaphone, label: 'More' },
 ];
 
 function RoleRedirect() {

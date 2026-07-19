@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useParams } from 'react-router-dom';
 import { api } from '../../api/client.js';
 import { PageLoader } from '../../components/ui.jsx';
+import { IconPrinter } from '../../components/Icon.jsx';
 
 export default function StudentQrCard() {
   const { id } = useParams();
@@ -16,7 +17,7 @@ export default function StudentQrCard() {
     <div>
       <div className="no-print flex items-center justify-between mb-5">
         <h1 className="text-xl font-bold text-slate-900">Student ID card</h1>
-        <button className="btn-primary" onClick={() => window.print()}>🖨 Print</button>
+        <button className="btn-primary" onClick={() => window.print()}><IconPrinter className="h-4 w-4" /> Print</button>
       </div>
 
       <div className="flex justify-center">

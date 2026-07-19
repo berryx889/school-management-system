@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { api, apiErrorMessage } from '../../api/client.js';
 import { PageLoader, SectionHeader, EmptyState, Modal } from '../../components/ui.jsx';
 import { useToast } from '../../components/Toast.jsx';
+import { IconSmartphone, IconCheckCircle } from '../../components/Icon.jsx';
 
 export default function Debtors() {
   const { data: classes } = useQuery({ queryKey: ['classes'], queryFn: () => api.get('/classes').then((r) => r.data) });
@@ -70,7 +71,7 @@ export default function Debtors() {
               {terms?.map((t) => <option key={t.id} value={t.id}>{t.year} {t.term}</option>)}
             </select>
             <button className="btn-secondary" disabled={!selected.size || remind.isPending} onClick={() => remind.mutate()}>
-              📱 SMS reminder ({selected.size})
+              <IconSmartphone className="h-4 w-4" /> SMS reminder ({selected.size})
             </button>
           </div>
         }
@@ -80,7 +81,7 @@ export default function Debtors() {
         {isLoading ? (
           <PageLoader />
         ) : !debtors.length ? (
-          <EmptyState icon="🎉" title="No outstanding balances" description="Every invoice in this view is fully paid." />
+          <EmptyState icon={IconCheckCircle} title="No outstanding balances" description="Every invoice in this view is fully paid." />
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">

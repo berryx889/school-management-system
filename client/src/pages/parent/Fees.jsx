@@ -6,6 +6,7 @@ import { PageLoader, EmptyState, Badge } from '../../components/ui.jsx';
 import { useToast } from '../../components/Toast.jsx';
 import ChildSwitcher from './ChildSwitcher.jsx';
 import { format } from 'date-fns';
+import { IconReceipt, IconCreditCard } from '../../components/Icon.jsx';
 
 export default function ParentFees() {
   const { selectedChild } = useParentChild();
@@ -32,7 +33,7 @@ export default function ParentFees() {
       <h1 className="text-xl font-bold text-slate-900 mb-5">Fees</h1>
 
       {!data.invoices.length ? (
-        <div className="card"><EmptyState icon="🧾" title="No invoice yet" description="An invoice will appear here once the school generates it." /></div>
+        <div className="card"><EmptyState icon={IconReceipt} title="No invoice yet" description="An invoice will appear here once the school generates it." /></div>
       ) : (
         <div className="space-y-4">
           {data.invoices.map((inv) => (
@@ -84,7 +85,7 @@ function PaymentHistory({ studentId }) {
   });
 
   if (isLoading) return <PageLoader />;
-  if (!data.length) return <div className="card"><EmptyState icon="💳" title="No payments yet" /></div>;
+  if (!data.length) return <div className="card"><EmptyState icon={IconCreditCard} title="No payments yet" /></div>;
 
   return (
     <div className="card divide-y divide-slate-50">

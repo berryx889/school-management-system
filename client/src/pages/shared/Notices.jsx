@@ -10,7 +10,7 @@ export default function Notices({ classId }) {
   });
 
   if (isLoading) return <PageLoader />;
-  if (!data.length) return <div className="card"><EmptyState icon="📭" title="No notices yet" /></div>;
+  if (!data.length) return <div className="card"><EmptyState title="No notices yet" /></div>;
 
   return (
     <div className="space-y-3">

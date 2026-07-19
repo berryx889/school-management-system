@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api, apiErrorMessage } from '../../api/client.js';
 import { PageLoader, SectionHeader, EmptyState, Modal, Badge } from '../../components/ui.jsx';
 import { useToast } from '../../components/Toast.jsx';
+import { IconBook } from '../../components/Icon.jsx';
 
 export default function Subjects() {
   const [modalOpen, setModalOpen] = useState(false);
@@ -31,7 +32,7 @@ export default function Subjects() {
         {isLoading ? (
           <PageLoader />
         ) : data.length === 0 ? (
-          <EmptyState icon="📘" title="No subjects yet" action={<button className="btn-primary" onClick={() => setModalOpen(true)}>+ Add subject</button>} />
+          <EmptyState icon={IconBook} title="No subjects yet" action={<button className="btn-primary" onClick={() => setModalOpen(true)}>+ Add subject</button>} />
         ) : (
           <div className="divide-y divide-slate-50">
             {data.map((s) => (

@@ -3,6 +3,7 @@ import { useAuth } from '../../auth/AuthContext.jsx';
 import { api } from '../../api/client.js';
 import { PageLoader, SectionHeader, EmptyState } from '../../components/ui.jsx';
 import Chat from '../shared/Chat.jsx';
+import { IconMessageCircle } from '../../components/Icon.jsx';
 
 export default function TeacherChat() {
   const { user } = useAuth();
@@ -21,7 +22,7 @@ export default function TeacherChat() {
       {loadingClasses || isLoading ? (
         <PageLoader />
       ) : !myClass ? (
-        <div className="card"><EmptyState icon="💬" title="You are not a class teacher" description="Chat is available once you're assigned as a class teacher." /></div>
+        <div className="card"><EmptyState icon={IconMessageCircle} title="You are not a class teacher" description="Chat is available once you're assigned as a class teacher." /></div>
       ) : (
         <Chat students={students} />
       )}

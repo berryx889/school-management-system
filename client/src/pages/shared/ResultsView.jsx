@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { api } from '../../api/client.js';
 import { PageLoader, EmptyState, Badge } from '../../components/ui.jsx';
+import { IconLock } from '../../components/Icon.jsx';
 
 export default function ResultsView({ studentId }) {
   const { data: terms } = useQuery({ queryKey: ['terms'], queryFn: () => api.get('/terms').then((r) => r.data) });
@@ -24,7 +25,7 @@ export default function ResultsView({ studentId }) {
       {isLoading ? (
         <PageLoader />
       ) : !data?.released ? (
-        <div className="card"><EmptyState icon="🔒" title="Results not yet released" description="Check back once the school releases results for this term." /></div>
+        <div className="card"><EmptyState icon={IconLock} title="Results not yet released" description="Check back once the school releases results for this term." /></div>
       ) : (
         <div>
           <div className="grid grid-cols-3 gap-3 mb-5">

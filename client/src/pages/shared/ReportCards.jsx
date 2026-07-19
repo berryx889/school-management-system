@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useQueries, useQuery } from '@tanstack/react-query';
 import { api } from '../../api/client.js';
 import { PageLoader, SectionHeader, EmptyState } from '../../components/ui.jsx';
+import { IconPrinter, IconReceipt } from '../../components/Icon.jsx';
 
 function ReportCardPage({ result, settings }) {
   return (
@@ -107,18 +108,18 @@ export default function ReportCards() {
               {terms?.map((t) => <option key={t.id} value={t.id}>{t.year} {t.term}</option>)}
             </select>
             {loaded && Boolean(results.length) && (
-              <button className="btn-primary" onClick={() => window.print()}>🖨 Print all</button>
+              <button className="btn-primary" onClick={() => window.print()}><IconPrinter className="h-4 w-4" /> Print all</button>
             )}
           </div>
         }
       />
 
       {!classId ? (
-        <div className="card no-print"><EmptyState icon="🧾" title="Choose a class and term" /></div>
+        <div className="card no-print"><EmptyState icon={IconReceipt} title="Choose a class and term" /></div>
       ) : !loaded ? (
         <PageLoader />
       ) : !results.length ? (
-        <div className="card no-print"><EmptyState icon="🧾" title="No students in this class" /></div>
+        <div className="card no-print"><EmptyState icon={IconReceipt} title="No students in this class" /></div>
       ) : (
         <div>
           {results.map((r) => (
