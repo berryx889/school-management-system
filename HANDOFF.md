@@ -40,21 +40,31 @@ and parent per-subject progress charts.
    Without keys, payments show "not configured" to parents and SMS sends are logged to
    `sms_log` with status `not_configured` instead of delivering. Add
    `PAYSTACK_SECRET_KEY` / `PAYSTACK_PUBLIC_KEY` / `ARKESEL_API_KEY` to go live.
-2. **`xlsx` (SheetJS) has a known unpatched high-severity advisory on the npm registry**
-   (prototype pollution / ReDoS in older published versions — the fixed line only ships
-   via SheetJS's own CDN, not npm). Used only for the admin-only student Excel import.
-   Low risk today since only authenticated admins can hit that endpoint, but swap to the
-   CDN-distributed fixed build before treating uploaded spreadsheets as fully untrusted.
-3. **Student/logo photos store as base64 in Postgres** (v1 scope per PRD). Swap for
+2. **Student/logo photos store as base64 in Postgres** (v1 scope per PRD). Swap for
    Cloudinary if the school exceeds ~200 students with photos, per PRD §2.
-4. **Local Postgres runs on port 5433** (a separate Homebrew instance), not 5432,
+3. **Local Postgres runs on port 5433** (a separate Homebrew instance), not 5432,
    specifically to avoid Postgres.app's macOS GUI permission dialog blocking headless
    connections. See `README.md` for the exact start command. Swap `DATABASE_URL` for a
    Neon connection string in production — no code changes needed either way.
-5. **No automated test suite.** All verification in this session was manual (through the
-   UI and direct API calls). Worth adding at least request-level tests for the
-   attendance-precedence and marks-ownership rules, since those are the two rules with
-   real correctness/security consequences if regressed silently.
+
+### Resolved this session
+
+- **`xlsx` (SheetJS) advisory fixed.** The npm registry was stuck on 0.18.5, which
+  carries an unpatched prototype-pollution/ReDoS advisory (GHSA-4r6h-8v6p-xvw6) — the
+  fix (0.19.3+) was never republished to npm and only ships via SheetJS's own CDN.
+  `server/package.json` now installs `xlsx` directly from
+  `https://cdn.sheetjs.com/xlsx-0.20.3/xlsx-0.20.3.tgz`. `npm audit` is clean.
+  Re-verified the import/template round trip against the live API after the swap.
+- **Automated tests added** for the two rules with real correctness/security
+  consequences if silently regressed: `server/tests/attendance-precedence.test.js`
+  (QR always wins over manual, no duplicate rows for the same student/day) and
+  `server/tests/marks-ownership.test.js` (a teacher not assigned to a class-subject is
+  rejected server-side with 403, out-of-range scores are rejected, locked assessments
+  reject writes even from the owning teacher). Uses Node's built-in test runner
+  (`node --test`, no new dependency) against the real dev Postgres DB — each suite
+  creates its own fixtures and cleans them up in an `after()` hook, so it's safe to
+  re-run repeatedly. `server/app.js` now exports the Express app separately from
+  `index.js`'s `.listen()` call so tests can spin up an ephemeral-port instance.
 
 ## Dev quick reference
 
@@ -62,3 +72,4 @@ and parent per-subject progress charts.
   Vite falls back off 5173 if something else already holds it).
 - Demo logins are in `README.md`.
 - `server/migrations/run.js` is idempotent — safe to re-run.
+- `npm test` (from `/server`) runs the automated test suite.
