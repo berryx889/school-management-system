@@ -1,10 +1,11 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext.jsx';
 import { api, apiErrorMessage } from '../api/client.js';
 import { useToast } from '../components/Toast.jsx';
+import { PasswordInput } from '../components/ui.jsx';
 import {
-  IconShield, IconGraduationCap, IconArrowLeft, IconArrowRight, IconSparkle,
+  IconShield, IconGraduationCap, IconArrowLeft, IconArrowRight,
   IconCalendar, IconBarChart, IconCreditCard, IconMessageCircle,
 } from '../components/Icon.jsx';
 
@@ -25,11 +26,11 @@ const PORTALS = {
   },
 };
 
-const FEATURE_BADGES = [
-  { icon: IconCalendar, label: 'Attendance, live', className: 'top-2 -left-4 sm:-left-10', delay: '0s' },
-  { icon: IconBarChart, label: 'Results & report cards', className: 'top-16 -right-6 sm:-right-16', delay: '1.2s' },
-  { icon: IconCreditCard, label: 'Fees & payments', className: 'bottom-24 -left-8 sm:-left-20', delay: '2.1s' },
-  { icon: IconMessageCircle, label: 'Parent-teacher chat', className: 'bottom-4 -right-4 sm:-right-12', delay: '0.6s' },
+const FEATURES = [
+  { icon: IconCalendar, text: 'Attendance tracked live, every morning' },
+  { icon: IconBarChart, text: 'Results and report cards, generated instantly' },
+  { icon: IconCreditCard, text: 'Fees tracked, paid and receipted online' },
+  { icon: IconMessageCircle, text: 'Parents and teachers, one message away' },
 ];
 
 function readLastUser() {
@@ -40,56 +41,74 @@ function readLastUser() {
   }
 }
 
+function FeatureTicker() {
+  const [index, setIndex] = useState(0);
+
+  useEffect(() => {
+    const id = setInterval(() => setIndex((i) => (i + 1) % FEATURES.length), 2800);
+    return () => clearInterval(id);
+  }, []);
+
+  const feature = FEATURES[index];
+
+  return (
+    <div className="h-10 flex items-center justify-center mb-8">
+      <div key={index} className="animate-fade-in flex items-center gap-2.5">
+        <span className="h-7 w-7 rounded-lg bg-primary-50 text-primary-600 flex items-center justify-center shrink-0">
+          <feature.icon className="h-3.5 w-3.5" />
+        </span>
+        <span className="text-sm font-medium text-slate-600">{feature.text}</span>
+      </div>
+    </div>
+  );
+}
+
+function Reveal({ delay = 0, className = '', children }) {
+  return (
+    <div className={`animate-fade-in-up ${className}`} style={{ animationDelay: `${delay}ms`, animationFillMode: 'both' }}>
+      {children}
+    </div>
+  );
+}
+
 function Splash({ onStart }) {
   const lastUser = readLastUser();
 
   return (
-    <div className="relative">
-      <div className="pointer-events-none absolute inset-0 hidden sm:block">
-        {FEATURE_BADGES.map((f) => (
-          <div
-            key={f.label}
-            className={`absolute ${f.className} animate-float`}
-            style={{ animationDelay: f.delay }}
-          >
-            <div className="flex items-center gap-2 rounded-2xl bg-white shadow-card border border-slate-100 px-3.5 py-2.5 whitespace-nowrap">
-              <span className="h-7 w-7 rounded-lg bg-primary-50 text-primary-600 flex items-center justify-center shrink-0">
-                <f.icon className="h-3.5 w-3.5" />
-              </span>
-              <span className="text-xs font-semibold text-slate-700">{f.label}</span>
-            </div>
-          </div>
-        ))}
-      </div>
-
-      <div className="relative text-center animate-fade-in-up">
+    <div className="relative text-center">
+      <Reveal delay={0}>
         <div className="h-16 w-16 rounded-2xl bg-primary-500 text-white flex items-center justify-center text-2xl font-bold mx-auto mb-6 shadow-lg shadow-primary-500/30">
           B
         </div>
+      </Reveal>
 
-        <div className="inline-flex items-center gap-1.5 rounded-full bg-primary-50 text-primary-700 px-3.5 py-1.5 text-xs font-semibold mb-5">
-          <IconSparkle className="h-3.5 w-3.5" />
-          School management, simplified
-        </div>
-
-        {lastUser ? (
-          <h1 className="text-3xl font-bold text-slate-900 mb-3 text-balance">
-            Welcome back, {lastUser.name}
-          </h1>
-        ) : (
-          <h1 className="text-3xl font-bold text-slate-900 mb-3 text-balance">
-            Welcome to Bright Future Basic School
-          </h1>
-        )}
-
-        <p className="text-slate-500 mb-8 max-w-xs mx-auto">
-          Attendance, results, fees and announcements — one place for admins, teachers, students and parents.
+      <Reveal delay={80}>
+        <p className="text-xs font-bold tracking-[0.2em] text-primary-600 uppercase mb-3">
+          Bright Future Basic School
         </p>
+      </Reveal>
 
+      <Reveal delay={160}>
+        <h1 className="text-3xl font-bold text-slate-900 mb-3 text-balance">
+          {lastUser ? `Welcome back, ${lastUser.name}` : 'Welcome'}
+        </h1>
+      </Reveal>
+
+      <Reveal delay={240}>
+        <p className="text-slate-500 mb-2 max-w-xs mx-auto">
+          Sign in to manage attendance, results, fees and announcements.
+        </p>
+      </Reveal>
+
+      <Reveal delay={320}>
+        <FeatureTicker />
+      </Reveal>
+
+      <Reveal delay={400}>
         <button onClick={onStart} className="btn-primary px-6 py-3 text-base">
           Get started <IconArrowRight className="h-4 w-4" />
         </button>
-      </div>
+      </Reveal>
     </div>
   );
 }
@@ -196,9 +215,9 @@ export default function Login() {
   return (
     <div className="min-h-screen bg-surface relative overflow-hidden flex items-center justify-center px-4 py-10">
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
-        <div className="absolute -top-24 -left-24 h-72 w-72 rounded-full bg-primary-200/40 blur-3xl" />
-        <div className="absolute top-1/3 -right-24 h-80 w-80 rounded-full bg-primary-300/30 blur-3xl" />
-        <div className="absolute -bottom-24 left-1/4 h-72 w-72 rounded-full bg-primary-100/50 blur-3xl" />
+        <div className="animate-drift absolute -top-24 -left-24 h-72 w-72 rounded-full bg-primary-200/40 blur-3xl" />
+        <div className="animate-drift absolute top-1/3 -right-24 h-80 w-80 rounded-full bg-primary-300/30 blur-3xl" style={{ animationDelay: '-5s', animationDuration: '18s' }} />
+        <div className="animate-drift absolute -bottom-24 left-1/4 h-72 w-72 rounded-full bg-primary-100/50 blur-3xl" style={{ animationDelay: '-10s', animationDuration: '16s' }} />
       </div>
 
       <div className={`relative w-full ${stage === 'splash' ? 'max-w-sm' : 'max-w-md'}`}>
@@ -253,7 +272,7 @@ export default function Login() {
                 </div>
                 <div>
                   <label className="label" htmlFor="password">Password</label>
-                  <input id="password" type="password" className="input" value={password} onChange={(e) => setPassword(e.target.value)} required />
+                  <PasswordInput id="password" value={password} onChange={(e) => setPassword(e.target.value)} required autoComplete="current-password" />
                 </div>
                 <button type="submit" className="btn-primary w-full" disabled={loading}>
                   {loading ? 'Signing in…' : 'Sign in'}

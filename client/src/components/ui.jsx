@@ -1,4 +1,31 @@
-import { IconInbox } from './Icon.jsx';
+import { useState } from 'react';
+import { IconInbox, IconEye, IconEyeOff } from './Icon.jsx';
+
+export function PasswordInput({ id, value, onChange, required, autoComplete, className = '' }) {
+  const [visible, setVisible] = useState(false);
+  return (
+    <div className="relative">
+      <input
+        id={id}
+        type={visible ? 'text' : 'password'}
+        className={`input pr-10 ${className}`}
+        value={value}
+        onChange={onChange}
+        required={required}
+        autoComplete={autoComplete}
+      />
+      <button
+        type="button"
+        onClick={() => setVisible((v) => !v)}
+        className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+        aria-label={visible ? 'Hide password' : 'Show password'}
+        tabIndex={-1}
+      >
+        {visible ? <IconEyeOff className="h-4 w-4" /> : <IconEye className="h-4 w-4" />}
+      </button>
+    </div>
+  );
+}
 
 export function StatCard({ label, value, icon: Icon, tone = 'primary' }) {
   const tones = {
