@@ -90,3 +90,7 @@ export const IconUpload = (p) => <Svg {...p}><path d="M12 15.5V4.5M8 8.5 12 4.5 
 export const IconDownload = (p) => <Svg {...p}><path d="M12 4.5v11M8 11.5 12 15.5 16 11.5" /><path d="M4.5 15.5V18a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2v-2.5" /></Svg>;
 
 export const IconX = (p) => <Svg {...p}><path d="M6 6l12 12M18 6 6 18" /></Svg>;
+
+export const IconArrowRight = (p) => <Svg {...p}><path d="M5 12h14M13 6l6 6-6 6" /></Svg>;
+
+export const IconSparkle = (p) => <Svg {...p}><path d="M12 3.5c.5 3 2 5.3 5 5.8-3 .5-4.5 2.8-5 5.8-.5-3-2-5.3-5-5.8 3-.5 4.5-2.8 5-5.8Z" /><path d="M19 15.5c.25 1.2.9 2 2.1 2.3-1.2.3-1.85 1.1-2.1 2.3-.25-1.2-.9-2-2.1-2.3 1.2-.3 1.85-1.1 2.1-2.3Z" /></Svg>;

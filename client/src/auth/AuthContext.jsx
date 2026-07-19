@@ -9,8 +9,8 @@ export function AuthProvider({ children }) {
     return raw ? JSON.parse(raw) : null;
   });
 
-  const login = useCallback(async ({ username, password, role }) => {
-    const { data } = await api.post('/auth/login', { username, password, role });
+  const login = useCallback(async ({ username, password, portal }) => {
+    const { data } = await api.post('/auth/login', { username, password, portal });
     localStorage.setItem('sms_token', data.token);
     localStorage.setItem('sms_user', JSON.stringify(data.user));
     setUser(data.user);

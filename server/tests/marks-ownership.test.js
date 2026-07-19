@@ -21,7 +21,7 @@ before(async () => {
 
   const ownerLogin = await request(ctx.baseUrl, '/auth/login', {
     method: 'POST',
-    body: { username: 'teacher1', password: 'teacher123', role: 'teacher' },
+    body: { username: 'teacher1', password: 'teacher123', portal: 'staff' },
   });
   ownerTeacherToken = ownerLogin.data.token;
   const ownerTeacherId = ownerLogin.data.user.id;
