@@ -1,13 +1,15 @@
 import { useState } from 'react';
 import { NavLink, Outlet, useLocation } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext.jsx';
-import { Avatar } from '../components/ui.jsx';
+import { Avatar, Modal } from '../components/ui.jsx';
 import ErrorBoundary from '../components/ErrorBoundary.jsx';
+import ChangePasswordForm from '../components/ChangePassword.jsx';
 import { IconMenu } from '../components/Icon.jsx';
 
 export default function SidebarLayout({ nav, brand = 'Bright Future Basic School' }) {
   const { user, logout } = useAuth();
   const [open, setOpen] = useState(false);
+  const [passwordModalOpen, setPasswordModalOpen] = useState(false);
   const location = useLocation();
 
   return (
@@ -53,11 +55,18 @@ export default function SidebarLayout({ nav, brand = 'Bright Future Basic School
               <p className="text-xs text-slate-400 capitalize">{user?.role}</p>
             </div>
           </div>
-          <button onClick={logout} className="btn-secondary w-full mt-2 text-sm">
+          <button onClick={() => setPasswordModalOpen(true)} className="text-sm text-slate-500 hover:text-slate-700 w-full mt-2 py-1.5">
+            Change password
+          </button>
+          <button onClick={logout} className="btn-secondary w-full mt-1 text-sm">
             Sign out
           </button>
         </div>
       </aside>
+
+      <Modal open={passwordModalOpen} onClose={() => setPasswordModalOpen(false)} title="Change password">
+        <ChangePasswordForm onDone={() => setPasswordModalOpen(false)} />
+      </Modal>
 
       <div className="flex-1 min-w-0">
         <header className="lg:hidden h-14 bg-white border-b border-slate-100 flex items-center px-4 sticky top-0 z-20 no-print">

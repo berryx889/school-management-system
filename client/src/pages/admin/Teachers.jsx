@@ -29,6 +29,13 @@ export default function Teachers() {
     onSuccess: () => qc.invalidateQueries({ queryKey: ['teachers'] }),
   });
 
+  const [resetResult, setResetResult] = useState(null);
+  const resetPassword = useMutation({
+    mutationFn: (id) => api.post(`/account/reset-password/${id}`),
+    onSuccess: (res) => setResetResult(res.data),
+    onError: (err) => toast(apiErrorMessage(err), 'error'),
+  });
+
   return (
     <div>
       <SectionHeader
@@ -68,7 +75,14 @@ export default function Teachers() {
                     <td className="px-5 py-3">
                       <Badge tone={t.is_active ? 'green' : 'slate'}>{t.is_active ? 'Active' : 'Inactive'}</Badge>
                     </td>
-                    <td className="px-5 py-3 text-right">
+                    <td className="px-5 py-3 text-right space-x-3 whitespace-nowrap">
+                      <button
+                        className="text-slate-500 font-medium"
+                        disabled={resetPassword.isPending}
+                        onClick={() => resetPassword.mutate(t.id)}
+                      >
+                        Reset password
+                      </button>
                       <button
                         className="text-primary-600 font-medium"
                         onClick={() => toggleActive.mutate({ id: t.id, is_active: !t.is_active })}
@@ -108,6 +122,23 @@ export default function Teachers() {
           </div>
           <button className="btn-primary w-full" disabled={create.isPending}>{create.isPending ? 'Saving…' : 'Add teacher'}</button>
         </form>
+      </Modal>
+
+      <Modal open={Boolean(resetResult)} onClose={() => setResetResult(null)} title="Password reset">
+        <p className="text-sm text-slate-600 mb-3">
+          Share this temporary password with <strong>{resetResult?.full_name}</strong>. They'll be asked to set a new one on next sign-in.
+        </p>
+        <div className="flex items-center justify-between rounded-xl bg-slate-50 border border-slate-200 px-4 py-3 mb-4">
+          <code className="font-mono font-semibold text-slate-800">{resetResult?.temp_password}</code>
+          <button
+            type="button"
+            className="text-primary-600 text-sm font-medium"
+            onClick={() => { navigator.clipboard.writeText(resetResult.temp_password); toast('Copied.', 'success'); }}
+          >
+            Copy
+          </button>
+        </div>
+        <button className="btn-primary w-full" onClick={() => setResetResult(null)}>Done</button>
       </Modal>
     </div>
   );

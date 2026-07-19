@@ -5,6 +5,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 
 import authRoutes from './routes/auth.js';
+import accountRoutes from './routes/account.js';
 import settingsRoutes from './routes/settings.js';
 import termRoutes from './routes/terms.js';
 import studentRoutes from './routes/students.js';
@@ -38,6 +39,7 @@ app.use(express.json({ limit: '5mb' }));
 app.get('/api/health', (_req, res) => res.json({ ok: true }));
 
 app.use('/api/auth', authRoutes);
+app.use('/api/account', accountRoutes);
 app.use('/api/settings', settingsRoutes);
 app.use('/api/terms', termRoutes);
 app.use('/api/students', studentRoutes);

@@ -6,7 +6,14 @@ const AuthContext = createContext(null);
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(() => {
     const raw = localStorage.getItem('sms_user');
-    return raw ? JSON.parse(raw) : null;
+    if (!raw) return null;
+    try {
+      return JSON.parse(raw);
+    } catch {
+      localStorage.removeItem('sms_token');
+      localStorage.removeItem('sms_user');
+      return null;
+    }
   });
 
   const login = useCallback(async ({ username, password, portal }) => {
@@ -29,7 +36,18 @@ export function AuthProvider({ children }) {
     setUser(null);
   }, []);
 
-  const value = useMemo(() => ({ user, login, loginWithOtp, logout }), [user, login, loginWithOtp, logout]);
+  const updateUser = useCallback((patch) => {
+    setUser((prev) => {
+      const next = { ...prev, ...patch };
+      localStorage.setItem('sms_user', JSON.stringify(next));
+      return next;
+    });
+  }, []);
+
+  const value = useMemo(
+    () => ({ user, login, loginWithOtp, logout, updateUser }),
+    [user, login, loginWithOtp, logout, updateUser]
+  );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

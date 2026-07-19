@@ -78,7 +78,14 @@ export default function Students() {
   const [search, setSearch] = useState('');
   const [classFilter, setClassFilter] = useState('');
   const [modalOpen, setModalOpen] = useState(false);
+  const [resetResult, setResetResult] = useState(null);
   const toast = useToast();
+
+  const resetPassword = useMutation({
+    mutationFn: (userId) => api.post(`/account/reset-password/${userId}`),
+    onSuccess: (res) => setResetResult(res.data),
+    onError: (err) => toast(apiErrorMessage(err), 'error'),
+  });
 
   const { data: classes } = useQuery({ queryKey: ['classes'], queryFn: () => api.get('/classes').then((r) => r.data) });
   const { data, isLoading } = useQuery({
@@ -190,7 +197,14 @@ export default function Students() {
                     <td className="px-5 py-3">
                       <Badge tone={s.status === 'active' ? 'green' : 'slate'}>{s.status}</Badge>
                     </td>
-                    <td className="px-5 py-3 text-right">
+                    <td className="px-5 py-3 text-right space-x-3 whitespace-nowrap">
+                      <button
+                        className="text-slate-500 font-medium"
+                        disabled={resetPassword.isPending}
+                        onClick={() => resetPassword.mutate(s.user_id)}
+                      >
+                        Reset password
+                      </button>
                       <Link to={`/admin/students/${s.id}/qr-card`} className="text-primary-600 font-medium">QR card →</Link>
                     </td>
                   </tr>
@@ -202,6 +216,23 @@ export default function Students() {
       </div>
 
       <StudentFormModal open={modalOpen} onClose={() => setModalOpen(false)} classes={classes} />
+
+      <Modal open={Boolean(resetResult)} onClose={() => setResetResult(null)} title="Password reset">
+        <p className="text-sm text-slate-600 mb-3">
+          Share this temporary password with <strong>{resetResult?.full_name}</strong>. They'll be asked to set a new one on next sign-in.
+        </p>
+        <div className="flex items-center justify-between rounded-xl bg-slate-50 border border-slate-200 px-4 py-3 mb-4">
+          <code className="font-mono font-semibold text-slate-800">{resetResult?.temp_password}</code>
+          <button
+            type="button"
+            className="text-primary-600 text-sm font-medium"
+            onClick={() => { navigator.clipboard.writeText(resetResult.temp_password); toast('Copied.', 'success'); }}
+          >
+            Copy
+          </button>
+        </div>
+        <button className="btn-primary w-full" onClick={() => setResetResult(null)}>Done</button>
+      </Modal>
     </div>
   );
 }
