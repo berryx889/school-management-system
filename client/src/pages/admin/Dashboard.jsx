@@ -6,6 +6,7 @@ import { format } from 'date-fns';
 import {
   IconGraduationCap, IconUser, IconCheckCircle, IconAlertTriangle, IconClock, IconWallet,
   IconReceipt, IconClipboardList, IconTrendingUp, IconCreditCard, IconMegaphone,
+  IconUnlock, IconSmartphone, IconBuilding,
 } from '../../components/Icon.jsx';
 
 export default function AdminDashboard() {
@@ -33,10 +34,15 @@ export default function AdminDashboard() {
         <StatCard label="Present today" value={data.present_today} icon={IconCheckCircle} tone="green" />
         <StatCard label="Absent today" value={data.absent_today} icon={IconAlertTriangle} tone="red" />
       </div>
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
         <StatCard label="Late today" value={data.late_today} icon={IconClock} tone="amber" />
         <StatCard label="Fees collected (term)" value={`GHS ${data.fees_collected.toLocaleString()}`} icon={IconWallet} tone="green" />
         <StatCard label="Fees outstanding" value={`GHS ${data.fees_outstanding.toLocaleString()}`} icon={IconReceipt} tone="amber" />
+      </div>
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+        <StatCard label="Owing students" value={data.owing_students} icon={IconAlertTriangle} tone="red" />
+        <StatCard label="Results published" value={data.results_published} icon={IconUnlock} />
+        <StatCard label="SMS sent" value={data.sms_sent} icon={IconSmartphone} />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
@@ -87,7 +93,31 @@ export default function AdminDashboard() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="card p-5">
+          <h3 className="font-bold text-slate-900 mb-3">Enrollment by class</h3>
+          {data.enrollment_by_class.length ? (
+            <ul className="space-y-3">
+              {data.enrollment_by_class.map((c) => {
+                const max = Math.max(...data.enrollment_by_class.map((x) => x.count), 1);
+                return (
+                  <li key={c.class_name}>
+                    <div className="flex justify-between text-sm mb-1">
+                      <span className="text-slate-600">{c.class_name}</span>
+                      <span className="font-semibold text-slate-800">{c.count}</span>
+                    </div>
+                    <div className="h-2 rounded-full bg-slate-100 overflow-hidden">
+                      <div className="h-full bg-primary-500 rounded-full" style={{ width: `${(c.count / max) * 100}%` }} />
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
+          ) : (
+            <EmptyState icon={IconBuilding} title="No classes yet" />
+          )}
+        </div>
+
         <div className="card p-5">
           <h3 className="font-bold text-slate-900 mb-3">Recent payments</h3>
           {data.recent_payments.length ? (

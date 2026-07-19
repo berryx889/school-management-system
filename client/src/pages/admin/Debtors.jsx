@@ -2,9 +2,101 @@ import { useEffect, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { api, apiErrorMessage } from '../../api/client.js';
-import { PageLoader, SectionHeader, EmptyState, Modal } from '../../components/ui.jsx';
+import { PageLoader, SectionHeader, EmptyState, Modal, Avatar } from '../../components/ui.jsx';
 import { useToast } from '../../components/Toast.jsx';
-import { IconSmartphone, IconCheckCircle } from '../../components/Icon.jsx';
+import { IconSmartphone, IconCheckCircle, IconArrowLeft } from '../../components/Icon.jsx';
+
+function QuickPayment({ onOpenPayModal }) {
+  const [searchTerm, setSearchTerm] = useState('');
+  const [pickedStudent, setPickedStudent] = useState(null);
+
+  const { data: searchResults } = useQuery({
+    queryKey: ['student-search', searchTerm],
+    queryFn: () => api.get('/students', { params: { search: searchTerm, limit: 5 } }).then((r) => r.data.data),
+    enabled: searchTerm.trim().length > 1 && !pickedStudent,
+  });
+
+  const { data: invoices, isLoading: loadingInvoices } = useQuery({
+    queryKey: ['student-invoices', pickedStudent?.id],
+    queryFn: () => api.get('/fees/invoices', { params: { student_id: pickedStudent.id } }).then((r) => r.data.invoices),
+    enabled: Boolean(pickedStudent),
+  });
+
+  function reset() {
+    setPickedStudent(null);
+    setSearchTerm('');
+  }
+
+  return (
+    <div className="card p-5 mb-6">
+      <h3 className="font-bold text-slate-900 mb-3">Quick payment</h3>
+
+      {!pickedStudent ? (
+        <>
+          <input
+            className="input"
+            placeholder="Search student by name or ID…"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+          {searchResults?.length > 0 && (
+            <ul className="mt-2 divide-y divide-slate-50 border border-slate-100 rounded-xl overflow-hidden">
+              {searchResults.map((s) => (
+                <li key={s.id}>
+                  <button
+                    className="w-full flex items-center gap-3 px-3 py-2.5 text-left hover:bg-slate-50"
+                    onClick={() => setPickedStudent(s)}
+                  >
+                    <Avatar name={s.full_name} photoUrl={s.photo_url} size={28} />
+                    <span className="font-medium text-slate-800 text-sm">{s.full_name}</span>
+                    <span className="text-xs text-slate-400 ml-auto">{s.student_code} · {s.class_name || 'Unassigned'}</span>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </>
+      ) : (
+        <div>
+          <button onClick={reset} className="text-sm text-primary-600 font-medium mb-3 flex items-center gap-1">
+            <IconArrowLeft className="h-4 w-4" /> Search another student
+          </button>
+          <div className="flex items-center gap-3 mb-3">
+            <Avatar name={pickedStudent.full_name} photoUrl={pickedStudent.photo_url} size={36} />
+            <div>
+              <p className="font-semibold text-slate-800">{pickedStudent.full_name}</p>
+              <p className="text-xs text-slate-400">{pickedStudent.student_code} · {pickedStudent.class_name || 'Unassigned'}</p>
+            </div>
+          </div>
+
+          {loadingInvoices ? (
+            <PageLoader />
+          ) : !invoices?.length ? (
+            <p className="text-sm text-slate-400">No invoices for this student yet.</p>
+          ) : (
+            <ul className="divide-y divide-slate-50">
+              {invoices.map((inv) => (
+                <li key={inv.id} className="flex items-center justify-between py-2.5 text-sm">
+                  <span className="text-slate-600">Balance: GHS {inv.balance.toLocaleString()}</span>
+                  {inv.balance > 0 ? (
+                    <button
+                      className="text-primary-600 font-medium"
+                      onClick={() => onOpenPayModal({ invoice_id: inv.id, full_name: pickedStudent.full_name, balance: inv.balance })}
+                    >
+                      Record payment
+                    </button>
+                  ) : (
+                    <span className="text-emerald-600 font-medium">Fully paid</span>
+                  )}
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
 
 export default function Debtors() {
   const { data: classes } = useQuery({ queryKey: ['classes'], queryFn: () => api.get('/classes').then((r) => r.data) });
@@ -49,11 +141,17 @@ export default function Debtors() {
     onSuccess: (res) => {
       toast('Payment recorded.', 'success');
       qc.invalidateQueries({ queryKey: ['debtors'] });
+      qc.invalidateQueries({ queryKey: ['student-invoices'] });
       setPayModal(null);
       navigate(`/admin/receipts/${res.data.id}`);
     },
     onError: (err) => toast(apiErrorMessage(err), 'error'),
   });
+
+  function openPayModal(target) {
+    setPayModal(target);
+    setPayForm({ amount: target.balance, method: 'cash' });
+  }
 
   return (
     <div>
@@ -76,6 +174,8 @@ export default function Debtors() {
           </div>
         }
       />
+
+      <QuickPayment onOpenPayModal={openPayModal} />
 
       <div className="card overflow-hidden">
         {isLoading ? (
@@ -108,7 +208,7 @@ export default function Debtors() {
                     <td className="px-4 py-2.5 text-right">
                       <button
                         className="text-primary-600 font-medium"
-                        onClick={() => { setPayModal(d); setPayForm({ amount: d.balance, method: 'cash' }); }}
+                        onClick={() => openPayModal({ invoice_id: d.invoice_id, full_name: d.full_name, balance: d.balance })}
                       >
                         Record payment
                       </button>

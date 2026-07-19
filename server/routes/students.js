@@ -78,6 +78,60 @@ router.get('/', requireAuth, async (req, res) => {
   res.json({ data: rows, total: Number(total.rows[0].count) });
 });
 
+router.get('/export', requireAuth, requireRole('admin'), async (req, res) => {
+  const { class_id } = req.query;
+  const values = [];
+  const conditions = ["s.status != 'deleted'"];
+  if (class_id) { values.push(class_id); conditions.push(`s.class_id=$${values.length}`); }
+
+  const { rows } = await pool.query(
+    `SELECT s.student_code, u.full_name, s.gender, s.dob, c.name AS class_name,
+            p.full_name AS parent_name, p.phone AS parent_phone, s.status
+     FROM students s
+     JOIN users u ON u.id = s.user_id
+     LEFT JOIN classes c ON c.id = s.class_id
+     LEFT JOIN users p ON p.id = s.parent_id
+     WHERE ${conditions.join(' AND ')}
+     ORDER BY u.full_name`,
+    values
+  );
+
+  const escape = (value) => {
+    const str = value == null ? '' : String(value);
+    return /[",\n]/.test(str) ? `"${str.replace(/"/g, '""')}"` : str;
+  };
+  const header = ['Student ID', 'Full Name', 'Gender', 'Date of Birth', 'Class', 'Parent Name', 'Parent Phone', 'Status'];
+  const lines = [header.join(',')];
+  for (const r of rows) {
+    lines.push([
+      r.student_code, r.full_name, r.gender,
+      r.dob ? new Date(r.dob).toISOString().slice(0, 10) : '',
+      r.class_name, r.parent_name, r.parent_phone, r.status,
+    ].map(escape).join(','));
+  }
+
+  res.setHeader('Content-Disposition', 'attachment; filename="students.csv"');
+  res.setHeader('Content-Type', 'text/csv');
+  res.send(lines.join('\n'));
+});
+
+router.post('/promote', requireAuth, requireRole('admin'), async (req, res) => {
+  const { student_ids, class_id } = req.body;
+  if (!Array.isArray(student_ids) || !student_ids.length) {
+    return res.status(400).json({ error: 'student_ids[] is required' });
+  }
+  if (class_id) {
+    const target = await pool.query('SELECT id FROM classes WHERE id=$1', [class_id]);
+    if (!target.rows.length) return res.status(404).json({ error: 'Target class not found' });
+  }
+
+  const { rows } = await pool.query(
+    `UPDATE students SET class_id=$1 WHERE id = ANY($2::int[]) AND status='active' RETURNING id`,
+    [class_id || null, student_ids]
+  );
+  res.json({ updated: rows.length });
+});
+
 router.get('/:id', requireAuth, async (req, res) => {
   const { rows } = await pool.query(
     `SELECT s.*, u.full_name, u.photo_url, u.phone, c.name AS class_name,

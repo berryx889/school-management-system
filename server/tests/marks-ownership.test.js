@@ -19,8 +19,19 @@ before(async () => {
   ctx = await startServer();
   const adminToken = await login(ctx.baseUrl, 'admin', 'admin123', 'admin');
 
+  const ownerLogin = await request(ctx.baseUrl, '/auth/login', {
+    method: 'POST',
+    body: { username: 'teacher1', password: 'teacher123', role: 'teacher' },
+  });
+  ownerTeacherToken = ownerLogin.data.token;
+  const ownerTeacherId = ownerLogin.data.user.id;
+
+  // Pick a class-subject actually owned by teacher1 rather than assuming a fixed
+  // index — the seed data's subject list (and its alphabetical ordering) can change.
   const { data: classSubjects } = await request(ctx.baseUrl, '/class-subjects?class_id=4', { token: adminToken });
-  classSubjectId = classSubjects[0].id; // owned by seeded teacher1 ("Mrs. Abena Owusu")
+  const owned = classSubjects.find((cs) => cs.teacher_id === ownerTeacherId);
+  assert.ok(owned, 'fixture: expected at least one class-subject in JHS2 owned by teacher1');
+  classSubjectId = owned.id;
 
   const { data: terms } = await request(ctx.baseUrl, '/terms', { token: adminToken });
   termId = terms.find((t) => t.is_current).id;
@@ -43,7 +54,6 @@ before(async () => {
   });
   outsiderTeacherId = outsider.id;
 
-  ownerTeacherToken = await login(ctx.baseUrl, 'teacher1', 'teacher123', 'teacher');
   outsiderTeacherToken = await login(ctx.baseUrl, 'outsider_teacher_test', 'outsider123', 'teacher');
 });
 

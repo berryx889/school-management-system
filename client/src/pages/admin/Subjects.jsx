@@ -7,7 +7,7 @@ import { IconBook } from '../../components/Icon.jsx';
 
 export default function Subjects() {
   const [modalOpen, setModalOpen] = useState(false);
-  const [form, setForm] = useState({ name: '', code: '' });
+  const [form, setForm] = useState({ name: '', code: '', type: 'core' });
   const toast = useToast();
   const qc = useQueryClient();
 
@@ -19,7 +19,7 @@ export default function Subjects() {
       qc.invalidateQueries({ queryKey: ['subjects'] });
       toast('Subject added.', 'success');
       setModalOpen(false);
-      setForm({ name: '', code: '' });
+      setForm({ name: '', code: '', type: 'core' });
     },
     onError: (err) => toast(apiErrorMessage(err), 'error'),
   });
@@ -38,7 +38,10 @@ export default function Subjects() {
             {data.map((s) => (
               <div key={s.id} className="px-5 py-3 flex items-center justify-between">
                 <span className="font-medium text-slate-800">{s.name}</span>
-                <Badge tone="primary">{s.code}</Badge>
+                <div className="flex items-center gap-2">
+                  <Badge tone={s.type === 'elective' ? 'amber' : 'slate'}>{s.type}</Badge>
+                  <Badge tone="primary">{s.code}</Badge>
+                </div>
               </div>
             ))}
           </div>
@@ -54,6 +57,13 @@ export default function Subjects() {
           <div>
             <label className="label">Code</label>
             <input className="input" required placeholder="e.g. MATH" value={form.code} onChange={(e) => setForm({ ...form, code: e.target.value })} />
+          </div>
+          <div>
+            <label className="label">Type</label>
+            <select className="input" value={form.type} onChange={(e) => setForm({ ...form, type: e.target.value })}>
+              <option value="core">Core</option>
+              <option value="elective">Elective</option>
+            </select>
           </div>
           <button className="btn-primary w-full" disabled={create.isPending}>{create.isPending ? 'Saving…' : 'Add subject'}</button>
         </form>

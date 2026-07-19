@@ -99,6 +99,19 @@ export default function Students() {
     URL.revokeObjectURL(url);
   }
 
+  async function downloadCsv() {
+    const res = await api.get('/students/export', {
+      params: { class_id: classFilter || undefined },
+      responseType: 'blob',
+    });
+    const url = URL.createObjectURL(res.data);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'students.csv';
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
   async function handleImport(e) {
     const file = e.target.files[0];
     if (!file) return;
@@ -123,6 +136,7 @@ export default function Students() {
         description={`${data?.total ?? 0} total`}
         action={
           <div className="flex gap-2 flex-wrap">
+            <button className="btn-secondary" onClick={downloadCsv}><IconDownload className="h-4 w-4" /> Export CSV</button>
             <button className="btn-secondary" onClick={downloadTemplate}><IconDownload className="h-4 w-4" /> Template</button>
             <label className="btn-secondary cursor-pointer">
               <IconUpload className="h-4 w-4" /> Import Excel

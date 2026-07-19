@@ -33,6 +33,7 @@ export default function AttendanceMark() {
   });
 
   const [statusOverrides, setStatusOverrides] = useState({});
+  const [remarkOverrides, setRemarkOverrides] = useState({});
 
   const submit = useMutation({
     mutationFn: (records) => api.post('/attendance/manual', { class_id: classId, date: today, records }),
@@ -40,6 +41,7 @@ export default function AttendanceMark() {
       toast('Attendance saved.', 'success');
       qc.invalidateQueries({ queryKey: ['attendance', classId, today] });
       setStatusOverrides({});
+      setRemarkOverrides({});
     },
     onError: (err) => toast(apiErrorMessage(err), 'error'),
   });
@@ -49,8 +51,25 @@ export default function AttendanceMark() {
     return student.status || 'present';
   }
 
+  function remarkFor(student) {
+    if (student.student_id in remarkOverrides) return remarkOverrides[student.student_id];
+    return student.remark || '';
+  }
+
+  function markAll(status) {
+    const next = {};
+    for (const s of roster) {
+      if (s.method !== 'qr') next[s.student_id] = status;
+    }
+    setStatusOverrides((o) => ({ ...o, ...next }));
+  }
+
   function handleSubmit() {
-    const records = roster.map((s) => ({ student_id: s.student_id, status: statusFor(s) }));
+    const records = roster.map((s) => ({
+      student_id: s.student_id,
+      status: statusFor(s),
+      remark: remarkFor(s) || null,
+    }));
     submit.mutate(records);
   }
 
@@ -71,36 +90,52 @@ export default function AttendanceMark() {
       ) : !roster?.length ? (
         <div className="card"><EmptyState icon={IconGraduationCap} title="No students in this class" /></div>
       ) : (
-        <div className="card divide-y divide-slate-50">
-          {roster.map((s) => {
-            const isQr = s.method === 'qr';
-            const current = statusFor(s);
-            return (
-              <div key={s.student_id} className="flex items-center justify-between gap-3 p-4">
-                <div className="flex items-center gap-3 min-w-0">
-                  <Avatar name={s.full_name} photoUrl={s.photo_url} size={36} />
-                  <div className="min-w-0">
-                    <p className="font-medium text-slate-800 truncate">{s.full_name}</p>
-                    {isQr && <p className="text-xs text-primary-600">Checked in by QR — locked</p>}
+        <>
+          <div className="flex gap-2 mb-4">
+            <button className="btn-secondary" onClick={() => markAll('present')}>All Present</button>
+            <button className="btn-secondary" onClick={() => markAll('absent')}>All Absent</button>
+          </div>
+
+          <div className="card divide-y divide-slate-50">
+            {roster.map((s) => {
+              const isQr = s.method === 'qr';
+              const current = statusFor(s);
+              return (
+                <div key={s.student_id} className="flex flex-wrap items-center justify-between gap-3 p-4">
+                  <div className="flex items-center gap-3 min-w-0">
+                    <Avatar name={s.full_name} photoUrl={s.photo_url} size={36} />
+                    <div className="min-w-0">
+                      <p className="font-medium text-slate-800 truncate">{s.full_name}</p>
+                      {isQr && <p className="text-xs text-primary-600">Checked in by QR — locked</p>}
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <input
+                      className="input w-40 !py-1.5 text-xs"
+                      placeholder="Remark (optional)"
+                      disabled={isQr}
+                      value={remarkFor(s)}
+                      onChange={(e) => setRemarkOverrides((o) => ({ ...o, [s.student_id]: e.target.value }))}
+                    />
+                    <div className="flex gap-1.5 shrink-0">
+                      {STATUSES.map((st) => (
+                        <button
+                          key={st.id}
+                          disabled={isQr}
+                          onClick={() => setStatusOverrides((o) => ({ ...o, [s.student_id]: st.id }))}
+                          className={`rounded-lg px-2.5 py-1.5 text-xs font-semibold transition disabled:opacity-40
+                            ${current === st.id ? st.tone : 'bg-slate-100 text-slate-500 hover:bg-slate-200'}`}
+                        >
+                          {st.label}
+                        </button>
+                      ))}
+                    </div>
                   </div>
                 </div>
-                <div className="flex gap-1.5 shrink-0">
-                  {STATUSES.map((st) => (
-                    <button
-                      key={st.id}
-                      disabled={isQr}
-                      onClick={() => setStatusOverrides((o) => ({ ...o, [s.student_id]: st.id }))}
-                      className={`rounded-lg px-2.5 py-1.5 text-xs font-semibold transition disabled:opacity-40
-                        ${current === st.id ? st.tone : 'bg-slate-100 text-slate-500 hover:bg-slate-200'}`}
-                    >
-                      {st.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            );
-          })}
-        </div>
+              );
+            })}
+          </div>
+        </>
       )}
 
       {Boolean(roster?.length) && (

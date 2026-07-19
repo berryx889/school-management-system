@@ -7,13 +7,14 @@ import MobileLayout from './layouts/MobileLayout.jsx';
 import {
   IconHome, IconGraduationCap, IconUser, IconBuilding, IconBook, IconLink, IconCalendar,
   IconCamera, IconUtensils, IconEdit, IconBarChart, IconFileText, IconUnlock, IconWallet,
-  IconClipboardList, IconMegaphone, IconSettings, IconCreditCard, IconMessageCircle,
+  IconClipboardList, IconMegaphone, IconSettings, IconCreditCard, IconMessageCircle, IconTrendingUp,
 } from './components/Icon.jsx';
 
 import Login from './pages/Login.jsx';
 
 import AdminDashboard from './pages/admin/Dashboard.jsx';
 import Students from './pages/admin/Students.jsx';
+import PromoteStudents from './pages/admin/PromoteStudents.jsx';
 import StudentQrCard from './pages/admin/StudentQrCard.jsx';
 import Teachers from './pages/admin/Teachers.jsx';
 import Classes from './pages/admin/Classes.jsx';
@@ -56,6 +57,7 @@ import Receipt from './pages/shared/Receipt.jsx';
 const ADMIN_NAV = [
   { to: '/admin', end: true, icon: IconHome, label: 'Dashboard' },
   { to: '/admin/students', icon: IconGraduationCap, label: 'Students' },
+  { to: '/admin/students/promote', icon: IconTrendingUp, label: 'Promote students' },
   { to: '/admin/teachers', icon: IconUser, label: 'Teachers' },
   { to: '/admin/classes', icon: IconBuilding, label: 'Classes' },
   { to: '/admin/subjects', icon: IconBook, label: 'Subjects' },
@@ -115,6 +117,7 @@ export default function App() {
       <Route path="/admin" element={<ProtectedRoute roles={['admin']}><SidebarLayout nav={ADMIN_NAV} /></ProtectedRoute>}>
         <Route index element={<AdminDashboard />} />
         <Route path="students" element={<Students />} />
+        <Route path="students/promote" element={<PromoteStudents />} />
         <Route path="students/:id/qr-card" element={<StudentQrCard />} />
         <Route path="teachers" element={<Teachers />} />
         <Route path="classes" element={<Classes />} />

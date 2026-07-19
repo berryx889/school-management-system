@@ -74,18 +74,18 @@ router.post('/manual', requireAuth, requireRole('admin', 'teacher'), async (req,
 
   const saved = [];
   for (const record of records) {
-    const { student_id, status } = record;
+    const { student_id, status, remark } = record;
     const existing = await pool.query('SELECT * FROM attendance WHERE student_id=$1 AND date=$2', [student_id, date]);
     if (existing.rows.length && existing.rows[0].method === 'qr') {
       saved.push(existing.rows[0]); // never downgrade a QR record
       continue;
     }
     const { rows } = await pool.query(
-      `INSERT INTO attendance (student_id, date, status, method, marked_by)
-       VALUES ($1,$2,$3,'manual',$4)
-       ON CONFLICT (student_id, date) DO UPDATE SET status=$3, marked_by=$4
+      `INSERT INTO attendance (student_id, date, status, method, marked_by, remark)
+       VALUES ($1,$2,$3,'manual',$4,$5)
+       ON CONFLICT (student_id, date) DO UPDATE SET status=$3, marked_by=$4, remark=$5
        RETURNING *`,
-      [student_id, date, status, req.user.id]
+      [student_id, date, status, req.user.id, remark || null]
     );
     saved.push(rows[0]);
   }

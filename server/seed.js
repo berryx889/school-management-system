@@ -66,20 +66,27 @@ async function seed() {
   }
 
   const subjectDefs = [
-    ['English Language', 'ENG'],
-    ['Mathematics', 'MATH'],
-    ['Integrated Science', 'SCI'],
-    ['Social Studies', 'SOC'],
+    ['English Language', 'ENG', 'core'],
+    ['Mathematics', 'MATH', 'core'],
+    ['Integrated Science', 'SCI', 'core'],
+    ['Social Studies', 'SOC', 'core'],
+    ['Religious and Moral Education', 'RME', 'core'],
+    ['Career Technology', 'CTECH', 'core'],
+    ['Computing', 'ICT', 'core'],
+    ['Creative Arts and Design', 'CRAFT', 'core'],
+    ['Physical Education', 'PE', 'core'],
+    ['Ghanaian Language (Twi)', 'TWI', 'elective'],
+    ['French', 'FRE', 'elective'],
   ];
   const subjectIds = [];
-  for (const [name, code] of subjectDefs) {
+  for (const [name, code, type] of subjectDefs) {
     const existing = await pool.query('SELECT id FROM subjects WHERE code=$1', [code]);
     if (existing.rows.length) {
       subjectIds.push(existing.rows[0].id);
     } else {
       const { rows } = await pool.query(
-        'INSERT INTO subjects (name, code) VALUES ($1,$2) RETURNING id',
-        [name, code]
+        'INSERT INTO subjects (name, code, type) VALUES ($1,$2,$3) RETURNING id',
+        [name, code, type]
       );
       subjectIds.push(rows[0].id);
     }
@@ -96,11 +103,20 @@ async function seed() {
   const jhs2Id = classIds[3];
   await pool.query('UPDATE classes SET class_teacher_id=$1 WHERE id=$2', [teacherId, jhs2Id]);
 
-  for (const subjectId of subjectIds) {
+  // Teacher1 teaches the four core subjects; the rest are seeded unassigned so the
+  // "Unassigned" state in Subject Teachers is visible in the demo data.
+  for (const subjectId of subjectIds.slice(0, 4)) {
     await pool.query(
       `INSERT INTO class_subjects (class_id, subject_id, teacher_id)
        VALUES ($1,$2,$3) ON CONFLICT (class_id, subject_id) DO UPDATE SET teacher_id=$3`,
       [jhs2Id, subjectId, teacherId]
+    );
+  }
+  for (const subjectId of subjectIds.slice(4)) {
+    await pool.query(
+      `INSERT INTO class_subjects (class_id, subject_id, teacher_id)
+       VALUES ($1,$2,NULL) ON CONFLICT (class_id, subject_id) DO NOTHING`,
+      [jhs2Id, subjectId]
     );
   }
 

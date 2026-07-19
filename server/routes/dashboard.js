@@ -11,8 +11,10 @@ function todayStr() {
 router.get('/admin', requireAuth, requireRole('admin'), async (_req, res) => {
   const date = todayStr();
 
-  const [students, teachers, todayAttendance, feesCollected, feesOutstanding, recentPayments, recentAnnouncements, trend] =
-    await Promise.all([
+  const [
+    students, teachers, todayAttendance, feesCollected, feesOutstanding, recentPayments,
+    recentAnnouncements, trend, owingStudents, resultsPublished, smsSent, enrollmentByClass,
+  ] = await Promise.all([
       pool.query("SELECT COUNT(*) FROM students WHERE status='active'"),
       pool.query("SELECT COUNT(*) FROM users WHERE role='teacher' AND is_active=true"),
       pool.query(
@@ -43,6 +45,24 @@ router.get('/admin', requireAuth, requireRole('admin'), async (_req, res) => {
          FROM attendance WHERE date >= (CURRENT_DATE - INTERVAL '30 days')
          GROUP BY date ORDER BY date`
       ),
+      pool.query(
+        `SELECT COUNT(DISTINCT i.student_id) AS count FROM fee_invoices i
+         CROSS JOIN LATERAL (
+           SELECT i.total_due - COALESCE((SELECT SUM(amount) FROM payments WHERE invoice_id=i.id AND status='success'),0) AS balance
+         ) b
+         WHERE b.balance > 0`
+      ),
+      pool.query(
+        `SELECT COUNT(*) FROM results_release rr
+         JOIN academic_terms t ON t.id = rr.term_id AND t.is_current = true
+         WHERE rr.released = true`
+      ),
+      pool.query("SELECT COUNT(*) FROM sms_log WHERE status='sent'"),
+      pool.query(
+        `SELECT c.name AS class_name, COUNT(s.id) FILTER (WHERE s.status='active') AS count
+         FROM classes c LEFT JOIN students s ON s.class_id = c.id
+         GROUP BY c.name ORDER BY c.name`
+      ),
     ]);
 
   const attendanceByStatus = { present: 0, absent: 0, late: 0 };
@@ -56,6 +76,10 @@ router.get('/admin', requireAuth, requireRole('admin'), async (_req, res) => {
     late_today: attendanceByStatus.late,
     fees_collected: Number(feesCollected.rows[0].total),
     fees_outstanding: Math.max(0, Number(feesOutstanding.rows[0].total)),
+    owing_students: Number(owingStudents.rows[0].count),
+    results_published: Number(resultsPublished.rows[0].count),
+    sms_sent: Number(smsSent.rows[0].count),
+    enrollment_by_class: enrollmentByClass.rows.map((r) => ({ ...r, count: Number(r.count) })),
     recent_payments: recentPayments.rows,
     recent_announcements: recentAnnouncements.rows,
     attendance_trend: trend.rows,
