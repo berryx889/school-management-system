@@ -30,7 +30,7 @@ async function computeClassResults(classId, termId) {
 
   const classSubjects = (
     await pool.query(
-      `SELECT cs.id, sub.name AS subject_name FROM class_subjects cs
+      `SELECT cs.id, sub.name AS subject_name, sub.type AS subject_type FROM class_subjects cs
        JOIN subjects sub ON sub.id = cs.subject_id
        WHERE cs.class_id=$1 ORDER BY sub.name`,
       [classId]
@@ -91,6 +91,7 @@ async function computeClassResults(classId, termId) {
     const subjectResults = classSubjects.map((cs) => ({
       class_subject_id: cs.id,
       subject_name: cs.subject_name,
+      subject_type: cs.subject_type,
       ...matrix.get(s.id).get(cs.id),
     }));
     const total = subjectResults.reduce((sum, r) => sum + r.total, 0);
@@ -106,11 +107,64 @@ async function computeClassResults(classId, termId) {
   return { students: overall, subjects: classSubjects, class_size: students.length };
 }
 
+// Promotion eligibility, reusing computeClassResults rather than re-querying marks. Pass/fail
+// is decided against promotion_pass_mark, not by string-matching grade_bands.remark (free
+// text, no guaranteed "Fail" marker). promotion_carry_over_allowed=false means zero-tolerance
+// (any failed subject blocks promotion); =true means promotion_max_failed_subjects is the
+// effective tolerance.
+export async function computePromotionEligibility(classId, termId) {
+  const settingsRes = await pool.query('SELECT * FROM school_settings LIMIT 1');
+  const settings = settingsRes.rows[0];
+  const { students } = await computeClassResults(classId, termId);
+
+  const passMark = Number(settings.promotion_pass_mark);
+  const effectiveMaxFailed = settings.promotion_carry_over_allowed ? Number(settings.promotion_max_failed_subjects) : 0;
+
+  return students.map((s) => {
+    const failedSubjects = s.subjects.filter((sub) => sub.total < passMark);
+    const failedCore = failedSubjects.filter((sub) => sub.subject_type === 'core');
+    const reasons = [];
+    if (s.average < Number(settings.promotion_min_average)) {
+      reasons.push(`Average ${s.average} is below the required ${settings.promotion_min_average}`);
+    }
+    if (failedSubjects.length > effectiveMaxFailed) {
+      reasons.push(`Failed ${failedSubjects.length} subject(s), max allowed is ${effectiveMaxFailed}`);
+    }
+    if (settings.promotion_core_subjects_must_pass && failedCore.length) {
+      reasons.push(`Failed core subject(s): ${failedCore.map((c) => c.subject_name).join(', ')}`);
+    }
+    return {
+      student_id: s.student_id,
+      full_name: s.full_name,
+      student_code: s.student_code,
+      average: s.average,
+      failed_subjects: failedSubjects.map((f) => f.subject_name),
+      failed_core_subjects: failedCore.map((f) => f.subject_name),
+      eligible: reasons.length === 0,
+      distinction: s.average >= Number(settings.promotion_distinction_threshold),
+      reasons,
+    };
+  });
+}
+
 router.get('/broadsheet', requireAuth, requireRole('admin', 'teacher'), async (req, res) => {
   const { class_id, term_id } = req.query;
   if (!class_id || !term_id) return res.status(400).json({ error: 'class_id and term_id are required' });
   const data = await computeClassResults(class_id, term_id);
   res.json(data);
+});
+
+router.get('/promotion-eligibility', requireAuth, requireRole('admin'), async (req, res) => {
+  const { class_id, term_id } = req.query;
+  if (!class_id || !term_id) return res.status(400).json({ error: 'class_id and term_id are required' });
+  const settingsRes = await pool.query(
+    `SELECT promotion_pass_mark, promotion_min_average, promotion_max_failed_subjects,
+            promotion_distinction_threshold, promotion_core_subjects_must_pass,
+            promotion_carry_over_allowed, promotion_automatic, promotion_manual_override_allowed
+     FROM school_settings LIMIT 1`
+  );
+  const students = await computePromotionEligibility(class_id, term_id);
+  res.json({ policy: settingsRes.rows[0], students });
 });
 
 router.get('/student/:id', requireAuth, async (req, res) => {

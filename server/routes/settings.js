@@ -28,6 +28,9 @@ router.put('/', requireAuth, requireRole('admin'), async (req, res) => {
     'favicon_url', 'school_seal_url', 'report_card_watermark_url',
     'secondary_color', 'theme', 'font_family',
     'tax_rate', 'late_fee_grace_days', 'late_fee_percent',
+    'promotion_pass_mark', 'promotion_min_average', 'promotion_max_failed_subjects',
+    'promotion_distinction_threshold', 'promotion_core_subjects_must_pass',
+    'promotion_carry_over_allowed', 'promotion_automatic', 'promotion_manual_override_allowed',
   ];
   const current = await pool.query('SELECT id FROM school_settings LIMIT 1');
   const id = current.rows[0].id;

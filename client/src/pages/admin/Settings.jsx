@@ -162,6 +162,82 @@ function GradeBandsEditor({ initialBands }) {
   );
 }
 
+const PROMOTION_FIELDS = [
+  'promotion_pass_mark', 'promotion_min_average', 'promotion_max_failed_subjects',
+  'promotion_distinction_threshold', 'promotion_core_subjects_must_pass',
+  'promotion_carry_over_allowed', 'promotion_automatic', 'promotion_manual_override_allowed',
+];
+
+function PromotionPolicyEditor({ initial }) {
+  const [policy, setPolicy] = useState(initial);
+  const toast = useToast();
+  const qc = useQueryClient();
+
+  const save = useMutation({
+    mutationFn: () => api.put('/settings', policy),
+    onSuccess: (res) => {
+      qc.invalidateQueries({ queryKey: ['settings'] });
+      setPolicy(Object.fromEntries(PROMOTION_FIELDS.map((f) => [f, res.data[f]])));
+      toast('Promotion policy saved.', 'success');
+    },
+    onError: (err) => toast(apiErrorMessage(err), 'error'),
+  });
+
+  function set(field, value) {
+    setPolicy((p) => ({ ...p, [field]: value }));
+  }
+
+  return (
+    <div className="border-t border-slate-100 pt-5">
+      <p className="font-semibold text-slate-800 mb-3">Promotion policy</p>
+
+      <div className="grid sm:grid-cols-2 gap-4 mb-4">
+        <div>
+          <label className="label">Pass mark (%)</label>
+          <input type="number" className="input" value={policy.promotion_pass_mark} onChange={(e) => set('promotion_pass_mark', e.target.value)} />
+          <p className="text-xs text-slate-400 mt-1.5">A subject score below this counts as a fail.</p>
+        </div>
+        <div>
+          <label className="label">Minimum overall average (%)</label>
+          <input type="number" className="input" value={policy.promotion_min_average} onChange={(e) => set('promotion_min_average', e.target.value)} />
+        </div>
+        <div>
+          <label className="label">Max failed subjects allowed</label>
+          <input type="number" className="input" value={policy.promotion_max_failed_subjects} onChange={(e) => set('promotion_max_failed_subjects', e.target.value)} />
+          <p className="text-xs text-slate-400 mt-1.5">Only applies if carry-over is allowed.</p>
+        </div>
+        <div>
+          <label className="label">Distinction threshold (%)</label>
+          <input type="number" className="input" value={policy.promotion_distinction_threshold} onChange={(e) => set('promotion_distinction_threshold', e.target.value)} />
+        </div>
+      </div>
+
+      <div className="space-y-2">
+        <label className="flex items-center gap-2 text-sm text-slate-700">
+          <input type="checkbox" checked={policy.promotion_core_subjects_must_pass} onChange={(e) => set('promotion_core_subjects_must_pass', e.target.checked)} />
+          Core subjects must pass, regardless of average
+        </label>
+        <label className="flex items-center gap-2 text-sm text-slate-700">
+          <input type="checkbox" checked={policy.promotion_carry_over_allowed} onChange={(e) => set('promotion_carry_over_allowed', e.target.checked)} />
+          Carry-over allowed (a student may fail up to the max above; off means any fail blocks promotion)
+        </label>
+        <label className="flex items-center gap-2 text-sm text-slate-700">
+          <input type="checkbox" checked={policy.promotion_automatic} onChange={(e) => set('promotion_automatic', e.target.checked)} />
+          Default Promote Students' selection to the computed eligible set
+        </label>
+        <label className="flex items-center gap-2 text-sm text-slate-700">
+          <input type="checkbox" checked={policy.promotion_manual_override_allowed} onChange={(e) => set('promotion_manual_override_allowed', e.target.checked)} />
+          Admin may manually override the computed selection
+        </label>
+      </div>
+
+      <button type="button" className="btn-primary text-sm mt-4" disabled={save.isPending} onClick={() => save.mutate()}>
+        {save.isPending ? 'Saving…' : 'Save promotion policy'}
+      </button>
+    </div>
+  );
+}
+
 export default function Settings() {
   const { data, isLoading } = useQuery({ queryKey: ['settings'], queryFn: () => api.get('/settings').then((r) => r.data) });
   const toast = useToast();
@@ -339,6 +415,10 @@ export default function Settings() {
 
       <div className="card p-6 max-w-2xl mt-6">
         <GradeBandsEditor initialBands={data.grade_bands} />
+      </div>
+
+      <div className="card p-6 max-w-2xl mt-6">
+        <PromotionPolicyEditor initial={Object.fromEntries(PROMOTION_FIELDS.map((f) => [f, data[f]]))} />
       </div>
     </div>
   );

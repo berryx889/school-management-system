@@ -6,6 +6,7 @@ import XLSX from 'xlsx';
 import QRCode from 'qrcode';
 import { pool } from '../db/pool.js';
 import { requireAuth, requireRole } from '../middleware/auth.js';
+import { computePromotionEligibility } from './results.js';
 
 const router = Router();
 const upload = multer({ storage: multer.memoryStorage() });
@@ -116,7 +117,7 @@ router.get('/export', requireAuth, requireRole('admin'), async (req, res) => {
 });
 
 router.post('/promote', requireAuth, requireRole('admin'), async (req, res) => {
-  const { student_ids, class_id } = req.body;
+  const { student_ids, class_id, from_class_id, term_id } = req.body;
   if (!Array.isArray(student_ids) || !student_ids.length) {
     return res.status(400).json({ error: 'student_ids[] is required' });
   }
@@ -125,9 +126,21 @@ router.post('/promote', requireAuth, requireRole('admin'), async (req, res) => {
     if (!target.rows.length) return res.status(404).json({ error: 'Target class not found' });
   }
 
+  // Server-enforced, not just UI-hidden: when the policy disallows manual override, filter
+  // the request down to the computed eligible set instead of trusting the client's selection.
+  let finalIds = student_ids;
+  if (from_class_id && term_id) {
+    const settingsRes = await pool.query('SELECT promotion_manual_override_allowed FROM school_settings LIMIT 1');
+    if (settingsRes.rows[0]?.promotion_manual_override_allowed === false) {
+      const eligibility = await computePromotionEligibility(from_class_id, term_id);
+      const eligibleIds = new Set(eligibility.filter((e) => e.eligible).map((e) => e.student_id));
+      finalIds = student_ids.filter((id) => eligibleIds.has(Number(id)));
+    }
+  }
+
   const { rows } = await pool.query(
     `UPDATE students SET class_id=$1 WHERE id = ANY($2::int[]) AND status='active' RETURNING id`,
-    [class_id || null, student_ids]
+    [class_id || null, finalIds]
   );
   res.json({ updated: rows.length });
 });
