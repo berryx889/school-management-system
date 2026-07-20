@@ -26,6 +26,7 @@ import Subjects from './pages/admin/Subjects.jsx';
 import ClassSubjects from './pages/admin/ClassSubjects.jsx';
 import AdminTimetable from './pages/admin/Timetable.jsx';
 import ResultsRelease from './pages/admin/ResultsRelease.jsx';
+import RemarksSetup from './pages/admin/RemarksSetup.jsx';
 import FeeStructures from './pages/admin/FeeStructures.jsx';
 import Debtors from './pages/admin/Debtors.jsx';
 import AdminSettings from './pages/admin/Settings.jsx';
@@ -58,6 +59,7 @@ import Broadsheet from './pages/shared/Broadsheet.jsx';
 import ReportCards from './pages/shared/ReportCards.jsx';
 import Announcements from './pages/shared/Announcements.jsx';
 import Receipt from './pages/shared/Receipt.jsx';
+import RemarkSheet from './pages/shared/RemarkSheet.jsx';
 
 const ADMIN_NAV = [
   { to: '/admin', end: true, icon: IconHome, label: 'Dashboard' },
@@ -75,6 +77,8 @@ const ADMIN_NAV = [
   { to: '/admin/grading/broadsheet', icon: IconBarChart, label: 'Broadsheet' },
   { to: '/admin/grading/report-cards', icon: IconFileText, label: 'Report cards' },
   { to: '/admin/grading/release', icon: IconUnlock, label: 'Results release' },
+  { to: '/admin/remarks/sheet', icon: IconEdit, label: 'Remark sheet' },
+  { to: '/admin/remarks/setup', icon: IconFileText, label: 'Remarks setup' },
   { to: '/admin/fees/structures', icon: IconWallet, label: 'Fee structures' },
   { to: '/admin/fees/debtors', icon: IconClipboardList, label: 'Debtors' },
   { to: '/admin/announcements', icon: IconMegaphone, label: 'Announcements' },
@@ -86,6 +90,7 @@ const TEACHER_NAV = [
   { to: '/teacher', end: true, icon: IconHome, label: 'Dashboard' },
   { to: '/teacher/attendance', icon: IconCalendar, label: 'Attendance' },
   { to: '/teacher/marks', icon: IconEdit, label: 'Marks entry' },
+  { to: '/teacher/remarks', icon: IconFileText, label: 'Remarks' },
   { to: '/teacher/timetable', icon: IconCalendar, label: 'My timetable' },
   { to: '/teacher/chat', icon: IconMessageCircle, label: 'Parent chat' },
   { to: '/teacher/announcements', icon: IconMegaphone, label: 'Announcements' },
@@ -145,6 +150,8 @@ export default function App() {
         <Route path="grading/broadsheet" element={<Broadsheet />} />
         <Route path="grading/report-cards" element={<ReportCards />} />
         <Route path="grading/release" element={<ResultsRelease />} />
+        <Route path="remarks/sheet" element={<RemarkSheet />} />
+        <Route path="remarks/setup" element={<RemarksSetup />} />
         <Route path="fees/structures" element={<FeeStructures />} />
         <Route path="fees/debtors" element={<Debtors />} />
         <Route path="receipts/:paymentId" element={<Receipt />} />
@@ -157,6 +164,7 @@ export default function App() {
         <Route index element={<TeacherDashboard />} />
         <Route path="attendance" element={<AttendanceMark />} />
         <Route path="marks" element={<MarksEntry />} />
+        <Route path="remarks" element={<RemarkSheet />} />
         <Route path="timetable" element={<TeacherTimetable />} />
         <Route path="chat" element={<TeacherChat />} />
         <Route path="announcements" element={<Announcements />} />
