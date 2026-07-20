@@ -5,7 +5,7 @@ import { ParentProvider } from './auth/ParentContext.jsx';
 import SidebarLayout from './layouts/SidebarLayout.jsx';
 import MobileLayout from './layouts/MobileLayout.jsx';
 import {
-  IconHome, IconGraduationCap, IconUser, IconBuilding, IconBook, IconLink, IconCalendar,
+  IconHome, IconGraduationCap, IconUser, IconUsers, IconBuilding, IconBook, IconLink, IconCalendar,
   IconCamera, IconUtensils, IconEdit, IconBarChart, IconFileText, IconUnlock, IconWallet,
   IconClipboardList, IconMegaphone, IconSettings, IconCreditCard, IconMessageCircle, IconTrendingUp,
   IconInbox, IconShield,
@@ -19,6 +19,7 @@ import Students from './pages/admin/Students.jsx';
 import PromoteStudents from './pages/admin/PromoteStudents.jsx';
 import StudentQrCard from './pages/admin/StudentQrCard.jsx';
 import Teachers from './pages/admin/Teachers.jsx';
+import StaffDirectory from './pages/admin/StaffDirectory.jsx';
 import Permissions from './pages/admin/Permissions.jsx';
 import Classes from './pages/admin/Classes.jsx';
 import StructureBuilder from './pages/admin/StructureBuilder.jsx';
@@ -66,6 +67,7 @@ const ADMIN_NAV = [
   { to: '/admin/students', icon: IconGraduationCap, label: 'Students' },
   { to: '/admin/students/promote', icon: IconTrendingUp, label: 'Promote students' },
   { to: '/admin/teachers', icon: IconUser, label: 'Teachers' },
+  { to: '/admin/staff', icon: IconUsers, label: 'Staff directory' },
   { to: '/admin/permissions', icon: IconShield, label: 'Permissions' },
   { to: '/admin/classes', icon: IconBuilding, label: 'Classes' },
   { to: '/admin/subjects', icon: IconBook, label: 'Subjects' },
@@ -138,6 +140,7 @@ export default function App() {
         <Route path="students/promote" element={<PromoteStudents />} />
         <Route path="students/:id/qr-card" element={<StudentQrCard />} />
         <Route path="teachers" element={<Teachers />} />
+        <Route path="staff" element={<StaffDirectory />} />
         <Route path="permissions" element={<Permissions />} />
         <Route path="classes" element={<Classes />} />
         <Route path="classes/structure-builder" element={<StructureBuilder />} />

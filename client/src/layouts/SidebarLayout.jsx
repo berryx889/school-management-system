@@ -1,7 +1,9 @@
 import { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { NavLink, Outlet, useLocation } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext.jsx';
 import { useSettings } from '../hooks/useSettings.js';
+import { api } from '../api/client.js';
 import { Avatar, Modal } from '../components/ui.jsx';
 import ErrorBoundary from '../components/ErrorBoundary.jsx';
 import ChangePasswordForm from '../components/ChangePassword.jsx';
@@ -10,6 +12,7 @@ import { IconMenu } from '../components/Icon.jsx';
 export default function SidebarLayout({ nav, brand: brandProp = 'Bright Future Basic School' }) {
   const { user, logout } = useAuth();
   const { data: settings } = useSettings();
+  const { data: me } = useQuery({ queryKey: ['account', 'me'], queryFn: () => api.get('/account/me').then((r) => r.data) });
   const brand = settings?.name || brandProp;
   const [open, setOpen] = useState(false);
   const [passwordModalOpen, setPasswordModalOpen] = useState(false);
@@ -59,7 +62,7 @@ export default function SidebarLayout({ nav, brand: brandProp = 'Bright Future B
             <Avatar name={user?.full_name} size={36} />
             <div className="min-w-0 flex-1">
               <p className="text-sm font-semibold text-slate-800 truncate">{user?.full_name}</p>
-              <p className="text-xs text-slate-400 capitalize">{user?.role}</p>
+              <p className="text-xs text-slate-400 capitalize">{user?.role}{me?.department && ` · ${me.department}`}</p>
             </div>
           </div>
           <button onClick={() => setPasswordModalOpen(true)} className="text-sm text-slate-500 hover:text-slate-700 w-full mt-2 py-1.5">

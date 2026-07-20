@@ -6,6 +6,15 @@ import { requireAuth, requireRole } from '../middleware/auth.js';
 
 const router = Router();
 
+router.get('/me', requireAuth, async (req, res) => {
+  const { rows } = await pool.query(
+    'SELECT id, role, full_name, username, phone, email, department, photo_url FROM users WHERE id=$1',
+    [req.user.id]
+  );
+  if (!rows.length) return res.status(404).json({ error: 'Not found' });
+  res.json(rows[0]);
+});
+
 // Self-service password change. A forced first-time change (must_change_password)
 // skips the current-password check since the user is proving identity by having
 // just logged in with the temporary password.

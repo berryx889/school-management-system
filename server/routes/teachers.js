@@ -16,7 +16,7 @@ router.get('/', requireAuth, async (req, res) => {
   }
   values.push(limit, offset);
   const { rows } = await pool.query(
-    `SELECT id, username, full_name, phone, email, photo_url, is_active, created_at
+    `SELECT id, username, full_name, phone, email, department, photo_url, is_active, created_at
      FROM users ${where} ORDER BY full_name LIMIT $${values.length - 1} OFFSET $${values.length}`,
     values
   );
@@ -25,16 +25,16 @@ router.get('/', requireAuth, async (req, res) => {
 });
 
 router.post('/', requireAuth, requireRole('admin'), async (req, res) => {
-  const { full_name, phone, email, username, password } = req.body;
+  const { full_name, phone, email, department, username, password } = req.body;
   if (!full_name || !username || !password) {
     return res.status(400).json({ error: 'full_name, username and password are required' });
   }
   const password_hash = await bcrypt.hash(password, 10);
   try {
     const { rows } = await pool.query(
-      `INSERT INTO users (role, username, password_hash, full_name, phone, email)
-       VALUES ('teacher',$1,$2,$3,$4,$5) RETURNING id, username, full_name, phone, email, is_active`,
-      [username, password_hash, full_name, phone || null, email || null]
+      `INSERT INTO users (role, username, password_hash, full_name, phone, email, department)
+       VALUES ('teacher',$1,$2,$3,$4,$5,$6) RETURNING id, username, full_name, phone, email, department, is_active`,
+      [username, password_hash, full_name, phone || null, email || null, department || null]
     );
     res.status(201).json(rows[0]);
   } catch (err) {
@@ -44,12 +44,12 @@ router.post('/', requireAuth, requireRole('admin'), async (req, res) => {
 });
 
 router.put('/:id', requireAuth, requireRole('admin'), async (req, res) => {
-  const { full_name, phone, email, is_active } = req.body;
+  const { full_name, phone, email, department, is_active } = req.body;
   const { rows } = await pool.query(
     `UPDATE users SET full_name=COALESCE($1,full_name), phone=COALESCE($2,phone),
-     email=COALESCE($3,email), is_active=COALESCE($4,is_active)
-     WHERE id=$5 AND role='teacher' RETURNING id, username, full_name, phone, email, is_active`,
-    [full_name, phone, email, is_active, req.params.id]
+     email=COALESCE($3,email), department=COALESCE($4,department), is_active=COALESCE($5,is_active)
+     WHERE id=$6 AND role='teacher' RETURNING id, username, full_name, phone, email, department, is_active`,
+    [full_name, phone, email, department, is_active, req.params.id]
   );
   if (!rows.length) return res.status(404).json({ error: 'Not found' });
   res.json(rows[0]);

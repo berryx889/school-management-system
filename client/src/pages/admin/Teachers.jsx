@@ -7,7 +7,7 @@ import { IconUser } from '../../components/Icon.jsx';
 
 export default function Teachers() {
   const [modalOpen, setModalOpen] = useState(false);
-  const [form, setForm] = useState({ full_name: '', username: '', password: '', phone: '', email: '' });
+  const [form, setForm] = useState({ full_name: '', username: '', password: '', phone: '', email: '', department: '' });
   const toast = useToast();
   const qc = useQueryClient();
 
@@ -19,7 +19,7 @@ export default function Teachers() {
       qc.invalidateQueries({ queryKey: ['teachers'] });
       toast('Teacher added.', 'success');
       setModalOpen(false);
-      setForm({ full_name: '', username: '', password: '', phone: '', email: '' });
+      setForm({ full_name: '', username: '', password: '', phone: '', email: '', department: '' });
     },
     onError: (err) => toast(apiErrorMessage(err), 'error'),
   });
@@ -56,6 +56,7 @@ export default function Teachers() {
                 <tr className="text-left text-slate-500 border-b border-slate-100">
                   <th className="px-5 py-3 font-medium">Teacher</th>
                   <th className="px-5 py-3 font-medium">Username</th>
+                  <th className="px-5 py-3 font-medium">Department</th>
                   <th className="px-5 py-3 font-medium">Phone</th>
                   <th className="px-5 py-3 font-medium">Status</th>
                   <th className="px-5 py-3 font-medium"></th>
@@ -71,6 +72,7 @@ export default function Teachers() {
                       </div>
                     </td>
                     <td className="px-5 py-3 text-slate-500">{t.username}</td>
+                    <td className="px-5 py-3 text-slate-500">{t.department || '—'}</td>
                     <td className="px-5 py-3 text-slate-500">{t.phone || '—'}</td>
                     <td className="px-5 py-3">
                       <Badge tone={t.is_active ? 'green' : 'slate'}>{t.is_active ? 'Active' : 'Inactive'}</Badge>
@@ -111,6 +113,10 @@ export default function Teachers() {
           <div>
             <label className="label">Temporary password</label>
             <input className="input" required value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} />
+          </div>
+          <div>
+            <label className="label">Department</label>
+            <input className="input" placeholder="e.g. Teaching" value={form.department} onChange={(e) => setForm({ ...form, department: e.target.value })} />
           </div>
           <div>
             <label className="label">Phone</label>
