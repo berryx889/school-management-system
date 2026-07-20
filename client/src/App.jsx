@@ -8,7 +8,7 @@ import {
   IconHome, IconGraduationCap, IconUser, IconBuilding, IconBook, IconLink, IconCalendar,
   IconCamera, IconUtensils, IconEdit, IconBarChart, IconFileText, IconUnlock, IconWallet,
   IconClipboardList, IconMegaphone, IconSettings, IconCreditCard, IconMessageCircle, IconTrendingUp,
-  IconInbox,
+  IconInbox, IconShield,
 } from './components/Icon.jsx';
 
 import Login from './pages/Login.jsx';
@@ -19,6 +19,7 @@ import Students from './pages/admin/Students.jsx';
 import PromoteStudents from './pages/admin/PromoteStudents.jsx';
 import StudentQrCard from './pages/admin/StudentQrCard.jsx';
 import Teachers from './pages/admin/Teachers.jsx';
+import Permissions from './pages/admin/Permissions.jsx';
 import Classes from './pages/admin/Classes.jsx';
 import StructureBuilder from './pages/admin/StructureBuilder.jsx';
 import Subjects from './pages/admin/Subjects.jsx';
@@ -63,6 +64,7 @@ const ADMIN_NAV = [
   { to: '/admin/students', icon: IconGraduationCap, label: 'Students' },
   { to: '/admin/students/promote', icon: IconTrendingUp, label: 'Promote students' },
   { to: '/admin/teachers', icon: IconUser, label: 'Teachers' },
+  { to: '/admin/permissions', icon: IconShield, label: 'Permissions' },
   { to: '/admin/classes', icon: IconBuilding, label: 'Classes' },
   { to: '/admin/subjects', icon: IconBook, label: 'Subjects' },
   { to: '/admin/class-subjects', icon: IconLink, label: 'Subject teachers' },
@@ -131,6 +133,7 @@ export default function App() {
         <Route path="students/promote" element={<PromoteStudents />} />
         <Route path="students/:id/qr-card" element={<StudentQrCard />} />
         <Route path="teachers" element={<Teachers />} />
+        <Route path="permissions" element={<Permissions />} />
         <Route path="classes" element={<Classes />} />
         <Route path="classes/structure-builder" element={<StructureBuilder />} />
         <Route path="subjects" element={<Subjects />} />

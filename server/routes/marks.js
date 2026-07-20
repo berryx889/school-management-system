@@ -24,7 +24,7 @@ router.put('/bulk', requireAuth, requireRole('admin', 'teacher'), async (req, re
   }
 
   const assessmentRes = await pool.query(
-    `SELECT a.*, cs.teacher_id FROM assessments a
+    `SELECT a.*, cs.teacher_id, cs.class_id, cs.subject_id FROM assessments a
      JOIN class_subjects cs ON cs.id = a.class_subject_id
      WHERE a.id=$1`,
     [assessment_id]
@@ -32,10 +32,16 @@ router.put('/bulk', requireAuth, requireRole('admin', 'teacher'), async (req, re
   if (!assessmentRes.rows.length) return res.status(404).json({ error: 'Assessment not found' });
   const assessment = assessmentRes.rows[0];
 
-  // Server-side enforcement: a teacher may only enter marks for a class-subject
-  // they are assigned to, regardless of what the client UI allows.
+  // Server-side enforcement: a teacher may only enter marks for a class-subject they own
+  // OR one an admin has additionally granted them via staff_permissions — never instead of
+  // the owning teacher's own right, only on top of it.
   if (req.user.role === 'teacher' && assessment.teacher_id !== req.user.id) {
-    return res.status(403).json({ error: 'You are not assigned to this class-subject' });
+    const grant = await pool.query(
+      `SELECT 1 FROM staff_permissions
+       WHERE user_id=$1 AND permission_type='marks_entry' AND class_id=$2 AND subject_id=$3`,
+      [req.user.id, assessment.class_id, assessment.subject_id]
+    );
+    if (!grant.rows.length) return res.status(403).json({ error: 'You are not assigned to this class-subject' });
   }
   if (assessment.locked) {
     return res.status(423).json({ error: 'This assessment is locked for editing' });

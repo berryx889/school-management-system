@@ -25,6 +25,7 @@ import receiptRoutes from './routes/receipts.js';
 import announcementRoutes from './routes/announcements.js';
 import messageRoutes from './routes/messages.js';
 import signupRoutes from './routes/signups.js';
+import permissionRoutes from './routes/permissions.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 dotenv.config({ path: path.join(__dirname, '../.env') });
@@ -60,6 +61,7 @@ app.use('/api/receipts', receiptRoutes);
 app.use('/api/announcements', announcementRoutes);
 app.use('/api/messages', messageRoutes);
 app.use('/api/signups', signupRoutes);
+app.use('/api/permissions', permissionRoutes);
 
 app.use((err, _req, res, _next) => {
   console.error(err);

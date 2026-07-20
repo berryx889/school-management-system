@@ -246,9 +246,40 @@ router.get('/release', requireAuth, async (req, res) => {
   res.json(rows[0] || { released: false });
 });
 
+// A teacher may write remarks for a class if they're its class_teacher_id, OR an admin has
+// additionally granted them a remarks_entry permission for that class — additive, same
+// pattern as the marks_entry check in marks.js. Admin always bypasses.
+async function canEditRemarksForClass(user, classId) {
+  if (user.role === 'admin') return true;
+  const classRes = await pool.query('SELECT class_teacher_id FROM classes WHERE id=$1', [classId]);
+  if (!classRes.rows.length) return false;
+  if (classRes.rows[0].class_teacher_id === user.id) return true;
+  const grant = await pool.query(
+    `SELECT 1 FROM staff_permissions WHERE user_id=$1 AND permission_type='remarks_entry' AND class_id=$2`,
+    [user.id, classId]
+  );
+  return grant.rows.length > 0;
+}
+
+router.get('/remarks', requireAuth, async (req, res) => {
+  const { class_id, term_id } = req.query;
+  if (!class_id || !term_id) return res.status(400).json({ error: 'class_id and term_id are required' });
+  const { rows } = await pool.query(
+    `SELECT r.* FROM remarks r JOIN students s ON s.id = r.student_id
+     WHERE s.class_id=$1 AND r.term_id=$2`,
+    [class_id, term_id]
+  );
+  res.json(rows);
+});
+
 router.put('/remarks', requireAuth, requireRole('admin', 'teacher'), async (req, res) => {
   const { student_id, term_id, class_teacher_remark, head_teacher_remark } = req.body;
   if (!student_id || !term_id) return res.status(400).json({ error: 'student_id and term_id are required' });
+  const studentRes = await pool.query('SELECT class_id FROM students WHERE id=$1', [student_id]);
+  if (!studentRes.rows.length) return res.status(404).json({ error: 'Student not found' });
+  if (!(await canEditRemarksForClass(req.user, studentRes.rows[0].class_id))) {
+    return res.status(403).json({ error: 'You are not the class teacher for this student' });
+  }
   const { rows } = await pool.query(
     `INSERT INTO remarks (student_id, term_id, class_teacher_remark, head_teacher_remark)
      VALUES ($1,$2,$3,$4)
@@ -259,6 +290,30 @@ router.put('/remarks', requireAuth, requireRole('admin', 'teacher'), async (req,
     [student_id, term_id, class_teacher_remark, head_teacher_remark]
   );
   res.json(rows[0]);
+});
+
+router.put('/remarks/bulk', requireAuth, requireRole('admin', 'teacher'), async (req, res) => {
+  const { class_id, term_id, entries } = req.body;
+  if (!class_id || !term_id || !Array.isArray(entries)) {
+    return res.status(400).json({ error: 'class_id, term_id and entries[] are required' });
+  }
+  if (!(await canEditRemarksForClass(req.user, class_id))) {
+    return res.status(403).json({ error: 'You are not the class teacher for this class' });
+  }
+  const saved = [];
+  for (const entry of entries) {
+    const { student_id, class_teacher_remark } = entry;
+    if (!student_id) continue;
+    const { rows } = await pool.query(
+      `INSERT INTO remarks (student_id, term_id, class_teacher_remark)
+       VALUES ($1,$2,$3)
+       ON CONFLICT (student_id, term_id) DO UPDATE SET class_teacher_remark=COALESCE($3, remarks.class_teacher_remark)
+       RETURNING *`,
+      [student_id, term_id, class_teacher_remark]
+    );
+    saved.push(rows[0]);
+  }
+  res.json(saved);
 });
 
 export default router;
