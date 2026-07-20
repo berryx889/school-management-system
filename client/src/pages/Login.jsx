@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext.jsx';
 import { api, apiErrorMessage } from '../api/client.js';
 import { usePublicBranding } from '../hooks/usePublicBranding.js';
@@ -43,28 +43,6 @@ function readLastUser() {
   }
 }
 
-function FeatureTicker() {
-  const [index, setIndex] = useState(0);
-
-  useEffect(() => {
-    const id = setInterval(() => setIndex((i) => (i + 1) % FEATURES.length), 2800);
-    return () => clearInterval(id);
-  }, []);
-
-  const feature = FEATURES[index];
-
-  return (
-    <div className="h-10 flex items-center justify-center mb-8">
-      <div key={index} className="animate-fade-in flex items-center gap-2.5">
-        <span className="h-7 w-7 rounded-lg bg-primary-50 text-primary-600 flex items-center justify-center shrink-0">
-          <feature.icon className="h-3.5 w-3.5" />
-        </span>
-        <span className="text-sm font-medium text-slate-600">{feature.text}</span>
-      </div>
-    </div>
-  );
-}
-
 function Reveal({ delay = 0, className = '', children }) {
   return (
     <div className={`animate-fade-in-up ${className}`} style={{ animationDelay: `${delay}ms`, animationFillMode: 'both' }}>
@@ -73,43 +51,70 @@ function Reveal({ delay = 0, className = '', children }) {
   );
 }
 
-function Splash({ onStart }) {
+function Splash({ onStart, branding }) {
   const lastUser = readLastUser();
+  const name = branding?.name || 'Bright Future Basic School';
+  const firstName = lastUser?.name?.split(' ')[0];
 
   return (
-    <div className="relative text-center">
-      <Reveal delay={0}>
-        <div className="h-16 w-16 rounded-2xl bg-primary-500 text-white flex items-center justify-center text-2xl font-bold mx-auto mb-6 shadow-lg shadow-primary-500/30">
-          B
+    <div className="relative min-h-screen flex flex-col">
+      <header className="px-6 sm:px-10 py-6">
+        <Reveal delay={0} className="inline-flex items-center gap-2.5">
+          {branding?.logo_url ? (
+            <img src={branding.logo_url} alt="" className="h-8 w-8 rounded-lg object-contain bg-white" />
+          ) : (
+            <div className="h-8 w-8 rounded-lg bg-primary-500 text-white flex items-center justify-center text-sm font-bold">
+              {name[0]}
+            </div>
+          )}
+          <span className="font-semibold text-slate-800 text-sm">{name}</span>
+        </Reveal>
+      </header>
+
+      <main className="flex-1 flex flex-col items-center justify-center text-center px-6 -mt-12">
+        <div className="max-w-xl">
+          <Reveal delay={100}>
+            <p className="text-sm font-medium text-primary-600 mb-4">
+              {firstName ? `Welcome back, ${firstName}` : 'Welcome'}
+            </p>
+          </Reveal>
+
+          <Reveal delay={180}>
+            <h1 className="text-4xl sm:text-6xl font-bold text-slate-900 tracking-tight leading-[1.05] mb-6 text-balance">
+              Sign in to your school
+            </h1>
+          </Reveal>
+
+          <Reveal delay={260}>
+            <p className="text-lg text-slate-500 max-w-md mx-auto mb-10 text-balance">
+              Attendance, results, fees and announcements — sign in to get started.
+            </p>
+          </Reveal>
+
+          <Reveal delay={340}>
+            <button onClick={onStart} className="btn-primary px-8 py-3.5 text-base">
+              Get started <IconArrowRight className="h-4 w-4" />
+            </button>
+          </Reveal>
         </div>
-      </Reveal>
+      </main>
 
-      <Reveal delay={80}>
-        <p className="text-xs font-bold tracking-[0.2em] text-primary-600 uppercase mb-3">
-          Bright Future Basic School
-        </p>
-      </Reveal>
-
-      <Reveal delay={160}>
-        <h1 className="text-3xl font-bold text-slate-900 mb-3 text-balance">
-          {lastUser ? `Welcome back, ${lastUser.name}` : 'Welcome'}
-        </h1>
-      </Reveal>
-
-      <Reveal delay={240}>
-        <p className="text-slate-500 mb-2 max-w-xs mx-auto">
-          Sign in to manage attendance, results, fees and announcements.
-        </p>
-      </Reveal>
-
-      <Reveal delay={320}>
-        <FeatureTicker />
-      </Reveal>
-
-      <Reveal delay={400}>
-        <button onClick={onStart} className="btn-primary px-6 py-3 text-base">
-          Get started <IconArrowRight className="h-4 w-4" />
-        </button>
+      <Reveal delay={420}>
+        <footer className="border-t border-slate-100 px-6 sm:px-10 py-8">
+          <div className="max-w-3xl mx-auto grid grid-cols-2 sm:grid-cols-4 gap-6">
+            {FEATURES.map((f) => (
+              <div key={f.text} className="flex flex-col items-center text-center gap-2.5">
+                <span className="h-9 w-9 rounded-full bg-primary-50 text-primary-600 flex items-center justify-center shrink-0">
+                  <f.icon className="h-4 w-4" />
+                </span>
+                <span className="text-xs text-slate-500 leading-snug">{f.text}</span>
+              </div>
+            ))}
+          </div>
+          <p className="text-center text-xs text-slate-400 mt-8">
+            Represent a school? <Link to="/signup" className="text-primary-600 font-medium">Request access</Link>
+          </p>
+        </footer>
       </Reveal>
     </div>
   );
@@ -223,17 +228,24 @@ export default function Login() {
     }
   }
 
+  if (stage === 'splash') {
+    return (
+      <div className="bg-surface relative overflow-hidden">
+        <div className="pointer-events-none absolute inset-0 overflow-hidden">
+          <div className="animate-drift absolute top-0 left-1/2 -translate-x-1/2 h-[32rem] w-[32rem] rounded-full bg-primary-100/60 blur-3xl" style={{ animationDuration: '22s' }} />
+        </div>
+        <Splash onStart={() => setStage('portal')} branding={branding} />
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-surface relative overflow-hidden flex items-center justify-center px-4 py-10">
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
-        <div className="animate-drift absolute -top-24 -left-24 h-72 w-72 rounded-full bg-primary-200/40 blur-3xl" />
-        <div className="animate-drift absolute top-1/3 -right-24 h-80 w-80 rounded-full bg-primary-300/30 blur-3xl" style={{ animationDelay: '-5s', animationDuration: '18s' }} />
-        <div className="animate-drift absolute -bottom-24 left-1/4 h-72 w-72 rounded-full bg-primary-100/50 blur-3xl" style={{ animationDelay: '-10s', animationDuration: '16s' }} />
+        <div className="animate-drift absolute top-0 left-1/2 -translate-x-1/2 h-[32rem] w-[32rem] rounded-full bg-primary-100/60 blur-3xl" style={{ animationDuration: '22s' }} />
       </div>
 
-      <div className={`relative w-full ${stage === 'splash' ? 'max-w-sm' : 'max-w-md'}`}>
-        {stage === 'splash' && <Splash onStart={() => setStage('portal')} />}
-
+      <div className="relative w-full max-w-md">
         {stage === 'portal' && (
           <div className="card p-6">
             <PortalPicker onChoose={choosePortal} onBack={() => setStage('splash')} />
