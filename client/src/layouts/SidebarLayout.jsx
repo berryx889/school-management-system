@@ -1,13 +1,16 @@
 import { useState } from 'react';
 import { NavLink, Outlet, useLocation } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext.jsx';
+import { useSettings } from '../hooks/useSettings.js';
 import { Avatar, Modal } from '../components/ui.jsx';
 import ErrorBoundary from '../components/ErrorBoundary.jsx';
 import ChangePasswordForm from '../components/ChangePassword.jsx';
 import { IconMenu } from '../components/Icon.jsx';
 
-export default function SidebarLayout({ nav, brand = 'Bright Future Basic School' }) {
+export default function SidebarLayout({ nav, brand: brandProp = 'Bright Future Basic School' }) {
   const { user, logout } = useAuth();
+  const { data: settings } = useSettings();
+  const brand = settings?.name || brandProp;
   const [open, setOpen] = useState(false);
   const [passwordModalOpen, setPasswordModalOpen] = useState(false);
   const location = useLocation();
@@ -23,9 +26,13 @@ export default function SidebarLayout({ nav, brand = 'Bright Future Basic School
           transition-transform lg:translate-x-0 ${open ? 'translate-x-0' : '-translate-x-full'}`}
       >
         <div className="h-16 flex items-center gap-2 px-5 border-b border-slate-100">
-          <div className="h-8 w-8 rounded-lg bg-primary-500 text-white flex items-center justify-center font-bold">
-            {brand[0]}
-          </div>
+          {settings?.logo_url ? (
+            <img src={settings.logo_url} alt="" className="h-8 w-8 rounded-lg object-contain shrink-0" />
+          ) : (
+            <div className="h-8 w-8 rounded-lg bg-primary-500 text-white flex items-center justify-center font-bold shrink-0">
+              {brand[0]}
+            </div>
+          )}
           <span className="font-bold text-slate-900 text-sm truncate">{brand}</span>
         </div>
 

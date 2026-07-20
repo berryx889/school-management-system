@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext.jsx';
 import { api, apiErrorMessage } from '../api/client.js';
+import { usePublicBranding } from '../hooks/usePublicBranding.js';
+import { applyBrandColor } from '../utils/brandColor.js';
 import { useToast } from '../components/Toast.jsx';
 import { PasswordInput } from '../components/ui.jsx';
 import {
@@ -157,6 +159,11 @@ export default function Login() {
   const { login, loginWithOtp } = useAuth();
   const navigate = useNavigate();
   const toast = useToast();
+  const { data: branding } = usePublicBranding();
+
+  useEffect(() => {
+    if (branding?.primary_color) applyBrandColor(branding.primary_color);
+  }, [branding?.primary_color]);
 
   const portal = portalKey ? PORTALS[portalKey] : null;
 

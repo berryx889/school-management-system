@@ -1,12 +1,14 @@
 import { useState } from 'react';
 import { NavLink, Outlet, useLocation } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext.jsx';
+import { useSettings } from '../hooks/useSettings.js';
 import { Avatar, Modal } from '../components/ui.jsx';
 import ErrorBoundary from '../components/ErrorBoundary.jsx';
 import ChangePasswordForm from '../components/ChangePassword.jsx';
 
 export default function MobileLayout({ tabs }) {
   const { user, logout } = useAuth();
+  const { data: settings } = useSettings();
   const [accountOpen, setAccountOpen] = useState(false);
   const [passwordModalOpen, setPasswordModalOpen] = useState(false);
   const location = useLocation();
@@ -14,7 +16,10 @@ export default function MobileLayout({ tabs }) {
   return (
     <div className="min-h-screen bg-surface flex flex-col">
       <header className="h-14 bg-white border-b border-slate-100 flex items-center justify-between px-4 sticky top-0 z-20 no-print">
-        <span className="font-bold text-slate-900 text-sm truncate">Bright Future Basic School</span>
+        <div className="flex items-center gap-2 min-w-0">
+          {settings?.logo_url && <img src={settings.logo_url} alt="" className="h-7 w-7 rounded-md object-contain shrink-0" />}
+          <span className="font-bold text-slate-900 text-sm truncate">{settings?.name || 'Bright Future Basic School'}</span>
+        </div>
         <button onClick={() => setAccountOpen(true)} aria-label="Account">
           <Avatar name={user?.full_name} size={30} />
         </button>

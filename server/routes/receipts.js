@@ -7,7 +7,8 @@ const router = Router();
 router.get('/:paymentId', requireAuth, async (req, res) => {
   const { rows } = await pool.query(
     `SELECT pay.*, i.total_due, i.term_id, s.id AS student_id, u.full_name AS student_name,
-            c.name AS class_name, t.year, t.term, ss.name AS school_name, ss.address, ss.phone, ss.logo_url
+            c.name AS class_name, t.year, t.term, ss.name AS school_name, ss.address, ss.phone, ss.logo_url,
+            ss.primary_color
      FROM payments pay
      JOIN fee_invoices i ON i.id = pay.invoice_id
      JOIN students s ON s.id = i.student_id

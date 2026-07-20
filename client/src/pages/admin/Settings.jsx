@@ -5,6 +5,52 @@ import { PageLoader, SectionHeader } from '../../components/ui.jsx';
 import { useToast } from '../../components/Toast.jsx';
 import { IconX } from '../../components/Icon.jsx';
 
+const MAX_IMAGE_BYTES = 500 * 1024;
+
+function ImageUpload({ label, value, onChange, helpText }) {
+  const toast = useToast();
+
+  function handleFile(e) {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file) return;
+    if (!file.type.startsWith('image/')) {
+      toast('Please choose an image file.', 'error');
+      return;
+    }
+    if (file.size > MAX_IMAGE_BYTES) {
+      toast(`${label} must be under 500KB.`, 'error');
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => onChange(reader.result);
+    reader.readAsDataURL(file);
+  }
+
+  return (
+    <div>
+      <label className="label">{label}</label>
+      <div className="flex items-center gap-3">
+        <div className="h-16 w-16 rounded-lg border border-slate-200 flex items-center justify-center bg-slate-50 overflow-hidden shrink-0">
+          {value ? <img src={value} alt={label} className="h-full w-full object-contain" /> : <span className="text-xs text-slate-400">None</span>}
+        </div>
+        <div className="flex flex-col gap-1.5">
+          <label className="btn-secondary text-sm cursor-pointer w-fit">
+            {value ? `Change ${label.toLowerCase()}` : `Upload ${label.toLowerCase()}`}
+            <input type="file" accept="image/*" className="hidden" onChange={handleFile} />
+          </label>
+          {value && (
+            <button type="button" className="text-xs text-slate-400 hover:text-red-600 text-left" onClick={() => onChange('')}>
+              Remove {label.toLowerCase()}
+            </button>
+          )}
+        </div>
+      </div>
+      <p className="text-xs text-slate-400 mt-1.5">{helpText} PNG or JPG, under 500KB.</p>
+    </div>
+  );
+}
+
 const PRESETS = {
   ges6: {
     label: 'GES 1–6 scale',
@@ -145,6 +191,7 @@ export default function Settings() {
           e.preventDefault();
           save.mutate({
             name: form.name, short_name: form.short_name, address: form.address, phone: form.phone, motto: form.motto,
+            logo_url: form.logo_url, primary_color: form.primary_color,
             current_academic_year: form.current_academic_year, current_term: form.current_term,
             class_score_weight: Number(form.class_score_weight), exam_score_weight: Number(form.exam_score_weight),
             late_threshold: form.late_threshold, attendance_edit_cutoff: form.attendance_edit_cutoff,
@@ -172,6 +219,29 @@ export default function Settings() {
           <div className="sm:col-span-2">
             <label className="label">Motto</label>
             <input className="input" value={form.motto || ''} onChange={(e) => setForm({ ...form, motto: e.target.value })} />
+          </div>
+        </div>
+
+        <div className="border-t border-slate-100 pt-5 grid sm:grid-cols-2 gap-4 items-start">
+          <ImageUpload label="Logo" value={form.logo_url} onChange={(logo_url) => setForm({ ...form, logo_url })}
+            helpText="Shown on report cards and ID cards." />
+          <div>
+            <label className="label">Brand color</label>
+            <div className="flex items-center gap-2">
+              <input
+                type="color"
+                className="h-10 w-12 rounded border border-slate-200 p-1 cursor-pointer"
+                value={form.primary_color || '#5B4FE9'}
+                onChange={(e) => setForm({ ...form, primary_color: e.target.value })}
+              />
+              <input
+                className="input flex-1"
+                value={form.primary_color || ''}
+                onChange={(e) => setForm({ ...form, primary_color: e.target.value })}
+                placeholder="#5B4FE9"
+              />
+            </div>
+            <p className="text-xs text-slate-400 mt-1.5">Used as the accent color across the app and on printable documents.</p>
           </div>
         </div>
 

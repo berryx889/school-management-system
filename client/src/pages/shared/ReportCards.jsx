@@ -7,7 +7,7 @@ import { IconPrinter, IconReceipt } from '../../components/Icon.jsx';
 function ReportCardPage({ result, settings }) {
   return (
     <div className="report-card bg-white p-8 w-[210mm] min-h-[297mm] mx-auto mb-6 print:mb-0 print:break-after-page border border-slate-100 print:border-none">
-      <div className="text-center border-b-2 border-primary-500 pb-4 mb-4">
+      <div className="text-center border-b-2 pb-4 mb-4" style={{ borderColor: settings?.primary_color || '#5B4FE9' }}>
         {settings?.logo_url && <img src={settings.logo_url} alt="" className="h-14 mx-auto mb-2" />}
         <h1 className="text-xl font-bold text-slate-900">{settings?.name}</h1>
         <p className="text-xs text-slate-500">{settings?.address} · {settings?.phone}</p>

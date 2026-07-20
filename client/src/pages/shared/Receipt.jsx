@@ -40,7 +40,7 @@ export default function Receipt() {
       </div>
 
       <div className="bg-white p-8 max-w-xl mx-auto border border-slate-100 rounded-card">
-        <div className="text-center border-b-2 border-primary-500 pb-3 mb-4">
+        <div className="text-center border-b-2 pb-3 mb-4" style={{ borderColor: data.primary_color || '#5B4FE9' }}>
           <h1 className="text-lg font-bold text-slate-900">{data.school_name}</h1>
           <p className="text-xs text-slate-500">{data.address} · {data.phone}</p>
           <p className="font-semibold text-sm mt-2 tracking-wide">PAYMENT RECEIPT</p>

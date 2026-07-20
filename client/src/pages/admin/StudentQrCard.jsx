@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { useParams } from 'react-router-dom';
 import { api } from '../../api/client.js';
+import { useSettings } from '../../hooks/useSettings.js';
 import { PageLoader } from '../../components/ui.jsx';
 import { IconPrinter } from '../../components/Icon.jsx';
 
@@ -10,6 +11,7 @@ export default function StudentQrCard() {
     queryKey: ['qr-card', id],
     queryFn: () => api.get(`/students/${id}/qr-card`).then((r) => r.data),
   });
+  const { data: settings } = useSettings();
 
   if (isLoading) return <PageLoader />;
 
@@ -22,8 +24,9 @@ export default function StudentQrCard() {
 
       <div className="flex justify-center">
         <div className="w-72 rounded-2xl border-2 border-primary-200 overflow-hidden bg-white shadow-card">
-          <div className="bg-primary-500 text-white text-center py-2 text-xs font-bold tracking-wide">
-            BRIGHT FUTURE BASIC SCHOOL
+          <div className="bg-primary-500 text-white text-center py-2 px-3 text-xs font-bold tracking-wide flex items-center justify-center gap-1.5">
+            {settings?.logo_url && <img src={settings.logo_url} alt="" className="h-4 w-4 rounded object-contain shrink-0" />}
+            <span className="truncate">{(settings?.name || 'Bright Future Basic School').toUpperCase()}</span>
           </div>
           <div className="p-4 flex flex-col items-center">
             {data.photo_url ? (

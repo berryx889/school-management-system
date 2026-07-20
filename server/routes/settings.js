@@ -10,6 +10,15 @@ router.get('/', requireAuth, async (_req, res) => {
   res.json({ ...settings.rows[0], grade_bands: bands.rows });
 });
 
+// No requireAuth: the login screen needs the school's name/logo/color before anyone is
+// signed in. Only non-sensitive branding fields are exposed here, nothing operational.
+router.get('/public', async (_req, res) => {
+  const { rows } = await pool.query(
+    'SELECT name, short_name, logo_url, primary_color, motto FROM school_settings LIMIT 1'
+  );
+  res.json(rows[0] || {});
+});
+
 router.put('/', requireAuth, requireRole('admin'), async (req, res) => {
   const fields = [
     'name', 'short_name', 'logo_url', 'address', 'phone', 'motto',
