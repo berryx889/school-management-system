@@ -7,7 +7,7 @@ import { sendSms } from '../services/sms.js';
 const router = Router();
 
 const PORTAL_ROLES = {
-  staff: ['admin', 'teacher', 'kitchen'],
+  staff: ['admin', 'teacher', 'kitchen', 'accountant'],
   family: ['student', 'parent'],
 };
 

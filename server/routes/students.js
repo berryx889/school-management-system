@@ -44,7 +44,7 @@ async function nextStudentCode(client) {
 // Admin/teacher can list any student (needed for rosters, marks entry, attendance).
 // A parent only ever sees their own children; a student only ever sees themself.
 router.get('/', requireAuth, async (req, res) => {
-  if (!['admin', 'teacher', 'parent', 'student'].includes(req.user.role)) {
+  if (!['admin', 'teacher', 'parent', 'student', 'accountant'].includes(req.user.role)) {
     return res.status(403).json({ error: 'Forbidden' });
   }
 

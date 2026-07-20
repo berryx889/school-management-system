@@ -59,7 +59,7 @@ router.get('/', requireAuth, async (req, res) => {
 });
 
 // Record a cash/manual payment taken at the office.
-router.post('/manual', requireAuth, requireRole('admin'), async (req, res) => {
+router.post('/manual', requireAuth, requireRole('admin', 'accountant'), async (req, res) => {
   const { invoice_id, amount, method } = req.body;
   if (!invoice_id || !amount || !method) {
     return res.status(400).json({ error: 'invoice_id, amount, method are required' });

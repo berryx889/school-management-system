@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { api, apiErrorMessage } from '../../api/client.js';
+import { useAuth } from '../../auth/AuthContext.jsx';
 import { PageLoader, SectionHeader, EmptyState, Modal, Avatar } from '../../components/ui.jsx';
 import { useToast } from '../../components/Toast.jsx';
 import { IconSmartphone, IconCheckCircle, IconArrowLeft } from '../../components/Icon.jsx';
@@ -105,6 +106,7 @@ export default function Debtors() {
   const toast = useToast();
   const qc = useQueryClient();
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   const [classId, setClassId] = useState('');
   const [termId, setTermId] = useState('');
@@ -143,7 +145,7 @@ export default function Debtors() {
       qc.invalidateQueries({ queryKey: ['debtors'] });
       qc.invalidateQueries({ queryKey: ['student-invoices'] });
       setPayModal(null);
-      navigate(`/admin/receipts/${res.data.id}`);
+      navigate(`/${user.role}/receipts/${res.data.id}`);
     },
     onError: (err) => toast(apiErrorMessage(err), 'error'),
   });

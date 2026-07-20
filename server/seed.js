@@ -33,6 +33,14 @@ async function seed() {
     phone: '233200000002',
   });
 
+  const accountantId = await upsertUser({
+    role: 'accountant',
+    username: 'accountant',
+    password: 'accountant123',
+    full_name: 'School Accountant',
+    phone: '233200000004',
+  });
+
   let term = await pool.query('SELECT id FROM academic_terms WHERE is_current=true');
   let termId;
   if (term.rows.length) {
@@ -161,6 +169,7 @@ async function seed() {
   console.log('  STU0001 / student123');
   console.log('  233200000099 / parent123 (parent)');
   console.log('  kitchen / kitchen123');
+  console.log('  accountant / accountant123');
 
   await pool.end();
 }

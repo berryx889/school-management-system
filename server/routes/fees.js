@@ -16,7 +16,7 @@ router.get('/structures', requireAuth, async (req, res) => {
   res.json(rows);
 });
 
-router.post('/structures', requireAuth, requireRole('admin'), async (req, res) => {
+router.post('/structures', requireAuth, requireRole('admin', 'accountant'), async (req, res) => {
   const { term_id, class_id, item_name, amount } = req.body;
   if (!term_id || !class_id || !item_name || amount == null) {
     return res.status(400).json({ error: 'term_id, class_id, item_name, amount are required' });
@@ -28,12 +28,12 @@ router.post('/structures', requireAuth, requireRole('admin'), async (req, res) =
   res.status(201).json(rows[0]);
 });
 
-router.delete('/structures/:id', requireAuth, requireRole('admin'), async (req, res) => {
+router.delete('/structures/:id', requireAuth, requireRole('admin', 'accountant'), async (req, res) => {
   await pool.query('DELETE FROM fee_structures WHERE id=$1', [req.params.id]);
   res.status(204).end();
 });
 
-router.post('/invoices/generate', requireAuth, requireRole('admin'), async (req, res) => {
+router.post('/invoices/generate', requireAuth, requireRole('admin', 'accountant'), async (req, res) => {
   const { term_id, class_id } = req.body;
   if (!term_id) return res.status(400).json({ error: 'term_id is required' });
 
@@ -105,7 +105,7 @@ router.get('/invoices', requireAuth, async (req, res) => {
   res.json({ invoices: await withBalance(invoices.rows), items: items.rows });
 });
 
-router.get('/debtors', requireAuth, requireRole('admin'), async (req, res) => {
+router.get('/debtors', requireAuth, requireRole('admin', 'accountant'), async (req, res) => {
   const { class_id, term_id } = req.query;
   const values = [];
   const conditions = ['balance.amount > 0'];
@@ -131,7 +131,7 @@ router.get('/debtors', requireAuth, requireRole('admin'), async (req, res) => {
   res.json(rows);
 });
 
-router.post('/debtors/remind', requireAuth, requireRole('admin'), async (req, res) => {
+router.post('/debtors/remind', requireAuth, requireRole('admin', 'accountant'), async (req, res) => {
   const { invoice_ids } = req.body;
   if (!Array.isArray(invoice_ids) || !invoice_ids.length) {
     return res.status(400).json({ error: 'invoice_ids[] is required' });

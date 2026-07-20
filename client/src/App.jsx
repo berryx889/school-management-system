@@ -86,6 +86,11 @@ const TEACHER_NAV = [
 
 const KITCHEN_NAV = [{ to: '/kitchen', end: true, icon: IconUtensils, label: 'Headcount' }];
 
+const ACCOUNTANT_NAV = [
+  { to: '/accountant', end: true, icon: IconClipboardList, label: 'Debtors' },
+  { to: '/accountant/structures', icon: IconWallet, label: 'Fee structures' },
+];
+
 const STUDENT_TABS = [
   { to: '/student', end: true, icon: IconHome, label: 'Home' },
   { to: '/student/attendance', icon: IconCalendar, label: 'Attendance' },
@@ -148,6 +153,12 @@ export default function App() {
 
       <Route path="/kitchen" element={<ProtectedRoute roles={['admin', 'kitchen']}><SidebarLayout nav={KITCHEN_NAV} /></ProtectedRoute>}>
         <Route index element={<Kitchen />} />
+      </Route>
+
+      <Route path="/accountant" element={<ProtectedRoute roles={['accountant']}><SidebarLayout nav={ACCOUNTANT_NAV} /></ProtectedRoute>}>
+        <Route index element={<Debtors />} />
+        <Route path="structures" element={<FeeStructures />} />
+        <Route path="receipts/:paymentId" element={<Receipt />} />
       </Route>
 
       <Route path="/student" element={<ProtectedRoute roles={['student']}><MobileLayout tabs={STUDENT_TABS} /></ProtectedRoute>}>

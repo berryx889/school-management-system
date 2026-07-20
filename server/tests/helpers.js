@@ -25,7 +25,7 @@ export async function request(baseUrl, path, { method = 'GET', token, body } = {
   return { status: res.status, data };
 }
 
-const PORTAL_BY_ROLE = { admin: 'staff', teacher: 'staff', kitchen: 'staff', student: 'family', parent: 'family' };
+const PORTAL_BY_ROLE = { admin: 'staff', teacher: 'staff', kitchen: 'staff', accountant: 'staff', student: 'family', parent: 'family' };
 
 // `role` is kept as the helper's public parameter (tests read clearly as "log in as this
 // role") even though the API itself now only takes a portal and resolves the exact role.
