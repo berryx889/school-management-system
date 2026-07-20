@@ -18,6 +18,7 @@ import PromoteStudents from './pages/admin/PromoteStudents.jsx';
 import StudentQrCard from './pages/admin/StudentQrCard.jsx';
 import Teachers from './pages/admin/Teachers.jsx';
 import Classes from './pages/admin/Classes.jsx';
+import StructureBuilder from './pages/admin/StructureBuilder.jsx';
 import Subjects from './pages/admin/Subjects.jsx';
 import ClassSubjects from './pages/admin/ClassSubjects.jsx';
 import AdminTimetable from './pages/admin/Timetable.jsx';
@@ -126,6 +127,7 @@ export default function App() {
         <Route path="students/:id/qr-card" element={<StudentQrCard />} />
         <Route path="teachers" element={<Teachers />} />
         <Route path="classes" element={<Classes />} />
+        <Route path="classes/structure-builder" element={<StructureBuilder />} />
         <Route path="subjects" element={<Subjects />} />
         <Route path="class-subjects" element={<ClassSubjects />} />
         <Route path="timetable" element={<AdminTimetable />} />

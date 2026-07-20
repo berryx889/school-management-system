@@ -31,6 +31,63 @@ router.post('/', requireAuth, requireRole('admin'), async (req, res) => {
   res.status(201).json(rows[0]);
 });
 
+// Bulk-generates a stage's classes from levels x sections (e.g. 3 levels x 2 sections = 6
+// classes), naming each via a token template. `classes.name` has no DB-level UNIQUE
+// constraint, so a case-insensitive app-level check is the only guard against duplicates —
+// a pre-existing gap, not introduced here.
+router.post('/bulk-generate', requireAuth, requireRole('admin'), async (req, res) => {
+  const { stage_name, levels, sections, naming_format, capacity_per_class } = req.body;
+  if (!stage_name || !Array.isArray(levels) || !levels.length || !Array.isArray(sections) || !sections.length) {
+    return res.status(400).json({ error: 'stage_name, levels[], sections[] are required' });
+  }
+  const format = naming_format || '{stage} {level}{section}';
+
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+
+    const stage = await client.query(
+      `INSERT INTO academic_stages (name) VALUES ($1)
+       ON CONFLICT (name) DO UPDATE SET name=academic_stages.name
+       RETURNING *`,
+      [stage_name]
+    );
+
+    const existing = await client.query('SELECT name FROM classes');
+    const existingNames = new Set(existing.rows.map((r) => r.name.toLowerCase()));
+
+    const created = [];
+    const skipped = [];
+    for (const level of levels) {
+      for (const section of sections) {
+        const name = format
+          .replaceAll('{stage}', stage_name)
+          .replaceAll('{level}', String(level))
+          .replaceAll('{section}', String(section));
+        if (existingNames.has(name.toLowerCase())) {
+          skipped.push(name);
+          continue;
+        }
+        existingNames.add(name.toLowerCase());
+        const { rows } = await client.query(
+          `INSERT INTO classes (name, level, stage_id, level_number, section, capacity)
+           VALUES ($1,$2,$3,$4,$5,$6) RETURNING *`,
+          [name, stage_name, stage.rows[0].id, Number(level) || null, String(section), capacity_per_class || null]
+        );
+        created.push(rows[0]);
+      }
+    }
+
+    await client.query('COMMIT');
+    res.status(201).json({ stage: stage.rows[0], created, skipped });
+  } catch (err) {
+    await client.query('ROLLBACK');
+    throw err;
+  } finally {
+    client.release();
+  }
+});
+
 router.put('/:id', requireAuth, requireRole('admin'), async (req, res) => {
   const { name, level, class_teacher_id } = req.body;
   const { rows } = await pool.query(

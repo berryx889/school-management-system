@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { Link } from 'react-router-dom';
 import { api, apiErrorMessage } from '../../api/client.js';
 import { PageLoader, SectionHeader, EmptyState, Modal } from '../../components/ui.jsx';
 import { useToast } from '../../components/Toast.jsx';
@@ -27,7 +28,12 @@ export default function Classes() {
 
   return (
     <div>
-      <SectionHeader title="Classes" description={`${classes?.length ?? 0} classes`} action={<button className="btn-primary" onClick={() => setModalOpen(true)}>+ Add class</button>} />
+      <SectionHeader title="Classes" description={`${classes?.length ?? 0} classes`} action={
+        <div className="flex gap-2">
+          <Link to="structure-builder" className="btn-secondary">+ Bulk generate</Link>
+          <button className="btn-primary" onClick={() => setModalOpen(true)}>+ Add class</button>
+        </div>
+      } />
 
       {isLoading ? (
         <PageLoader />
