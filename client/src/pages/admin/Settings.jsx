@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api, apiErrorMessage } from '../../api/client.js';
-import { PageLoader, SectionHeader } from '../../components/ui.jsx';
+import { PageLoader, SectionHeader, Disclosure } from '../../components/ui.jsx';
 import { useToast } from '../../components/Toast.jsx';
 import { IconX } from '../../components/Icon.jsx';
 
@@ -280,126 +280,134 @@ export default function Settings() {
           });
         }}
       >
-        <div className="grid sm:grid-cols-2 gap-4">
-          <div>
-            <label className="label">School name</label>
-            <input className="input" value={form.name || ''} onChange={(e) => setForm({ ...form, name: e.target.value })} />
-          </div>
-          <div>
-            <label className="label">Short name</label>
-            <input className="input" value={form.short_name || ''} onChange={(e) => setForm({ ...form, short_name: e.target.value })} />
-          </div>
-          <div>
-            <label className="label">Address</label>
-            <input className="input" value={form.address || ''} onChange={(e) => setForm({ ...form, address: e.target.value })} />
-          </div>
-          <div>
-            <label className="label">Phone</label>
-            <input className="input" value={form.phone || ''} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
-          </div>
-          <div className="sm:col-span-2">
-            <label className="label">Motto</label>
-            <input className="input" value={form.motto || ''} onChange={(e) => setForm({ ...form, motto: e.target.value })} />
-          </div>
-        </div>
-
-        <div className="border-t border-slate-100 pt-5 grid sm:grid-cols-2 gap-4 items-start">
-          <ImageUpload label="Logo" value={form.logo_url} onChange={(logo_url) => setForm({ ...form, logo_url })}
-            helpText="Shown on report cards and ID cards." />
-          <div>
-            <label className="label">Brand color</label>
-            <div className="flex items-center gap-2">
-              <input
-                type="color"
-                className="h-10 w-12 rounded border border-slate-200 p-1 cursor-pointer"
-                value={form.primary_color || '#5B4FE9'}
-                onChange={(e) => setForm({ ...form, primary_color: e.target.value })}
-              />
-              <input
-                className="input flex-1"
-                value={form.primary_color || ''}
-                onChange={(e) => setForm({ ...form, primary_color: e.target.value })}
-                placeholder="#5B4FE9"
-              />
+        <Disclosure title="General" bordered={false}>
+          <div className="grid sm:grid-cols-2 gap-4">
+            <div>
+              <label className="label">School name</label>
+              <input className="input" value={form.name || ''} onChange={(e) => setForm({ ...form, name: e.target.value })} />
             </div>
-            <p className="text-xs text-slate-400 mt-1.5">Used as the accent color across the app and on printable documents.</p>
-          </div>
-        </div>
-
-        <div className="border-t border-slate-100 pt-5 grid sm:grid-cols-2 gap-4 items-start">
-          <ImageUpload label="Favicon" value={form.favicon_url} onChange={(favicon_url) => setForm({ ...form, favicon_url })}
-            helpText="Shown in the browser tab." />
-          <ImageUpload label="School seal" value={form.school_seal_url} onChange={(school_seal_url) => setForm({ ...form, school_seal_url })}
-            helpText="Shown on certificates." />
-          <ImageUpload label="Report card watermark" value={form.report_card_watermark_url} onChange={(report_card_watermark_url) => setForm({ ...form, report_card_watermark_url })}
-            helpText="Faint background image on report cards." />
-          <div>
-            <label className="label">Secondary color</label>
-            <div className="flex items-center gap-2">
-              <input
-                type="color"
-                className="h-10 w-12 rounded border border-slate-200 p-1 cursor-pointer"
-                value={form.secondary_color || '#000000'}
-                onChange={(e) => setForm({ ...form, secondary_color: e.target.value })}
-              />
-              <input
-                className="input flex-1"
-                value={form.secondary_color || ''}
-                onChange={(e) => setForm({ ...form, secondary_color: e.target.value })}
-                placeholder="#000000"
-              />
+            <div>
+              <label className="label">Short name</label>
+              <input className="input" value={form.short_name || ''} onChange={(e) => setForm({ ...form, short_name: e.target.value })} />
+            </div>
+            <div>
+              <label className="label">Address</label>
+              <input className="input" value={form.address || ''} onChange={(e) => setForm({ ...form, address: e.target.value })} />
+            </div>
+            <div>
+              <label className="label">Phone</label>
+              <input className="input" value={form.phone || ''} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
+            </div>
+            <div className="sm:col-span-2">
+              <label className="label">Motto</label>
+              <input className="input" value={form.motto || ''} onChange={(e) => setForm({ ...form, motto: e.target.value })} />
             </div>
           </div>
-          <div>
-            <label className="label">Theme</label>
-            <select className="input" value={form.theme || 'light'} onChange={(e) => setForm({ ...form, theme: e.target.value })}>
-              <option value="light">Light</option>
-              <option value="dark">Dark</option>
-            </select>
-          </div>
-          <div>
-            <label className="label">Font</label>
-            <input className="input" value={form.font_family || ''} onChange={(e) => setForm({ ...form, font_family: e.target.value })} placeholder="e.g. Poppins" />
-          </div>
-        </div>
+        </Disclosure>
 
-        <div className="border-t border-slate-100 pt-5 grid sm:grid-cols-2 gap-4">
-          <div>
-            <label className="label">Class score weight (of 100)</label>
-            <input type="number" className="input" value={form.class_score_weight} onChange={(e) => setForm({ ...form, class_score_weight: e.target.value })} />
+        <Disclosure title="Branding">
+          <div className="grid sm:grid-cols-2 gap-4 items-start">
+            <ImageUpload label="Logo" value={form.logo_url} onChange={(logo_url) => setForm({ ...form, logo_url })}
+              helpText="Shown on report cards and ID cards." />
+            <div>
+              <label className="label">Brand color</label>
+              <div className="flex items-center gap-2">
+                <input
+                  type="color"
+                  className="h-10 w-12 rounded border border-slate-200 p-1 cursor-pointer"
+                  value={form.primary_color || '#5B4FE9'}
+                  onChange={(e) => setForm({ ...form, primary_color: e.target.value })}
+                />
+                <input
+                  className="input flex-1"
+                  value={form.primary_color || ''}
+                  onChange={(e) => setForm({ ...form, primary_color: e.target.value })}
+                  placeholder="#5B4FE9"
+                />
+              </div>
+              <p className="text-xs text-slate-400 mt-1.5">Used as the accent color across the app and on printable documents.</p>
+            </div>
+            <ImageUpload label="Favicon" value={form.favicon_url} onChange={(favicon_url) => setForm({ ...form, favicon_url })}
+              helpText="Shown in the browser tab." />
+            <ImageUpload label="School seal" value={form.school_seal_url} onChange={(school_seal_url) => setForm({ ...form, school_seal_url })}
+              helpText="Shown on certificates." />
+            <ImageUpload label="Report card watermark" value={form.report_card_watermark_url} onChange={(report_card_watermark_url) => setForm({ ...form, report_card_watermark_url })}
+              helpText="Faint background image on report cards." />
+            <div>
+              <label className="label">Secondary color</label>
+              <div className="flex items-center gap-2">
+                <input
+                  type="color"
+                  className="h-10 w-12 rounded border border-slate-200 p-1 cursor-pointer"
+                  value={form.secondary_color || '#000000'}
+                  onChange={(e) => setForm({ ...form, secondary_color: e.target.value })}
+                />
+                <input
+                  className="input flex-1"
+                  value={form.secondary_color || ''}
+                  onChange={(e) => setForm({ ...form, secondary_color: e.target.value })}
+                  placeholder="#000000"
+                />
+              </div>
+            </div>
+            <div>
+              <label className="label">Theme</label>
+              <select className="input" value={form.theme || 'light'} onChange={(e) => setForm({ ...form, theme: e.target.value })}>
+                <option value="light">Light</option>
+                <option value="dark">Dark</option>
+              </select>
+            </div>
+            <div>
+              <label className="label">Font</label>
+              <input className="input" value={form.font_family || ''} onChange={(e) => setForm({ ...form, font_family: e.target.value })} placeholder="e.g. Poppins" />
+            </div>
           </div>
-          <div>
-            <label className="label">Exam score weight (of 100)</label>
-            <input type="number" className="input" value={form.exam_score_weight} onChange={(e) => setForm({ ...form, exam_score_weight: e.target.value })} />
-          </div>
-          <div>
-            <label className="label">Late arrival threshold</label>
-            <input type="time" className="input" value={form.late_threshold?.slice(0, 5) || ''} onChange={(e) => setForm({ ...form, late_threshold: e.target.value })} />
-          </div>
-          <div>
-            <label className="label">Attendance edit cutoff (teachers)</label>
-            <input type="time" className="input" value={form.attendance_edit_cutoff?.slice(0, 5) || ''} onChange={(e) => setForm({ ...form, attendance_edit_cutoff: e.target.value })} />
-          </div>
-        </div>
+        </Disclosure>
 
-        <div className="border-t border-slate-100 pt-5 grid sm:grid-cols-3 gap-4">
-          <div>
-            <label className="label">Tax rate (%)</label>
-            <input type="number" className="input" value={form.tax_rate} onChange={(e) => setForm({ ...form, tax_rate: e.target.value })} />
-            <p className="text-xs text-slate-400 mt-1.5">Applied when invoices are generated.</p>
+        <Disclosure title="Academic">
+          <div className="grid sm:grid-cols-2 gap-4">
+            <div>
+              <label className="label">Class score weight (of 100)</label>
+              <input type="number" className="input" value={form.class_score_weight} onChange={(e) => setForm({ ...form, class_score_weight: e.target.value })} />
+            </div>
+            <div>
+              <label className="label">Exam score weight (of 100)</label>
+              <input type="number" className="input" value={form.exam_score_weight} onChange={(e) => setForm({ ...form, exam_score_weight: e.target.value })} />
+            </div>
+            <div>
+              <label className="label">Late arrival threshold</label>
+              <input type="time" className="input" value={form.late_threshold?.slice(0, 5) || ''} onChange={(e) => setForm({ ...form, late_threshold: e.target.value })} />
+            </div>
+            <div>
+              <label className="label">Attendance edit cutoff (teachers)</label>
+              <input type="time" className="input" value={form.attendance_edit_cutoff?.slice(0, 5) || ''} onChange={(e) => setForm({ ...form, attendance_edit_cutoff: e.target.value })} />
+            </div>
           </div>
-          <div>
-            <label className="label">Late fee grace period (days)</label>
-            <input type="number" className="input" value={form.late_fee_grace_days} onChange={(e) => setForm({ ...form, late_fee_grace_days: e.target.value })} />
-          </div>
-          <div>
-            <label className="label">Late fee (%)</label>
-            <input type="number" className="input" value={form.late_fee_percent} onChange={(e) => setForm({ ...form, late_fee_percent: e.target.value })} />
-            <p className="text-xs text-slate-400 mt-1.5">Of the outstanding balance, once overdue.</p>
-          </div>
-        </div>
 
-        <div className="border-t border-slate-100 pt-5">
+          <GradeBandsEditor initialBands={data.grade_bands} />
+          <PromotionPolicyEditor initial={Object.fromEntries(PROMOTION_FIELDS.map((f) => [f, data[f]]))} />
+        </Disclosure>
+
+        <Disclosure title="Finance">
+          <div className="grid sm:grid-cols-3 gap-4">
+            <div>
+              <label className="label">Tax rate (%)</label>
+              <input type="number" className="input" value={form.tax_rate} onChange={(e) => setForm({ ...form, tax_rate: e.target.value })} />
+              <p className="text-xs text-slate-400 mt-1.5">Applied when invoices are generated.</p>
+            </div>
+            <div>
+              <label className="label">Late fee grace period (days)</label>
+              <input type="number" className="input" value={form.late_fee_grace_days} onChange={(e) => setForm({ ...form, late_fee_grace_days: e.target.value })} />
+            </div>
+            <div>
+              <label className="label">Late fee (%)</label>
+              <input type="number" className="input" value={form.late_fee_percent} onChange={(e) => setForm({ ...form, late_fee_percent: e.target.value })} />
+              <p className="text-xs text-slate-400 mt-1.5">Of the outstanding balance, once overdue.</p>
+            </div>
+          </div>
+        </Disclosure>
+
+        <Disclosure title="Communication">
           <label className="flex items-center gap-2 text-sm text-slate-700">
             <input
               type="checkbox"
@@ -408,18 +416,10 @@ export default function Settings() {
             />
             Teacher announcements require admin approval before SMS is sent
           </label>
-        </div>
+        </Disclosure>
 
         <button className="btn-primary" disabled={save.isPending}>{save.isPending ? 'Saving…' : 'Save settings'}</button>
       </form>
-
-      <div className="card p-6 max-w-2xl mt-6">
-        <GradeBandsEditor initialBands={data.grade_bands} />
-      </div>
-
-      <div className="card p-6 max-w-2xl mt-6">
-        <PromotionPolicyEditor initial={Object.fromEntries(PROMOTION_FIELDS.map((f) => [f, data[f]]))} />
-      </div>
     </div>
   );
 }

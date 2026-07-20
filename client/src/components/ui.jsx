@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { IconInbox, IconEye, IconEyeOff } from './Icon.jsx';
+import { IconInbox, IconEye, IconEyeOff, IconChevronRight } from './Icon.jsx';
 
 export function PasswordInput({ id, value, onChange, required, autoComplete, className = '' }) {
   const [visible, setVisible] = useState(false);
@@ -129,6 +129,49 @@ export function Modal({ open, onClose, title, children, wide = false }) {
         </div>
         {children}
       </div>
+    </div>
+  );
+}
+
+// Collapsible sidebar section — indented child links with a connecting border, chevron
+// rotates on toggle. `defaultOpen` is only read at mount, so pass whether this group
+// contains the current route to auto-expand it on load.
+export function NavGroup({ label, icon: Icon, defaultOpen = false, children }) {
+  const [open, setOpen] = useState(defaultOpen);
+  return (
+    <div>
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        className="flex items-center justify-between w-full gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-slate-500 hover:bg-slate-50"
+      >
+        <span className="flex items-center gap-3">
+          <Icon className="h-[18px] w-[18px] shrink-0" />
+          {label}
+        </span>
+        <IconChevronRight className={`h-3.5 w-3.5 transition-transform ${open ? 'rotate-90' : ''}`} />
+      </button>
+      {open && <div className="ml-2 pl-3 border-l border-slate-100 space-y-1 mt-1">{children}</div>}
+    </div>
+  );
+}
+
+// Collapsible card section, used to group the Settings form into named categories.
+// `bordered = false` for the first section in a stack, so it doesn't grow a stray top
+// border right under the card's own edge.
+export function Disclosure({ title, defaultOpen = true, bordered = true, children }) {
+  const [open, setOpen] = useState(defaultOpen);
+  return (
+    <div className={bordered ? 'border-t border-slate-100 pt-5' : ''}>
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        className="flex items-center justify-between w-full text-left mb-3"
+      >
+        <span className="font-semibold text-slate-800">{title}</span>
+        <IconChevronRight className={`h-4 w-4 text-slate-400 transition-transform ${open ? 'rotate-90' : ''}`} />
+      </button>
+      {open && <div className="space-y-4">{children}</div>}
     </div>
   );
 }

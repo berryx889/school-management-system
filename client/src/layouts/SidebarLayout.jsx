@@ -4,10 +4,14 @@ import { NavLink, Outlet, useLocation } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext.jsx';
 import { useSettings } from '../hooks/useSettings.js';
 import { api } from '../api/client.js';
-import { Avatar, Modal } from '../components/ui.jsx';
+import { Avatar, Modal, NavGroup } from '../components/ui.jsx';
 import ErrorBoundary from '../components/ErrorBoundary.jsx';
 import ChangePasswordForm from '../components/ChangePassword.jsx';
 import { IconMenu } from '../components/Icon.jsx';
+
+function matchesPath(pathname, item) {
+  return item.end ? pathname === item.to : pathname.startsWith(item.to);
+}
 
 export default function SidebarLayout({ nav, brand: brandProp = 'Bright Future Basic School' }) {
   const { user, logout } = useAuth();
@@ -40,21 +44,46 @@ export default function SidebarLayout({ nav, brand: brandProp = 'Bright Future B
         </div>
 
         <nav className="flex-1 overflow-y-auto py-4 px-3 space-y-1">
-          {nav.map((item) => (
-            <NavLink
-              key={item.to}
-              to={item.to}
-              end={item.end}
-              onClick={() => setOpen(false)}
-              className={({ isActive }) =>
-                `flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition
-                ${isActive ? 'bg-primary-50 text-primary-700' : 'text-slate-600 hover:bg-slate-50'}`
-              }
-            >
-              <item.icon className="h-[18px] w-[18px] shrink-0" />
-              {item.label}
-            </NavLink>
-          ))}
+          {nav.map((entry) =>
+            entry.items ? (
+              <NavGroup
+                key={entry.label}
+                label={entry.label}
+                icon={entry.icon}
+                defaultOpen={entry.items.some((i) => matchesPath(location.pathname, i))}
+              >
+                {entry.items.map((item) => (
+                  <NavLink
+                    key={item.to}
+                    to={item.to}
+                    end={item.end}
+                    onClick={() => setOpen(false)}
+                    className={({ isActive }) =>
+                      `flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium transition
+                      ${isActive ? 'bg-primary-50 text-primary-700' : 'text-slate-600 hover:bg-slate-50'}`
+                    }
+                  >
+                    <item.icon className="h-4 w-4 shrink-0" />
+                    {item.label}
+                  </NavLink>
+                ))}
+              </NavGroup>
+            ) : (
+              <NavLink
+                key={entry.to}
+                to={entry.to}
+                end={entry.end}
+                onClick={() => setOpen(false)}
+                className={({ isActive }) =>
+                  `flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition
+                  ${isActive ? 'bg-primary-50 text-primary-700' : 'text-slate-600 hover:bg-slate-50'}`
+                }
+              >
+                <entry.icon className="h-[18px] w-[18px] shrink-0" />
+                {entry.label}
+              </NavLink>
+            )
+          )}
         </nav>
 
         <div className="border-t border-slate-100 p-3">
