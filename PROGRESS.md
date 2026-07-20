@@ -23,16 +23,14 @@ hardening, and UI polish — see §4 for the full chronological log.
 
 ## 2. Repo / environment state right now
 
-- Git: `main` branch, 8 commits pushed to
-  `https://github.com/berryx889/school-management-system.git` — **but the working tree
-  right now has ~44 uncommitted files** (23 modified, ~21 new: 6 migrations, 5+ new server
-  routes/tests, several new client pages/hooks/utils). This is the entire 5-phase feature
-  build plus the scoped-down signup form plus the login redesign described in §4 below —
-  all real, tested, browser-verified work, just never committed. The user was explicitly
-  asked and said "not yet" each time it came up. **Don't assume this is a mistake or
-  clean it up — just don't lose track of the fact that `git log` will look behind what's
-  actually in the working tree.** Check with the user before committing; they may want to
-  review or split it up rather than one giant commit.
+- Git: `main` branch, working tree **clean** — everything described in §4 is committed.
+  The formerly-uncommitted 5-phase build + signup form + login redesign were split into 9
+  atomic feature commits (user chose "fully atomic per feature", done via intermediate
+  file states for shared files), and the staff-permissions/remarks/staff-directory/nav
+  build that followed was split into 4 more the same way. **All of these local commits
+  are NOT yet pushed** to `https://github.com/berryx889/school-management-system.git`
+  (origin/main is still at the 8th commit — `git log origin/main..main` lists the
+  unpushed set) — the user hasn't said to push; ask before pushing.
 - Local dev DB: Homebrew Postgres 16 running on **port 5433** (not 5432 — deliberately
   avoids Postgres.app's macOS GUI permission dialog, which blocks headless/CLI
   connections entirely). Database name `sms_dev`. Start command if it's not running:
@@ -515,6 +513,58 @@ untouched, still card-based — appropriate for actual forms):
   at narrow widths). Full flow (splash → portal picker → staff login form) still works, no
   console errors traceable to this change (some stale `Teachers.jsx`/`Classes.jsx` console
   errors are unrelated leftovers from earlier navigation in this same long session).
+
+### Staff permissions, remarks module, staff directory, grouped nav (2026-07-20)
+User shared screenshots of another school app (careconnect.online, green-themed "Kalakuta
+Foundation") as reference and asked for: a categorized admin panel, delegated mark-entry
+("we don't want all teachers entering marks — assign specific people, to reduce forgery"),
+a staff directory with counts/departments, a display-only auto staff email, a remarks
+module, and notifications (user chose to SKIP notifications this pass — still unbuilt).
+Planned via EnterPlanMode (3 Explore agents + 1 Plan agent); plan saved at
+`~/.claude/plans/fluffy-scribbling-hickey.md`. Migrations `009`-`011`. 4 commits:
+
+- **Delegated staff permissions (migration `009_staff_permissions.sql`)**: new
+  `staff_permissions` table (`permission_type` TEXT+CHECK ∈ marks_entry/remarks_entry,
+  two partial unique indexes since subject_id is NULL for remarks grants). **Strictly
+  additive** — a grant gives extra staff access on top of (never instead of) the
+  subject teacher's `class_subjects.teacher_id` / class teacher's
+  `classes.class_teacher_id` inherent rights, so `marks-ownership.test.js` passes
+  unmodified. `PUT /marks/bulk` now falls through to a grant check before 403ing.
+  **Also fixed in passing: `PUT /results/remarks` previously had NO ownership check at
+  all** (any teacher could write any student's remark — dead capability, no client called
+  it); now requires class-teacher / grant / admin via `canEditRemarksForClass()`. Added
+  `GET /results/remarks` (bulk read by class+term) + `PUT /results/remarks/bulk`. New
+  admin `Permissions.jsx` page (grant/revoke UI).
+- **Remarks module (migration `010_remark_templates.sql`)**: `remark_templates` bank
+  (type + text + optional class scope) with admin `RemarksSetup.jsx` CRUD, and shared
+  `RemarkSheet.jsx` (`/admin/remarks/sheet` + `/teacher/remarks`) — pick class+term, load
+  roster, per-student textarea with an "Insert template…" quick-pick, bulk save. This
+  finally gives the v1 `remarks` table (always rendered on report cards) an editor.
+- **Staff directory (migration `011_users_department.sql`)**: `users.department` (free
+  TEXT), new `server/routes/staff.js` (`STAFF_ROLES = admin/teacher/kitchen/accountant`,
+  excludes student/parent; list+filters, `/summary` counts incl. by-department, CRUD) —
+  deliberately a separate route from `teachers.js`, whose `role='teacher'` contract other
+  pickers rely on (that file only gained `department` additively). `StaffDirectory.jsx`
+  with StatCard tiles. `GET /account/me` + department shown in the sidebar footer.
+  `client/src/utils/staffEmail.js`: display-only `first.last@shortname.edu.gh` (per-part
+  punctuation stripped — "Mrs." was producing a double dot until caught in the browser).
+  NOT a real mailbox, purely cosmetic, user confirmed.
+- **Grouped nav + Settings accordion**: new `NavGroup` + `Disclosure` components in
+  `ui.jsx` (deliberately two small components, not one generic primitive). `ADMIN_NAV` is
+  now a mixed array — flat entries (Dashboard, Settings) plus `{label, icon, items}`
+  groups (People, Academic, Finance, Communication); `SidebarLayout.jsx` branches on
+  `entry.items` and auto-expands the group containing the current route (`matchesPath`,
+  evaluated only at mount). Other portals' navs stay flat and untouched. `Settings.jsx`
+  sections wrapped in `<Disclosure>` (General/Branding/Academic/Finance/Communication;
+  GradeBands + PromotionPolicy editors nested under Academic) — pure JSX regrouping, all
+  save mutations/payloads unchanged.
+
+Verified: 35/35 tests (`--test-concurrency=1`; 13 new across `staff-permissions`,
+`remarks`, `staff-directory` test files), clean Vite build, and browser walkthrough
+(grant → outsider teacher gains marks access while owner keeps theirs; template →
+inserted in Remark Sheet → `PUT /remarks/bulk` 200 → persisted; nav groups + Settings
+sections collapse/expand; staff creation with department updates counts). Browser test
+fixtures cleaned from the dev DB afterward.
 
 ## 5. Production database (Neon) — current state
 
