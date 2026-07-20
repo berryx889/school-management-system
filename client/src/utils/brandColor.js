@@ -62,3 +62,8 @@ export function applyBrandColor(hex) {
     root.setProperty(`--color-primary-${shade}`, color);
   }
 }
+
+export function applyFavicon(url) {
+  const link = document.querySelector('link[rel="icon"]');
+  if (link) link.href = url || '/favicon.svg';
+}

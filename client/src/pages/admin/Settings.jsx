@@ -192,6 +192,9 @@ export default function Settings() {
           save.mutate({
             name: form.name, short_name: form.short_name, address: form.address, phone: form.phone, motto: form.motto,
             logo_url: form.logo_url, primary_color: form.primary_color,
+            favicon_url: form.favicon_url, school_seal_url: form.school_seal_url,
+            report_card_watermark_url: form.report_card_watermark_url,
+            secondary_color: form.secondary_color, theme: form.theme, font_family: form.font_family,
             current_academic_year: form.current_academic_year, current_term: form.current_term,
             class_score_weight: Number(form.class_score_weight), exam_score_weight: Number(form.exam_score_weight),
             late_threshold: form.late_threshold, attendance_edit_cutoff: form.attendance_edit_cutoff,
@@ -242,6 +245,43 @@ export default function Settings() {
               />
             </div>
             <p className="text-xs text-slate-400 mt-1.5">Used as the accent color across the app and on printable documents.</p>
+          </div>
+        </div>
+
+        <div className="border-t border-slate-100 pt-5 grid sm:grid-cols-2 gap-4 items-start">
+          <ImageUpload label="Favicon" value={form.favicon_url} onChange={(favicon_url) => setForm({ ...form, favicon_url })}
+            helpText="Shown in the browser tab." />
+          <ImageUpload label="School seal" value={form.school_seal_url} onChange={(school_seal_url) => setForm({ ...form, school_seal_url })}
+            helpText="Shown on certificates." />
+          <ImageUpload label="Report card watermark" value={form.report_card_watermark_url} onChange={(report_card_watermark_url) => setForm({ ...form, report_card_watermark_url })}
+            helpText="Faint background image on report cards." />
+          <div>
+            <label className="label">Secondary color</label>
+            <div className="flex items-center gap-2">
+              <input
+                type="color"
+                className="h-10 w-12 rounded border border-slate-200 p-1 cursor-pointer"
+                value={form.secondary_color || '#000000'}
+                onChange={(e) => setForm({ ...form, secondary_color: e.target.value })}
+              />
+              <input
+                className="input flex-1"
+                value={form.secondary_color || ''}
+                onChange={(e) => setForm({ ...form, secondary_color: e.target.value })}
+                placeholder="#000000"
+              />
+            </div>
+          </div>
+          <div>
+            <label className="label">Theme</label>
+            <select className="input" value={form.theme || 'light'} onChange={(e) => setForm({ ...form, theme: e.target.value })}>
+              <option value="light">Light</option>
+              <option value="dark">Dark</option>
+            </select>
+          </div>
+          <div>
+            <label className="label">Font</label>
+            <input className="input" value={form.font_family || ''} onChange={(e) => setForm({ ...form, font_family: e.target.value })} placeholder="e.g. Poppins" />
           </div>
         </div>
 

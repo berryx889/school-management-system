@@ -14,7 +14,7 @@ router.get('/', requireAuth, async (_req, res) => {
 // signed in. Only non-sensitive branding fields are exposed here, nothing operational.
 router.get('/public', async (_req, res) => {
   const { rows } = await pool.query(
-    'SELECT name, short_name, logo_url, primary_color, motto FROM school_settings LIMIT 1'
+    'SELECT name, short_name, logo_url, favicon_url, primary_color, motto FROM school_settings LIMIT 1'
   );
   res.json(rows[0] || {});
 });
@@ -25,6 +25,8 @@ router.put('/', requireAuth, requireRole('admin'), async (req, res) => {
     'current_academic_year', 'current_term', 'primary_color',
     'class_score_weight', 'exam_score_weight', 'late_threshold',
     'attendance_edit_cutoff', 'announcement_requires_approval',
+    'favicon_url', 'school_seal_url', 'report_card_watermark_url',
+    'secondary_color', 'theme', 'font_family',
   ];
   const current = await pool.query('SELECT id FROM school_settings LIMIT 1');
   const id = current.rows[0].id;

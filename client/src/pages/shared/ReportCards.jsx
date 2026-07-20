@@ -6,7 +6,10 @@ import { IconPrinter, IconReceipt } from '../../components/Icon.jsx';
 
 function ReportCardPage({ result, settings }) {
   return (
-    <div className="report-card bg-white p-8 w-[210mm] min-h-[297mm] mx-auto mb-6 print:mb-0 print:break-after-page border border-slate-100 print:border-none">
+    <div className="report-card relative bg-white p-8 w-[210mm] min-h-[297mm] mx-auto mb-6 print:mb-0 print:break-after-page border border-slate-100 print:border-none">
+      {settings?.report_card_watermark_url && (
+        <img src={settings.report_card_watermark_url} alt="" className="absolute inset-0 m-auto max-h-[60%] opacity-10 pointer-events-none" />
+      )}
       <div className="text-center border-b-2 pb-4 mb-4" style={{ borderColor: settings?.primary_color || '#5B4FE9' }}>
         {settings?.logo_url && <img src={settings.logo_url} alt="" className="h-14 mx-auto mb-2" />}
         <h1 className="text-xl font-bold text-slate-900">{settings?.name}</h1>
@@ -59,8 +62,9 @@ function ReportCardPage({ result, settings }) {
         <p><span className="text-slate-500">Head teacher's remark:</span> {result.remarks?.head_teacher_remark || (result.average >= 70 ? 'Excellent performance, keep it up.' : result.average >= 50 ? 'Good effort, room to improve.' : 'Needs significant improvement — please see class teacher.')}</p>
       </div>
 
-      <div className="flex justify-between mt-10 text-xs text-slate-500">
+      <div className="flex justify-between items-end mt-10 text-xs text-slate-500">
         <p>Class teacher's signature: __________________</p>
+        {settings?.school_seal_url && <img src={settings.school_seal_url} alt="School seal" className="h-12" />}
         <p>Next term begins: __________________</p>
       </div>
     </div>

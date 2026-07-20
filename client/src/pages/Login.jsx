@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext.jsx';
 import { api, apiErrorMessage } from '../api/client.js';
 import { usePublicBranding } from '../hooks/usePublicBranding.js';
-import { applyBrandColor } from '../utils/brandColor.js';
+import { applyBrandColor, applyFavicon } from '../utils/brandColor.js';
 import { useToast } from '../components/Toast.jsx';
 import { PasswordInput } from '../components/ui.jsx';
 import {
@@ -164,6 +164,10 @@ export default function Login() {
   useEffect(() => {
     if (branding?.primary_color) applyBrandColor(branding.primary_color);
   }, [branding?.primary_color]);
+
+  useEffect(() => {
+    applyFavicon(branding?.favicon_url);
+  }, [branding?.favicon_url]);
 
   const portal = portalKey ? PORTALS[portalKey] : null;
 
