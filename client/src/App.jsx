@@ -8,9 +8,11 @@ import {
   IconHome, IconGraduationCap, IconUser, IconBuilding, IconBook, IconLink, IconCalendar,
   IconCamera, IconUtensils, IconEdit, IconBarChart, IconFileText, IconUnlock, IconWallet,
   IconClipboardList, IconMegaphone, IconSettings, IconCreditCard, IconMessageCircle, IconTrendingUp,
+  IconInbox,
 } from './components/Icon.jsx';
 
 import Login from './pages/Login.jsx';
+import Signup from './pages/Signup.jsx';
 
 import AdminDashboard from './pages/admin/Dashboard.jsx';
 import Students from './pages/admin/Students.jsx';
@@ -26,6 +28,7 @@ import ResultsRelease from './pages/admin/ResultsRelease.jsx';
 import FeeStructures from './pages/admin/FeeStructures.jsx';
 import Debtors from './pages/admin/Debtors.jsx';
 import AdminSettings from './pages/admin/Settings.jsx';
+import Signups from './pages/admin/Signups.jsx';
 
 import TeacherDashboard from './pages/teacher/Dashboard.jsx';
 import AttendanceMark from './pages/teacher/AttendanceMark.jsx';
@@ -73,6 +76,7 @@ const ADMIN_NAV = [
   { to: '/admin/fees/structures', icon: IconWallet, label: 'Fee structures' },
   { to: '/admin/fees/debtors', icon: IconClipboardList, label: 'Debtors' },
   { to: '/admin/announcements', icon: IconMegaphone, label: 'Announcements' },
+  { to: '/admin/signups', icon: IconInbox, label: 'School signups' },
   { to: '/admin/settings', icon: IconSettings, label: 'Settings' },
 ];
 
@@ -118,6 +122,7 @@ export default function App() {
   return (
     <Routes>
       <Route path="/login" element={<Login />} />
+      <Route path="/signup" element={<Signup />} />
       <Route path="/" element={<RoleRedirect />} />
 
       <Route path="/admin" element={<ProtectedRoute roles={['admin']}><SidebarLayout nav={ADMIN_NAV} /></ProtectedRoute>}>
@@ -141,6 +146,7 @@ export default function App() {
         <Route path="fees/debtors" element={<Debtors />} />
         <Route path="receipts/:paymentId" element={<Receipt />} />
         <Route path="announcements" element={<Announcements />} />
+        <Route path="signups" element={<Signups />} />
         <Route path="settings" element={<AdminSettings />} />
       </Route>
 
