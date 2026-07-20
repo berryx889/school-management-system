@@ -199,6 +199,8 @@ export default function Settings() {
             class_score_weight: Number(form.class_score_weight), exam_score_weight: Number(form.exam_score_weight),
             late_threshold: form.late_threshold, attendance_edit_cutoff: form.attendance_edit_cutoff,
             announcement_requires_approval: form.announcement_requires_approval,
+            tax_rate: Number(form.tax_rate), late_fee_grace_days: Number(form.late_fee_grace_days),
+            late_fee_percent: Number(form.late_fee_percent),
           });
         }}
       >
@@ -301,6 +303,23 @@ export default function Settings() {
           <div>
             <label className="label">Attendance edit cutoff (teachers)</label>
             <input type="time" className="input" value={form.attendance_edit_cutoff?.slice(0, 5) || ''} onChange={(e) => setForm({ ...form, attendance_edit_cutoff: e.target.value })} />
+          </div>
+        </div>
+
+        <div className="border-t border-slate-100 pt-5 grid sm:grid-cols-3 gap-4">
+          <div>
+            <label className="label">Tax rate (%)</label>
+            <input type="number" className="input" value={form.tax_rate} onChange={(e) => setForm({ ...form, tax_rate: e.target.value })} />
+            <p className="text-xs text-slate-400 mt-1.5">Applied when invoices are generated.</p>
+          </div>
+          <div>
+            <label className="label">Late fee grace period (days)</label>
+            <input type="number" className="input" value={form.late_fee_grace_days} onChange={(e) => setForm({ ...form, late_fee_grace_days: e.target.value })} />
+          </div>
+          <div>
+            <label className="label">Late fee (%)</label>
+            <input type="number" className="input" value={form.late_fee_percent} onChange={(e) => setForm({ ...form, late_fee_percent: e.target.value })} />
+            <p className="text-xs text-slate-400 mt-1.5">Of the outstanding balance, once overdue.</p>
           </div>
         </div>
 

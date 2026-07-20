@@ -76,6 +76,18 @@ export default function Receipt() {
           <p className="text-xs text-slate-500 mt-1 capitalize">via {data.method}</p>
         </div>
 
+        {data.discount > 0 && (
+          <div className="flex justify-between text-sm text-slate-500 mb-1">
+            <span>Discount applied</span>
+            <span>GHS {Number(data.discount).toLocaleString()}</span>
+          </div>
+        )}
+        {data.late_fee > 0 && (
+          <div className="flex justify-between text-sm text-amber-600 mb-1">
+            <span>Late fee</span>
+            <span>GHS {Number(data.late_fee).toLocaleString()}</span>
+          </div>
+        )}
         <div className="flex justify-between text-sm font-semibold border-t border-slate-100 pt-3">
           <span>Balance remaining</span>
           <span className={data.balance_remaining > 0 ? 'text-amber-600' : 'text-emerald-600'}>

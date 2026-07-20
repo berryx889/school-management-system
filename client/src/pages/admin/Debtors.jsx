@@ -138,6 +138,19 @@ export default function Debtors() {
   const [payModal, setPayModal] = useState(null);
   const [payForm, setPayForm] = useState({ amount: '', method: 'cash' });
 
+  const [discountModal, setDiscountModal] = useState(null);
+  const [discountAmount, setDiscountAmount] = useState('');
+
+  const applyDiscount = useMutation({
+    mutationFn: () => api.patch(`/fees/invoices/${discountModal.invoice_id}/discount`, { discount: Number(discountAmount) }),
+    onSuccess: () => {
+      toast('Discount applied.', 'success');
+      qc.invalidateQueries({ queryKey: ['debtors'] });
+      setDiscountModal(null);
+    },
+    onError: (err) => toast(apiErrorMessage(err), 'error'),
+  });
+
   const recordPayment = useMutation({
     mutationFn: () => api.post('/payments/manual', { invoice_id: payModal.invoice_id, amount: Number(payForm.amount), method: payForm.method }),
     onSuccess: (res) => {
@@ -153,6 +166,11 @@ export default function Debtors() {
   function openPayModal(target) {
     setPayModal(target);
     setPayForm({ amount: target.balance, method: 'cash' });
+  }
+
+  function openDiscountModal(target) {
+    setDiscountModal(target);
+    setDiscountAmount(String(target.discount || 0));
   }
 
   return (
@@ -206,8 +224,18 @@ export default function Debtors() {
                     <td className="px-4 py-2.5 font-medium text-slate-800">{d.full_name}</td>
                     <td className="px-4 py-2.5 text-slate-500">{d.class_name}</td>
                     <td className="px-4 py-2.5 text-slate-500">{d.parent_name} {d.parent_phone && `· ${d.parent_phone}`}</td>
-                    <td className="px-4 py-2.5 font-semibold text-red-600">GHS {Number(d.balance).toLocaleString()}</td>
-                    <td className="px-4 py-2.5 text-right">
+                    <td className="px-4 py-2.5 font-semibold text-red-600">
+                      GHS {Number(d.balance).toLocaleString()}
+                      {d.late_fee > 0 && <span className="text-xs text-amber-600 block font-normal">incl. GHS {Number(d.late_fee).toLocaleString()} late fee</span>}
+                      {d.discount > 0 && <span className="text-xs text-slate-400 block font-normal">GHS {Number(d.discount).toLocaleString()} discount applied</span>}
+                    </td>
+                    <td className="px-4 py-2.5 text-right whitespace-nowrap">
+                      <button
+                        className="text-slate-500 font-medium mr-3"
+                        onClick={() => openDiscountModal({ invoice_id: d.invoice_id, full_name: d.full_name, discount: d.discount })}
+                      >
+                        Discount
+                      </button>
                       <button
                         className="text-primary-600 font-medium"
                         onClick={() => openPayModal({ invoice_id: d.invoice_id, full_name: d.full_name, balance: d.balance })}
@@ -239,6 +267,16 @@ export default function Debtors() {
             </select>
           </div>
           <button className="btn-primary w-full" disabled={recordPayment.isPending}>{recordPayment.isPending ? 'Saving…' : 'Record & print receipt'}</button>
+        </form>
+      </Modal>
+
+      <Modal open={Boolean(discountModal)} onClose={() => setDiscountModal(null)} title={`Apply discount — ${discountModal?.full_name}`}>
+        <form className="space-y-4" onSubmit={(e) => { e.preventDefault(); applyDiscount.mutate(); }}>
+          <div>
+            <label className="label">Discount (GHS)</label>
+            <input type="number" step="0.01" min="0" className="input" required value={discountAmount} onChange={(e) => setDiscountAmount(e.target.value)} />
+          </div>
+          <button className="btn-primary w-full" disabled={applyDiscount.isPending}>{applyDiscount.isPending ? 'Saving…' : 'Apply discount'}</button>
         </form>
       </Modal>
     </div>

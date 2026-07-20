@@ -7,7 +7,7 @@
     "start": "node index.js",
     "migrate": "node migrations/run.js",
     "seed": "node seed.js",
-    "test": "node --test"
+    "test": "node --test --test-concurrency=1"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",

@@ -27,6 +27,7 @@ router.put('/', requireAuth, requireRole('admin'), async (req, res) => {
     'attendance_edit_cutoff', 'announcement_requires_approval',
     'favicon_url', 'school_seal_url', 'report_card_watermark_url',
     'secondary_color', 'theme', 'font_family',
+    'tax_rate', 'late_fee_grace_days', 'late_fee_percent',
   ];
   const current = await pool.query('SELECT id FROM school_settings LIMIT 1');
   const id = current.rows[0].id;
