@@ -77,6 +77,8 @@ export const IconSmartphone = (p) => <Svg {...p}><rect x="7" y="2.5" width="10" 
 
 export const IconShield = (p) => <Svg {...p}><path d="M12 3.5 19 6v6c0 4.5-3 7.5-7 8.5-4-1-7-4-7-8.5V6l7-2.5Z" /><path d="M9 12l2 2 4-4.5" /></Svg>;
 
+export const IconBell = (p) => <Svg {...p}><path d="M10 20a2 2 0 0 0 4 0" /><path d="M6 10a6 6 0 0 1 12 0c0 3.5 1.5 5.5 2 6.5H4c.5-1 2-3 2-6.5Z" /></Svg>;
+
 export const IconMenu = (p) => <Svg {...p}><path d="M4 6.5h16M4 12h16M4 17.5h16" /></Svg>;
 
 export const IconArrowLeft = (p) => <Svg {...p}><path d="M19 12H5M11 6l-6 6 6 6" /></Svg>;

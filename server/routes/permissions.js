@@ -50,6 +50,17 @@ router.post('/', requireAuth, requireRole('admin'), async (req, res) => {
     [user_id, permission_type, class_id, permission_type === 'marks_entry' ? subject_id : null, req.user.id]
   );
   if (!rows.length) return res.status(409).json({ error: 'This grant already exists' });
+
+  const className = (await pool.query('SELECT name FROM classes WHERE id=$1', [class_id])).rows[0]?.name || '';
+  const label = permission_type === 'marks_entry'
+    ? `marks entry for ${className}${subject_id ? ` – ${(await pool.query('SELECT name FROM subjects WHERE id=$1', [subject_id])).rows[0]?.name || ''}` : ''}`
+    : `remarks entry for ${className}`;
+  await pool.query(
+    `INSERT INTO notifications (user_id, type, title, message)
+     VALUES ($1, 'permission_granted', $2, $3)`,
+    [user_id, 'Permission granted', `You have been granted ${label}.`]
+  );
+
   res.status(201).json(rows[0]);
 });
 

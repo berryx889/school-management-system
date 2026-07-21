@@ -59,6 +59,7 @@ before(async () => {
 });
 
 after(async () => {
+  await pool.query('DELETE FROM notifications WHERE user_id=$1', [outsiderTeacherId]);
   await pool.query('DELETE FROM staff_permissions WHERE user_id=$1', [outsiderTeacherId]);
   await pool.query('DELETE FROM marks WHERE assessment_id=$1', [assessmentId]);
   await pool.query('DELETE FROM assessments WHERE id=$1', [assessmentId]);

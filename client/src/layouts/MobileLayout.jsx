@@ -5,6 +5,7 @@ import { useSettings } from '../hooks/useSettings.js';
 import { Avatar, Modal } from '../components/ui.jsx';
 import ErrorBoundary from '../components/ErrorBoundary.jsx';
 import ChangePasswordForm from '../components/ChangePassword.jsx';
+import NotificationBell from '../components/NotificationBell.jsx';
 
 export default function MobileLayout({ tabs }) {
   const { user, logout } = useAuth();
@@ -20,9 +21,12 @@ export default function MobileLayout({ tabs }) {
           {settings?.logo_url && <img src={settings.logo_url} alt="" className="h-7 w-7 rounded-md object-contain shrink-0" />}
           <span className="font-bold text-slate-900 text-sm truncate">{settings?.name || 'Bright Future Basic School'}</span>
         </div>
-        <button onClick={() => setAccountOpen(true)} aria-label="Account">
-          <Avatar name={user?.full_name} size={30} />
-        </button>
+        <div className="flex items-center gap-2">
+          <NotificationBell />
+          <button onClick={() => setAccountOpen(true)} aria-label="Account">
+            <Avatar name={user?.full_name} size={30} />
+          </button>
+        </div>
       </header>
 
       <main className="flex-1 max-w-lg w-full mx-auto pb-24 px-4 pt-5">

@@ -8,6 +8,7 @@ import { Avatar, Modal, NavGroup } from '../components/ui.jsx';
 import ErrorBoundary from '../components/ErrorBoundary.jsx';
 import ChangePasswordForm from '../components/ChangePassword.jsx';
 import { IconMenu } from '../components/Icon.jsx';
+import NotificationBell from '../components/NotificationBell.jsx';
 
 function matchesPath(pathname, item) {
   return item.end ? pathname === item.to : pathname.startsWith(item.to);
@@ -108,11 +109,14 @@ export default function SidebarLayout({ nav, brand: brandProp = 'Bright Future B
       </Modal>
 
       <div className="flex-1 min-w-0">
-        <header className="lg:hidden h-14 bg-white border-b border-slate-100 flex items-center px-4 sticky top-0 z-20 no-print">
-          <button onClick={() => setOpen(true)} className="text-slate-600" aria-label="Open menu">
+        <header className="h-14 bg-white border-b border-slate-100 flex items-center px-4 sticky top-0 z-20 no-print">
+          <button onClick={() => setOpen(true)} className="text-slate-600 lg:hidden" aria-label="Open menu">
             <IconMenu className="h-5 w-5" />
           </button>
-          <span className="ml-3 font-bold text-slate-900 text-sm">{brand}</span>
+          <span className="ml-3 lg:ml-0 font-bold text-slate-900 text-sm lg:hidden">{brand}</span>
+          <div className="ml-auto">
+            <NotificationBell />
+          </div>
         </header>
         <main className="p-4 sm:p-6 lg:p-8 max-w-[1400px] mx-auto">
           <ErrorBoundary resetKey={location.pathname}>

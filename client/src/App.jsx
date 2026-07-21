@@ -8,7 +8,7 @@ import {
   IconHome, IconGraduationCap, IconUser, IconUsers, IconBuilding, IconBook, IconLink, IconCalendar,
   IconCamera, IconUtensils, IconEdit, IconBarChart, IconFileText, IconUnlock, IconWallet,
   IconClipboardList, IconMegaphone, IconSettings, IconCreditCard, IconMessageCircle, IconTrendingUp,
-  IconInbox, IconShield,
+  IconInbox, IconShield, IconBell,
 } from './components/Icon.jsx';
 
 import Login from './pages/Login.jsx';
@@ -32,6 +32,7 @@ import FeeStructures from './pages/admin/FeeStructures.jsx';
 import Debtors from './pages/admin/Debtors.jsx';
 import AdminSettings from './pages/admin/Settings.jsx';
 import Signups from './pages/admin/Signups.jsx';
+import AdminNotifications from './pages/admin/Notifications.jsx';
 
 import TeacherDashboard from './pages/teacher/Dashboard.jsx';
 import AttendanceMark from './pages/teacher/AttendanceMark.jsx';
@@ -91,6 +92,7 @@ const ADMIN_NAV = [
   ] },
   { label: 'Communication', icon: IconMegaphone, items: [
     { to: '/admin/announcements', icon: IconMegaphone, label: 'Announcements' },
+    { to: '/admin/notifications', icon: IconBell, label: 'Push notifications' },
     { to: '/admin/signups', icon: IconInbox, label: 'School signups' },
   ] },
   { to: '/admin/settings', icon: IconSettings, label: 'Settings' },
@@ -167,6 +169,7 @@ export default function App() {
         <Route path="fees/debtors" element={<Debtors />} />
         <Route path="receipts/:paymentId" element={<Receipt />} />
         <Route path="announcements" element={<Announcements />} />
+        <Route path="notifications" element={<AdminNotifications />} />
         <Route path="signups" element={<Signups />} />
         <Route path="settings" element={<AdminSettings />} />
       </Route>
