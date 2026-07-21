@@ -105,4 +105,58 @@ router.post('/otp/verify', async (req, res) => {
   res.json(await buildAuthResponse(user));
 });
 
+router.post('/forgot-password', async (req, res) => {
+  const { username } = req.body;
+  if (!username) return res.status(400).json({ error: 'username is required' });
+
+  const { rows } = await pool.query(
+    'SELECT id, phone FROM users WHERE username=$1 AND is_active=true',
+    [username]
+  );
+  if (!rows.length || !rows[0].phone) {
+    return res.status(404).json({ error: 'No account with a registered phone number found for this username' });
+  }
+
+  const phone = rows[0].phone;
+  const code = String(Math.floor(100000 + Math.random() * 900000));
+  const expires_at = new Date(Date.now() + 10 * 60 * 1000);
+  await pool.query(
+    'INSERT INTO otp_codes (phone, code, expires_at) VALUES ($1,$2,$3)',
+    [phone, code, expires_at]
+  );
+  await sendSms(phone, `Your password reset code is ${code}. It expires in 10 minutes.`);
+
+  const masked = phone.replace(/(\d{3})\d+(\d{3})/, '$1***$2');
+  res.json({ ok: true, masked_phone: masked });
+});
+
+router.post('/reset-password', async (req, res) => {
+  const { username, code, new_password } = req.body;
+  if (!username || !code || !new_password) {
+    return res.status(400).json({ error: 'username, code and new_password are required' });
+  }
+  if (new_password.length < 6) {
+    return res.status(400).json({ error: 'Password must be at least 6 characters' });
+  }
+
+  const user = (await pool.query(
+    'SELECT id, phone FROM users WHERE username=$1 AND is_active=true',
+    [username]
+  )).rows[0];
+  if (!user || !user.phone) return res.status(404).json({ error: 'Account not found' });
+
+  const otp = (await pool.query(
+    `SELECT * FROM otp_codes WHERE phone=$1 AND code=$2 AND used=false AND expires_at > now()
+     ORDER BY created_at DESC LIMIT 1`,
+    [user.phone, code]
+  )).rows[0];
+  if (!otp) return res.status(401).json({ error: 'Invalid or expired code' });
+
+  await pool.query('UPDATE otp_codes SET used=true WHERE id=$1', [otp.id]);
+  const password_hash = await bcrypt.hash(new_password, 10);
+  await pool.query('UPDATE users SET password_hash=$1 WHERE id=$2', [password_hash, user.id]);
+
+  res.json({ ok: true });
+});
+
 export default router;

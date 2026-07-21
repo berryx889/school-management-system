@@ -153,7 +153,7 @@ function PortalPicker({ onChoose, onBack }) {
 }
 
 export default function Login() {
-  const [stage, setStage] = useState('splash'); // splash | portal | form
+  const [stage, setStage] = useState('splash'); // splash | portal | form | forgot
   const [portalKey, setPortalKey] = useState(null);
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -161,6 +161,12 @@ export default function Login() {
   const [otpSent, setOtpSent] = useState(false);
   const [otpCode, setOtpCode] = useState('');
   const [loading, setLoading] = useState(false);
+  const [forgotStep, setForgotStep] = useState('username'); // username | code
+  const [forgotUser, setForgotUser] = useState('');
+  const [maskedPhone, setMaskedPhone] = useState('');
+  const [resetCode, setResetCode] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const { login, loginWithOtp } = useAuth();
   const navigate = useNavigate();
   const toast = useToast();
@@ -228,6 +234,49 @@ export default function Login() {
     }
   }
 
+  function openForgot() {
+    setStage('forgot');
+    setForgotStep('username');
+    setForgotUser('');
+    setMaskedPhone('');
+    setResetCode('');
+    setNewPassword('');
+    setConfirmPassword('');
+  }
+
+  async function handleForgotRequest(e) {
+    e.preventDefault();
+    setLoading(true);
+    try {
+      const { data } = await api.post('/auth/forgot-password', { username: forgotUser });
+      setMaskedPhone(data.masked_phone);
+      setForgotStep('code');
+      toast(`A reset code was sent to ${data.masked_phone}.`, 'success');
+    } catch (err) {
+      toast(apiErrorMessage(err), 'error');
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function handleResetPassword(e) {
+    e.preventDefault();
+    if (newPassword !== confirmPassword) {
+      toast('Passwords do not match.', 'error');
+      return;
+    }
+    setLoading(true);
+    try {
+      await api.post('/auth/reset-password', { username: forgotUser, code: resetCode, new_password: newPassword });
+      toast('Password reset successfully. You can now sign in.', 'success');
+      setStage('form');
+    } catch (err) {
+      toast(apiErrorMessage(err), 'error');
+    } finally {
+      setLoading(false);
+    }
+  }
+
   if (stage === 'splash') {
     return (
       <div className="bg-surface relative overflow-hidden">
@@ -249,6 +298,57 @@ export default function Login() {
         {stage === 'portal' && (
           <div className="card p-6">
             <PortalPicker onChoose={choosePortal} onBack={() => setStage('splash')} />
+          </div>
+        )}
+
+        {stage === 'forgot' && (
+          <div className="card p-6 animate-fade-in-up">
+            <button
+              onClick={() => setStage('form')}
+              className="text-sm text-primary-600 font-medium mb-4 flex items-center gap-1"
+            >
+              <IconArrowLeft className="h-4 w-4" /> Back to sign in
+            </button>
+
+            <h2 className="text-xl font-bold text-slate-900 mb-1">Reset password</h2>
+            <p className="text-sm text-slate-500 mb-5">
+              {forgotStep === 'username'
+                ? 'Enter your username and we\'ll send a reset code to your registered phone number.'
+                : `Enter the code sent to ${maskedPhone} and choose a new password.`}
+            </p>
+
+            {forgotStep === 'username' ? (
+              <form onSubmit={handleForgotRequest} className="space-y-4">
+                <div>
+                  <label className="label" htmlFor="forgot-username">Username</label>
+                  <input id="forgot-username" className="input" value={forgotUser} onChange={(e) => setForgotUser(e.target.value)} required autoFocus />
+                </div>
+                <button type="submit" className="btn-primary w-full" disabled={loading}>
+                  {loading ? 'Sending…' : 'Send reset code'}
+                </button>
+              </form>
+            ) : (
+              <form onSubmit={handleResetPassword} className="space-y-4">
+                <div>
+                  <label className="label" htmlFor="reset-code">Reset code</label>
+                  <input id="reset-code" className="input" value={resetCode} onChange={(e) => setResetCode(e.target.value)} required autoFocus />
+                </div>
+                <div>
+                  <label className="label" htmlFor="new-password">New password</label>
+                  <PasswordInput id="new-password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} required />
+                </div>
+                <div>
+                  <label className="label" htmlFor="confirm-password">Confirm password</label>
+                  <PasswordInput id="confirm-password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} required />
+                </div>
+                <button type="submit" className="btn-primary w-full" disabled={loading}>
+                  {loading ? 'Resetting…' : 'Reset password'}
+                </button>
+                <button type="button" className="text-sm text-slate-500 w-full text-center" onClick={() => setForgotStep('username')}>
+                  Didn't get a code? Try again
+                </button>
+              </form>
+            )}
           </div>
         )}
 
@@ -299,6 +399,9 @@ export default function Login() {
                 </div>
                 <button type="submit" className="btn-primary w-full" disabled={loading}>
                   {loading ? 'Signing in…' : 'Sign in'}
+                </button>
+                <button type="button" className="text-sm text-slate-500 hover:text-primary-600 w-full text-center" onClick={openForgot}>
+                  Forgot password?
                 </button>
                 {portalKey === 'family' && (
                   <button type="button" className="text-sm text-primary-600 w-full text-center font-medium" onClick={() => setOtpMode(true)}>
