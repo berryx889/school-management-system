@@ -23,14 +23,10 @@ hardening, and UI polish — see §4 for the full chronological log.
 
 ## 2. Repo / environment state right now
 
-- Git: `main` branch, working tree **clean** — everything described in §4 is committed.
-  The formerly-uncommitted 5-phase build + signup form + login redesign were split into 9
-  atomic feature commits (user chose "fully atomic per feature", done via intermediate
-  file states for shared files), and the staff-permissions/remarks/staff-directory/nav
-  build that followed was split into 4 more the same way. **All of these local commits
-  are NOT yet pushed** to `https://github.com/berryx889/school-management-system.git`
-  (origin/main is still at the 8th commit — `git log origin/main..main` lists the
-  unpushed set) — the user hasn't said to push; ask before pushing.
+- Git: `main` branch, working tree **clean** — everything described in §4 is committed
+  and **pushed to origin/main**. 16 commits total on main (the original 8 + 9 atomic
+  feature commits + 1 PROGRESS.md update + 5 permissions/remarks/staff-directory/nav +
+  1 notifications + 1 forgot-password).
 - Local dev DB: Homebrew Postgres 16 running on **port 5433** (not 5432 — deliberately
   avoids Postgres.app's macOS GUI permission dialog, which blocks headless/CLI
   connections entirely). Database name `sms_dev`. Start command if it's not running:
@@ -566,6 +562,40 @@ inserted in Remark Sheet → `PUT /remarks/bulk` 200 → persisted; nav groups +
 sections collapse/expand; staff creation with department updates counts). Browser test
 fixtures cleaned from the dev DB afterward.
 
+### In-app notifications (2026-07-21)
+Bell icon + in-app alerts for all staff portals. Migration `012_notifications.sql` adds
+a `notifications` table with a partial index for fast unread queries.
+
+- **Auto-notify on permission grant**: `server/routes/permissions.js` now creates a
+  notification ("You have been granted marks entry for JHS 2 – Mathematics") whenever
+  admin grants a staff permission — the grantee sees it immediately in their bell dropdown.
+- **Admin push notifications**: `POST /api/notifications` (admin-only) sends to a single
+  staff member (`user_id` provided) or all active staff (omit `user_id`, bulk insert).
+  New admin page `client/src/pages/admin/Notifications.jsx` under Communication group.
+- **NotificationBell component** (`client/src/components/NotificationBell.jsx`): bell icon
+  in the header (both `SidebarLayout` and `MobileLayout`), red unread badge (count, "9+"
+  cap), dropdown panel with notification list, mark-read on click, mark-all-read button.
+  Polls unread count every 30s via `useQuery` with `refetchInterval`.
+- 8 new tests (`server/tests/notifications.test.js`): auto-notify on grant, admin push
+  individual/all, unread-count, mark-read, mark-all-read, user isolation, non-admin rejected.
+  43/43 tests pass.
+
+### Forgot-password self-service reset (2026-07-21)
+Staff can tap "Forgot password?" on the login form, enter their username, receive an OTP
+via SMS to their registered phone number, and set a new password — no admin intervention
+needed. Reuses the existing `otp_codes` table and Arkesel `sendSms` service.
+
+- **Backend** (`server/routes/auth.js`): `POST /auth/forgot-password` (looks up username →
+  phone, generates 6-digit OTP, sends SMS, returns masked phone like `233***001`) and
+  `POST /auth/reset-password` (validates OTP, hashes new password, updates user). Both are
+  public (no auth required), matching the existing OTP endpoints.
+- **Frontend** (`client/src/pages/Login.jsx`): new `stage === 'forgot'` flow — username
+  entry → "Send reset code" → code + new password + confirm fields → "Reset password".
+  "Forgot password?" link appears below the sign-in button on both staff and family portals.
+  "Back to sign in" and "Didn't get a code? Try again" links included.
+- API verified via curl (both endpoints return correct responses). UI verified in browser
+  (form renders correctly, full flow structure confirmed). 43/43 tests pass (no regressions).
+
 ## 5. Production database (Neon) — current state
 
 - A Neon Postgres project exists and both migrations have been applied (schema is live,
@@ -601,11 +631,8 @@ fixtures cleaned from the dev DB afterward.
    avatars-only/no real photos, this isn't a near-term concern; the dominant long-term
    storage driver is accumulating daily attendance rows, not photos, if photos are
    avoided). Was flagged twice as a "fix before scale" item; user hasn't asked for it yet.
-5. **No self-service "forgot password" for a user who's locked out and can't reach an
-   admin** — the SMS OTP flow covers parents (and anyone else with a phone on file), but
-   there's no "forgot password" link on the login form itself, just the existing "sign
-   in with SMS code instead" option on the family portal. Not flagged as broken, just
-   noting it's the only recovery path.
+5. ~~Forgot password~~ **Done** — "Forgot password?" link on the login form, OTP-based
+   self-service reset via SMS to the user's registered phone number.
 6. Deliberately out of scope per the PRD: transport tracking, library management,
    payroll/HR. **Multi-tenancy is no longer simply "out of scope"** — see §4's
    "Multi-tenant SaaS discussion" entry: a phased roadmap was discussed and agreed
@@ -635,7 +662,7 @@ export PATH="/opt/homebrew/opt/postgresql@16/bin:$PATH"; export LC_ALL="en_US.UT
 pg_ctl -D /opt/homebrew/var/postgresql@16 -o "-p 5433" -l /tmp/pg16.log start
 
 # Terminal 2: automated tests (run from /server)
-npm test    # expect 22/22 passing (now runs with --test-concurrency=1 — see §4, don't
+npm test    # expect 43/43 passing (now runs with --test-concurrency=1 — see §4, don't
             # revert this to the default parallel mode, it caused intermittent 5-minute
             # hangs on this machine)
 
