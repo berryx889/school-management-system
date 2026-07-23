@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useQueries, useQuery } from '@tanstack/react-query';
 import { api } from '../../api/client.js';
-import { PageLoader, SectionHeader, EmptyState } from '../../components/ui.jsx';
+import { Skeleton, SectionHeader, EmptyState } from '../../components/ui.jsx';
 import { IconPrinter, IconReceipt } from '../../components/Icon.jsx';
 
 function ReportCardPage({ result, settings }) {
@@ -10,7 +10,7 @@ function ReportCardPage({ result, settings }) {
       {settings?.report_card_watermark_url && (
         <img src={settings.report_card_watermark_url} alt="" className="absolute inset-0 m-auto max-h-[60%] opacity-10 pointer-events-none" />
       )}
-      <div className="text-center border-b-2 pb-4 mb-4" style={{ borderColor: settings?.primary_color || '#5B4FE9' }}>
+      <div className="text-center border-b-2 pb-4 mb-4" style={{ borderColor: settings?.primary_color || '#059669' }}>
         {settings?.logo_url && <img src={settings.logo_url} alt="" className="h-14 mx-auto mb-2" />}
         <h1 className="text-xl font-bold text-slate-900">{settings?.name}</h1>
         <p className="text-xs text-slate-500">{settings?.address} · {settings?.phone}</p>
@@ -121,7 +121,26 @@ export default function ReportCards() {
       {!classId ? (
         <div className="card no-print"><EmptyState icon={IconReceipt} title="Choose a class and term" /></div>
       ) : !loaded ? (
-        <PageLoader />
+        <div className="card p-8 max-w-[210mm] mx-auto space-y-6">
+          <div className="flex flex-col items-center space-y-2">
+            <Skeleton className="h-6 w-48" />
+            <Skeleton className="h-3 w-32" />
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <Skeleton className="h-4 w-full" />
+            <Skeleton className="h-4 w-full" />
+          </div>
+          <div className="space-y-3">
+            {[...Array(6)].map((_, i) => (
+              <div key={i} className="flex items-center gap-4">
+                <Skeleton className="h-4 w-28" />
+                <Skeleton className="h-4 w-12" />
+                <Skeleton className="h-4 w-12" />
+                <Skeleton className="h-4 w-12 ml-auto" />
+              </div>
+            ))}
+          </div>
+        </div>
       ) : !results.length ? (
         <div className="card no-print"><EmptyState icon={IconReceipt} title="No students in this class" /></div>
       ) : (

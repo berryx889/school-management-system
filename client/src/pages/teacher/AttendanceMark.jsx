@@ -8,8 +8,8 @@ import { IconGraduationCap } from '../../components/Icon.jsx';
 
 const STATUSES = [
   { id: 'present', label: 'Present', tone: 'bg-emerald-500 text-white' },
-  { id: 'late', label: 'Late', tone: 'bg-amber-500 text-white' },
-  { id: 'absent', label: 'Absent', tone: 'bg-red-500 text-white' },
+  { id: 'late', label: 'Late', tone: 'bg-amber-50 text-white' },
+  { id: 'absent', label: 'Absent', tone: 'bg-red-50 text-white' },
 ];
 
 export default function AttendanceMark() {

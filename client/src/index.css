@@ -1,23 +1,54 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.force-dark-never));
+
+
 @theme {
-  --color-primary-50: #f0eefd;
-  --color-primary-100: #e1defb;
-  --color-primary-200: #c3bcf8;
-  --color-primary-300: #a59bf4;
-  --color-primary-400: #8779f0;
-  --color-primary-500: #5b4fe9;
-  --color-primary-600: #4a3fd1;
-  --color-primary-700: #3a30a8;
-  --color-primary-800: #2b247e;
-  --color-primary-900: #1c1854;
+  /* ── Primary: Deep Emerald ── */
+  --color-primary-50: #ecfdf5;
+  --color-primary-100: #d1fae5;
+  --color-primary-200: #a7f3d0;
+  --color-primary-300: #6ee7b7;
+  --color-primary-400: #34d399;
+  --color-primary-500: #059669;
+  --color-primary-600: #047857;
+  --color-primary-700: #065f46;
+  --color-primary-800: #064e3b;
+  --color-primary-900: #022c22;
 
-  --color-surface: #f5f6fa;
+  /* ── Accent: Golden Yellow ── */
+  --color-accent-50: #fffbeb;
+  --color-accent-100: #fef3c7;
+  --color-accent-200: #fde68a;
+  --color-accent-300: #fcd34d;
+  --color-accent-400: #fbbf24;
+  --color-accent-500: #f59e0b;
+  --color-accent-600: #d97706;
+  --color-accent-700: #b45309;
 
-  --radius-card: 16px;
+  /* ── Surfaces (layered, warm cream) ── */
+  --color-surface: #FBF6EF;
+  --color-surface-raised: #ffffff;
+  --color-surface-overlay: rgba(0, 20, 10, 0.45);
 
-  --shadow-card: 0 1px 2px rgba(20, 20, 43, 0.04), 0 8px 24px rgba(20, 20, 43, 0.06);
+  /* ── Radii ── */
+  --radius-card: 20px;
+  --radius-btn: 14px;
+  --radius-input: 14px;
+  --radius-sidebar: 20px;
+  --radius-modal: 24px;
+
+  /* ── Shadows (warm, amber-tinted) ── */
+  --shadow-card: 0 1px 2px rgba(139, 109, 71, 0.04), 0 4px 16px rgba(139, 109, 71, 0.06);
+  --shadow-card-hover: 0 2px 4px rgba(139, 109, 71, 0.05), 0 8px 24px rgba(139, 109, 71, 0.1);
+  --shadow-sidebar: 0 4px 24px rgba(139, 109, 71, 0.06), 0 12px 48px rgba(139, 109, 71, 0.05);
+  --shadow-modal: 0 8px 32px rgba(139, 109, 71, 0.1), 0 24px 64px rgba(139, 109, 71, 0.08);
+  --shadow-btn: 0 1px 3px rgba(139, 109, 71, 0.1);
+
+  /* ── Typography ── */
+  --font-sans: 'Plus Jakarta Sans Variable', 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
 }
+
 
 @layer base {
   html, body, #root {
@@ -25,35 +56,77 @@
   }
   body {
     @apply bg-surface text-slate-800 antialiased;
+    font-family: var(--font-sans);
     margin: 0;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
   :focus-visible {
     @apply outline-2 outline-offset-2 outline-primary-500;
   }
+  ::selection {
+    background: var(--color-primary-100);
+    color: var(--color-primary-900);
+  }
+  * {
+    border-color: #EBE5DC;
+  }
 }
+
 
 @layer components {
   .card {
-    @apply bg-white rounded-card shadow-card border border-slate-100;
+    @apply bg-white;
+    border-radius: var(--radius-card);
+    box-shadow: var(--shadow-card);
+    transition: box-shadow 0.2s ease, transform 0.2s ease;
+  }
+  .card-hover:hover {
+    box-shadow: var(--shadow-card-hover);
+    transform: translateY(-1px);
   }
   .btn-primary {
-    @apply inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition
+    @apply inline-flex items-center justify-center gap-2 px-5 py-2.5 text-sm font-semibold transition-all duration-200
       disabled:opacity-50 disabled:pointer-events-none
-      bg-primary-500 text-white hover:bg-primary-600 shadow-sm shadow-primary-500/20;
+      bg-primary-600 text-white hover:bg-primary-700 active:scale-[0.98];
+    border-radius: var(--radius-btn);
+    box-shadow: var(--shadow-btn), 0 1px 2px rgba(5, 150, 105, 0.2);
   }
   .btn-secondary {
-    @apply inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition
+    @apply inline-flex items-center justify-center gap-2 px-5 py-2.5 text-sm font-semibold transition-all duration-200
       disabled:opacity-50 disabled:pointer-events-none
-      bg-white text-slate-700 border border-slate-200 hover:bg-slate-50;
+      bg-white text-slate-700 border border-slate-200 hover:bg-slate-50 hover:border-slate-300 active:scale-[0.98];
+    border-radius: var(--radius-btn);
+    box-shadow: var(--shadow-btn);
   }
   .btn-danger {
-    @apply inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition
+    @apply inline-flex items-center justify-center gap-2 px-5 py-2.5 text-sm font-semibold transition-all duration-200
       disabled:opacity-50 disabled:pointer-events-none
-      bg-red-50 text-red-600 hover:bg-red-100;
+      bg-red-50 text-red-600 hover:bg-red-100 active:scale-[0.98];
+    border-radius: var(--radius-btn);
+  }
+  @media (width >= 1024px) {
+    .sidebar-float {
+      box-shadow: var(--shadow-sidebar);
+    }
+  }
+  .shadow-elevated {
+    box-shadow: var(--shadow-card-hover);
+  }
+  .btn-ghost {
+    @apply inline-flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-medium transition-all duration-200
+      disabled:opacity-50 disabled:pointer-events-none
+      text-slate-600 hover:bg-slate-100 hover:text-slate-800 active:scale-[0.98];
+    border-radius: var(--radius-btn);
   }
   .input {
-    @apply w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-slate-800
-      placeholder:text-slate-400 focus:border-primary-400 focus:ring-4 focus:ring-primary-100 outline-none transition;
+    @apply w-full bg-white px-4 py-2.5 text-sm text-slate-800
+      placeholder:text-slate-400 focus:border-primary-400 focus:ring-4 focus:ring-primary-100/60 outline-none transition-all duration-200;
+    border: 1px solid #EBE5DC;
+    border-radius: var(--radius-input);
+  }
+  .input:hover:not(:focus) {
+    border-color: #D9D1C5;
   }
   .label {
     @apply block text-sm font-medium text-slate-600 mb-1.5;
@@ -61,6 +134,63 @@
   .badge {
     @apply inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold;
   }
+  .table-card table {
+    @apply w-full text-sm;
+  }
+  .table-card thead tr {
+    @apply text-left text-slate-500;
+    border-bottom: 1px solid #F2EDE5;
+  }
+  .table-card thead th {
+    @apply px-5 py-3 font-medium text-[13px] uppercase tracking-wide;
+  }
+  .table-card tbody tr {
+    @apply last:border-0 transition-colors;
+    border-bottom: 1px solid #F7F2EA;
+  }
+  .table-card tbody tr:hover {
+    background: rgba(251, 246, 239, 0.6);
+  }
+  .table-card tbody td {
+    @apply px-5 py-3;
+  }
+  .auth-label {
+    @apply block text-sm font-medium text-slate-600 mb-1.5;
+  }
+  .auth-input {
+    @apply w-full px-4 py-3 text-sm text-slate-800 bg-white
+      placeholder:text-slate-400 outline-none transition-all duration-200;
+    border: 1.5px solid #EBE5DC;
+    border-radius: 12px;
+  }
+  .auth-input:hover:not(:focus) {
+    border-color: #D9D1C5;
+  }
+  .auth-input:focus {
+    border-color: #0B7A55;
+    box-shadow: 0 0 0 3px rgba(11, 122, 85, 0.1);
+  }
+  .auth-submit {
+    @apply flex h-12 w-full items-center justify-center text-base font-semibold text-white transition-all duration-200
+      disabled:opacity-50 disabled:pointer-events-none active:scale-[0.98];
+    background: #0B7A55;
+    border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(11, 122, 85, 0.2);
+  }
+  .auth-submit:hover:not(:disabled) {
+    background: #096B4A;
+  }
+}
+
+
+/* ── Mobile optimizations ── */
+@media (max-width: 639px) {
+  .table-card thead th { @apply px-3 py-2.5 text-[11px]; }
+  .table-card tbody td { @apply px-3 py-2.5; }
+  .btn-primary, .btn-secondary, .btn-danger, .btn-ghost {
+    min-height: 44px;
+  }
+  .input, select.input { min-height: 44px; }
 }
 
 @media print {
@@ -81,19 +211,80 @@
     from { opacity: 0; }
     to { opacity: 1; }
   }
+  @keyframes slide-in-right {
+    from { opacity: 0; transform: translateX(-8px); }
+    to { opacity: 1; transform: translateX(0); }
+  }
+  @keyframes scale-in {
+    from { opacity: 0; transform: scale(0.95); }
+    to { opacity: 1; transform: scale(1); }
+  }
+  @keyframes shimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+  }
+  @keyframes slide-up-row {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes float-gentle {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-6px); }
+  }
+  @keyframes slide-in-toast {
+    from { opacity: 0; transform: translateX(16px) scale(0.96); }
+    to { opacity: 1; transform: translateX(0) scale(1); }
+  }
+  @keyframes grow-width {
+    from { width: 0; }
+  }
   .animate-drift {
     animation: drift 14s ease-in-out infinite;
   }
   .animate-fade-in-up {
-    animation: fade-in-up 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+    animation: fade-in-up 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
   }
   .animate-fade-in {
-    animation: fade-in 0.4s ease-out both;
+    animation: fade-in 0.3s ease-out both;
+  }
+  .animate-slide-in-right {
+    animation: slide-in-right 0.3s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+  .animate-scale-in {
+    animation: scale-in 0.2s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+  .animate-shimmer {
+    background: linear-gradient(90deg, transparent 25%, rgba(0,0,0,0.04) 50%, transparent 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s ease-in-out infinite;
+  }
+  .animate-float {
+    animation: float-gentle 3s ease-in-out infinite;
+  }
+  .animate-slide-in-toast {
+    animation: slide-in-toast 0.35s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+  .animate-grow-width {
+    animation: grow-width 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
   }
 }
 
+/* ── Staggered table row entrances ── */
+.table-card tbody tr {
+  animation: slide-up-row 0.3s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+.table-card tbody tr:nth-child(1) { animation-delay: 0ms; }
+.table-card tbody tr:nth-child(2) { animation-delay: 30ms; }
+.table-card tbody tr:nth-child(3) { animation-delay: 60ms; }
+.table-card tbody tr:nth-child(4) { animation-delay: 90ms; }
+.table-card tbody tr:nth-child(5) { animation-delay: 120ms; }
+.table-card tbody tr:nth-child(n+6) { animation-delay: 150ms; }
+
 @media (prefers-reduced-motion: reduce) {
-  .animate-drift, .animate-fade-in-up, .animate-fade-in {
+  .animate-drift, .animate-fade-in-up, .animate-fade-in,
+  .animate-slide-in-right, .animate-scale-in, .animate-shimmer,
+  .animate-float, .animate-slide-in-toast {
     animation: none;
   }
+  .table-card tbody tr { animation: none; }
 }

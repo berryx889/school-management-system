@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api, apiErrorMessage } from '../../api/client.js';
-import { PageLoader, SectionHeader, EmptyState, Avatar, Badge } from '../../components/ui.jsx';
+import { Skeleton, SectionHeader, EmptyState, Avatar, Badge } from '../../components/ui.jsx';
 import { useToast } from '../../components/Toast.jsx';
 import { IconGraduationCap } from '../../components/Icon.jsx';
 
@@ -115,13 +115,22 @@ export default function PromoteStudents() {
       {!classId ? (
         <div className="card"><EmptyState icon={IconGraduationCap} title="Choose a class" description="Select a source class above to see its roster." /></div>
       ) : isLoading ? (
-        <PageLoader />
+        <div className="card p-5 space-y-4">
+          {[...Array(5)].map((_, i) => (
+            <div key={i} className="flex items-center gap-4">
+              <Skeleton className="h-4 w-4 rounded" />
+              <Skeleton className="h-8 w-8 rounded-full" />
+              <Skeleton className="h-4 w-32" />
+              <Skeleton className="h-4 w-16 ml-auto" />
+            </div>
+          ))}
+        </div>
       ) : !roster?.length ? (
         <div className="card"><EmptyState icon={IconGraduationCap} title="No students in this class" /></div>
       ) : (
         <>
           <div className="card divide-y divide-slate-50 mb-5">
-            <div className="flex items-center justify-between px-4 py-2.5 text-sm bg-slate-50/70">
+            <div className="flex items-center justify-between px-4 py-2.5 text-sm bg-slate-50">
               <label className="flex items-center gap-2 font-medium text-slate-600">
                 <input
                   type="checkbox"
@@ -136,7 +145,7 @@ export default function PromoteStudents() {
             {roster.map((s) => {
               const e = eligibilityByStudent.get(s.id);
               return (
-                <label key={s.id} className={`flex items-center gap-3 px-4 py-2.5 ${overrideAllowed ? 'cursor-pointer hover:bg-slate-50/60' : ''}`}>
+                <label key={s.id} className={`flex items-center gap-3 px-4 py-2.5 ${overrideAllowed ? 'cursor-pointer hover:bg-slate-50' : ''}`}>
                   <input type="checkbox" disabled={!overrideAllowed} checked={selected.has(s.id)} onChange={() => toggle(s.id)} />
                   <Avatar name={s.full_name} photoUrl={s.photo_url} size={32} />
                   <span className="font-medium text-slate-800">{s.full_name}</span>

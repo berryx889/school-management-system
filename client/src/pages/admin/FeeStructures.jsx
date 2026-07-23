@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api, apiErrorMessage } from '../../api/client.js';
-import { PageLoader, SectionHeader, EmptyState } from '../../components/ui.jsx';
+import { Skeleton, SectionHeader, EmptyState } from '../../components/ui.jsx';
 import { useToast } from '../../components/Toast.jsx';
 import { IconReceipt } from '../../components/Icon.jsx';
 
@@ -66,7 +66,14 @@ export default function FeeStructures() {
 
       <div className="card p-5 mb-5">
         {isLoading ? (
-          <PageLoader />
+          <div className="space-y-4">
+            {[...Array(4)].map((_, i) => (
+              <div key={i} className="flex items-center justify-between">
+                <Skeleton className="h-4 w-28" />
+                <Skeleton className="h-4 w-20" />
+              </div>
+            ))}
+          </div>
         ) : !structures?.length ? (
           <EmptyState icon={IconReceipt} title="No fee items yet" description="Add items like tuition, feeding, PTA below." />
         ) : (

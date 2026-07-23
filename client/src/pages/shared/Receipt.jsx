@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useParams } from 'react-router-dom';
 import { format } from 'date-fns';
 import { api } from '../../api/client.js';
-import { PageLoader } from '../../components/ui.jsx';
+import { Skeleton } from '../../components/ui.jsx';
 import { IconPrinter } from '../../components/Icon.jsx';
 
 const ONES = ['', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine'];
@@ -31,7 +31,21 @@ export default function Receipt() {
     queryFn: () => api.get(`/receipts/${paymentId}`).then((r) => r.data),
   });
 
-  if (isLoading) return <PageLoader />;
+  if (isLoading) return (
+    <div className="space-y-6">
+      <Skeleton className="h-8 w-48" />
+      <div className="card p-8 max-w-xl mx-auto space-y-4">
+        <Skeleton className="h-6 w-1/2 mx-auto" />
+        <Skeleton className="h-3 w-1/3 mx-auto" />
+        <div className="space-y-2 pt-4">
+          <Skeleton className="h-4 w-full" />
+          <Skeleton className="h-4 w-full" />
+          <Skeleton className="h-4 w-2/3" />
+        </div>
+        <Skeleton className="h-10 w-full" />
+      </div>
+    </div>
+  );
 
   return (
     <div>
@@ -40,7 +54,7 @@ export default function Receipt() {
       </div>
 
       <div className="bg-white p-8 max-w-xl mx-auto border border-slate-100 rounded-card">
-        <div className="text-center border-b-2 pb-3 mb-4" style={{ borderColor: data.primary_color || '#5B4FE9' }}>
+        <div className="text-center border-b-2 pb-3 mb-4" style={{ borderColor: data.primary_color || '#059669' }}>
           <h1 className="text-lg font-bold text-slate-900">{data.school_name}</h1>
           <p className="text-xs text-slate-500">{data.address} · {data.phone}</p>
           <p className="font-semibold text-sm mt-2 tracking-wide">PAYMENT RECEIPT</p>

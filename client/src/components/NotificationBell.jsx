@@ -61,25 +61,27 @@ export default function NotificationBell() {
     <div className="relative" ref={ref}>
       <button
         onClick={() => setOpen((o) => !o)}
-        className="relative text-slate-500 hover:text-slate-700 p-1.5 rounded-lg hover:bg-slate-100 transition"
+        className="relative text-slate-500 hover:text-slate-700 p-2 rounded-xl hover:bg-slate-50 transition-colors"
         aria-label="Notifications"
       >
         <IconBell className="h-5 w-5" />
         {unread > 0 && (
-          <span className="absolute -top-0.5 -right-0.5 h-4 min-w-4 px-1 rounded-full bg-red-500 text-white text-[10px] font-bold flex items-center justify-center">
+          <span className="absolute top-1 right-1 h-4 min-w-4 px-1 rounded-full bg-red-500 text-white text-[10px] font-bold flex items-center justify-center ring-2 ring-white">
             {unread > 9 ? '9+' : unread}
           </span>
         )}
       </button>
 
       {open && (
-        <div className="absolute right-0 top-full mt-2 w-80 bg-white rounded-xl shadow-lg border border-slate-100 z-50 overflow-hidden">
-          <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100">
-            <h3 className="font-semibold text-slate-800 text-sm">Notifications</h3>
+        <div className="absolute right-0 top-full mt-2 w-80 bg-white z-50 overflow-hidden animate-scale-in"
+          style={{ borderRadius: 'var(--radius-card)', boxShadow: 'var(--shadow-modal)' }}
+        >
+          <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100">
+            <h3 className="font-bold text-slate-800 text-sm">Notifications</h3>
             {unread > 0 && (
               <button
                 onClick={() => markAllRead.mutate()}
-                className="text-xs text-primary-600 hover:text-primary-700 font-medium"
+                className="text-xs text-primary-600 hover:text-primary-700 font-semibold transition-colors"
               >
                 Mark all read
               </button>
@@ -87,20 +89,23 @@ export default function NotificationBell() {
           </div>
           <div className="max-h-80 overflow-y-auto">
             {notifications.length === 0 ? (
-              <p className="text-sm text-slate-400 text-center py-8">No notifications</p>
+              <div className="text-center py-10">
+                <IconBell className="h-6 w-6 text-slate-300 mx-auto mb-2" />
+                <p className="text-sm text-slate-400">No notifications</p>
+              </div>
             ) : (
               notifications.map((n) => (
                 <div
                   key={n.id}
-                  className={`px-4 py-3 border-b border-slate-50 last:border-0 cursor-pointer hover:bg-slate-50 transition ${!n.is_read ? 'bg-primary-50/40' : ''}`}
+                  className={`px-5 py-3.5 border-b border-slate-50 last:border-0 cursor-pointer hover:bg-slate-50 transition-colors ${!n.is_read ? 'bg-primary-50/30' : ''}`}
                   onClick={() => { if (!n.is_read) markRead.mutate(n.id); }}
                 >
-                  <div className="flex items-start gap-2">
+                  <div className="flex items-start gap-3">
                     {!n.is_read && <span className="mt-1.5 h-2 w-2 rounded-full bg-primary-500 shrink-0" />}
                     <div className="min-w-0 flex-1">
-                      <p className={`text-sm ${!n.is_read ? 'font-semibold text-slate-800' : 'text-slate-600'}`}>{n.title}</p>
-                      <p className="text-xs text-slate-500 mt-0.5">{n.message}</p>
-                      <p className="text-[11px] text-slate-400 mt-1">{timeAgo(n.created_at)}</p>
+                      <p className={`text-sm leading-snug ${!n.is_read ? 'font-semibold text-slate-800' : 'text-slate-600'}`}>{n.title}</p>
+                      <p className="text-xs text-slate-500 mt-0.5 leading-relaxed">{n.message}</p>
+                      <p className="text-[11px] text-slate-400 mt-1.5">{timeAgo(n.created_at)}</p>
                     </div>
                   </div>
                 </div>

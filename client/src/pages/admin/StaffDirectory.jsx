@@ -3,7 +3,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api, apiErrorMessage } from '../../api/client.js';
 import { useSettings } from '../../hooks/useSettings.js';
 import { generateStaffEmail } from '../../utils/staffEmail.js';
-import { PageLoader, SectionHeader, EmptyState, Modal, Avatar, Badge, StatCard } from '../../components/ui.jsx';
+import { Skeleton, SectionHeader, EmptyState, Modal, Avatar, Badge, StatCard } from '../../components/ui.jsx';
 import { useToast } from '../../components/Toast.jsx';
 import { IconUsers, IconCheckCircle, IconAlertTriangle } from '../../components/Icon.jsx';
 
@@ -64,28 +64,37 @@ export default function StaffDirectory() {
         </select>
       </div>
 
-      <div className="card overflow-hidden">
+      <div className="card table-card overflow-hidden">
         {isLoading ? (
-          <PageLoader />
+          <div className="p-5 space-y-4">
+            {[...Array(5)].map((_, i) => (
+              <div key={i} className="flex items-center gap-4">
+                <Skeleton className="h-8 w-8 rounded-full" />
+                <Skeleton className="h-4 w-32" />
+                <Skeleton className="h-4 w-20" />
+                <Skeleton className="h-4 w-20 ml-auto" />
+              </div>
+            ))}
+          </div>
         ) : !data.data.length ? (
           <EmptyState icon={IconUsers} title="No staff found" action={<button className="btn-primary" onClick={() => setModalOpen(true)}>+ Add staff</button>} />
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-sm">
+            <table>
               <thead>
-                <tr className="text-left text-slate-500 border-b border-slate-100">
-                  <th className="px-5 py-3 font-medium">Staff</th>
-                  <th className="px-5 py-3 font-medium">Role</th>
-                  <th className="px-5 py-3 font-medium">Department</th>
-                  <th className="px-5 py-3 font-medium">Email</th>
-                  <th className="px-5 py-3 font-medium">Status</th>
-                  <th className="px-5 py-3 font-medium"></th>
+                <tr>
+                  <th>Staff</th>
+                  <th>Role</th>
+                  <th className="hidden sm:table-cell">Department</th>
+                  <th className="hidden sm:table-cell">Email</th>
+                  <th>Status</th>
+                  <th></th>
                 </tr>
               </thead>
               <tbody>
                 {data.data.map((s) => (
-                  <tr key={s.id} className="border-b border-slate-50 last:border-0 hover:bg-slate-50/60">
-                    <td className="px-5 py-3">
+                  <tr key={s.id}>
+                    <td>
                       <div className="flex items-center gap-3">
                         <Avatar name={s.full_name} size={32} />
                         <div>
@@ -94,11 +103,11 @@ export default function StaffDirectory() {
                         </div>
                       </div>
                     </td>
-                    <td className="px-5 py-3"><Badge tone="primary">{s.role}</Badge></td>
-                    <td className="px-5 py-3 text-slate-500">{s.department || '—'}</td>
-                    <td className="px-5 py-3 text-slate-400 text-xs">{s.email || generateStaffEmail(s.full_name, settings?.short_name)}</td>
-                    <td className="px-5 py-3"><Badge tone={s.is_active ? 'green' : 'slate'}>{s.is_active ? 'Active' : 'Inactive'}</Badge></td>
-                    <td className="px-5 py-3 text-right">
+                    <td><Badge tone="primary">{s.role}</Badge></td>
+                    <td className="hidden sm:table-cell text-slate-500">{s.department || '—'}</td>
+                    <td className="hidden sm:table-cell text-slate-400 text-xs">{s.email || generateStaffEmail(s.full_name, settings?.short_name)}</td>
+                    <td><Badge tone={s.is_active ? 'green' : 'slate'}>{s.is_active ? 'Active' : 'Inactive'}</Badge></td>
+                    <td className="text-right">
                       <button className="text-primary-600 font-medium" onClick={() => toggleActive.mutate({ id: s.id, is_active: !s.is_active })}>
                         {s.is_active ? 'Deactivate' : 'Activate'}
                       </button>

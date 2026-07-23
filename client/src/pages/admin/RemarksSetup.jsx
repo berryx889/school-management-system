@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api, apiErrorMessage } from '../../api/client.js';
-import { PageLoader, SectionHeader, EmptyState, Modal, Badge } from '../../components/ui.jsx';
+import { Skeleton, SectionHeader, EmptyState, Modal, Badge } from '../../components/ui.jsx';
 import { useToast } from '../../components/Toast.jsx';
 import { IconFileText } from '../../components/Icon.jsx';
 
@@ -44,29 +44,37 @@ export default function RemarksSetup() {
         action={<button className="btn-primary" onClick={() => setModalOpen(true)}>+ Add template</button>}
       />
 
-      <div className="card overflow-hidden">
+      <div className="card table-card overflow-hidden">
         {isLoading ? (
-          <PageLoader />
+          <div className="p-5 space-y-4">
+            {[...Array(5)].map((_, i) => (
+              <div key={i} className="flex items-center gap-4">
+                <Skeleton className="h-4 w-20" />
+                <Skeleton className="h-4 w-40" />
+                <Skeleton className="h-4 w-16 ml-auto" />
+              </div>
+            ))}
+          </div>
         ) : !templates.length ? (
           <EmptyState icon={IconFileText} title="No remark templates yet" action={<button className="btn-primary" onClick={() => setModalOpen(true)}>+ Add template</button>} />
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-sm">
+            <table>
               <thead>
-                <tr className="text-left text-slate-500 border-b border-slate-100">
-                  <th className="px-5 py-3 font-medium">Type</th>
-                  <th className="px-5 py-3 font-medium">Text</th>
-                  <th className="px-5 py-3 font-medium">Class</th>
-                  <th className="px-5 py-3 font-medium"></th>
+                <tr>
+                  <th>Type</th>
+                  <th>Text</th>
+                  <th>Class</th>
+                  <th></th>
                 </tr>
               </thead>
               <tbody>
                 {templates.map((t) => (
-                  <tr key={t.id} className="border-b border-slate-50 last:border-0 hover:bg-slate-50/60">
-                    <td className="px-5 py-3"><Badge tone="primary">{t.remark_type}</Badge></td>
-                    <td className="px-5 py-3 text-slate-700">{t.remark_text}</td>
-                    <td className="px-5 py-3 text-slate-500">{classes?.find((c) => c.id === t.class_id)?.name || 'Any class'}</td>
-                    <td className="px-5 py-3 text-right">
+                  <tr key={t.id}>
+                    <td><Badge tone="primary">{t.remark_type}</Badge></td>
+                    <td className="text-slate-700">{t.remark_text}</td>
+                    <td className="text-slate-500">{classes?.find((c) => c.id === t.class_id)?.name || 'Any class'}</td>
+                    <td className="text-right">
                       <button className="text-red-600 font-medium" onClick={() => remove.mutate(t.id)}>Remove</button>
                     </td>
                   </tr>

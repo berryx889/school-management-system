@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api, apiErrorMessage } from '../../api/client.js';
-import { PageLoader, SectionHeader, Disclosure } from '../../components/ui.jsx';
+import { Skeleton, SectionHeader, Disclosure } from '../../components/ui.jsx';
 import { useToast } from '../../components/Toast.jsx';
 import { IconX } from '../../components/Icon.jsx';
 
@@ -255,7 +255,22 @@ export default function Settings() {
     onError: (err) => toast(apiErrorMessage(err), 'error'),
   });
 
-  if (isLoading || !form) return <PageLoader />;
+  if (isLoading || !form) return (
+    <div className="space-y-6">
+      <Skeleton className="h-8 w-48" />
+      <div className="card p-6 space-y-5 max-w-2xl">
+        <Skeleton className="h-4 w-1/4" />
+        <div className="grid sm:grid-cols-2 gap-4">
+          <Skeleton className="h-10 w-full" />
+          <Skeleton className="h-10 w-full" />
+          <Skeleton className="h-10 w-full" />
+          <Skeleton className="h-10 w-full" />
+        </div>
+        <Skeleton className="h-4 w-1/3" />
+        <Skeleton className="h-10 w-full" />
+      </div>
+    </div>
+  );
 
   return (
     <div>
@@ -315,14 +330,14 @@ export default function Settings() {
                 <input
                   type="color"
                   className="h-10 w-12 rounded border border-slate-200 p-1 cursor-pointer"
-                  value={form.primary_color || '#5B4FE9'}
+                  value={form.primary_color || '#059669'}
                   onChange={(e) => setForm({ ...form, primary_color: e.target.value })}
                 />
                 <input
                   className="input flex-1"
                   value={form.primary_color || ''}
                   onChange={(e) => setForm({ ...form, primary_color: e.target.value })}
-                  placeholder="#5B4FE9"
+                  placeholder="#059669"
                 />
               </div>
               <p className="text-xs text-slate-400 mt-1.5">Used as the accent color across the app and on printable documents.</p>

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api, apiErrorMessage } from '../../api/client.js';
-import { PageLoader, SectionHeader, EmptyState, Modal, Badge } from '../../components/ui.jsx';
+import { Skeleton, SectionHeader, EmptyState, Modal, Badge } from '../../components/ui.jsx';
 import { useToast } from '../../components/Toast.jsx';
 import { IconShield } from '../../components/Icon.jsx';
 
@@ -46,31 +46,39 @@ export default function Permissions() {
         action={<button className="btn-primary" onClick={() => setModalOpen(true)}>+ Grant permission</button>}
       />
 
-      <div className="card overflow-hidden">
+      <div className="card table-card overflow-hidden">
         {isLoading ? (
-          <PageLoader />
+          <div className="p-5 space-y-4">
+            {[...Array(5)].map((_, i) => (
+              <div key={i} className="flex items-center gap-4">
+                <Skeleton className="h-4 w-32" />
+                <Skeleton className="h-4 w-20" />
+                <Skeleton className="h-4 w-20 ml-auto" />
+              </div>
+            ))}
+          </div>
         ) : !grants.length ? (
           <EmptyState icon={IconShield} title="No permissions granted yet" description="Grants are additive — the assigned subject/class teacher always keeps their own access." action={<button className="btn-primary" onClick={() => setModalOpen(true)}>+ Grant permission</button>} />
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-sm">
+            <table>
               <thead>
-                <tr className="text-left text-slate-500 border-b border-slate-100">
-                  <th className="px-5 py-3 font-medium">Staff</th>
-                  <th className="px-5 py-3 font-medium">Type</th>
-                  <th className="px-5 py-3 font-medium">Class</th>
-                  <th className="px-5 py-3 font-medium">Subject</th>
-                  <th className="px-5 py-3 font-medium"></th>
+                <tr>
+                  <th>Staff</th>
+                  <th>Type</th>
+                  <th>Class</th>
+                  <th className="hidden sm:table-cell">Subject</th>
+                  <th></th>
                 </tr>
               </thead>
               <tbody>
                 {grants.map((g) => (
-                  <tr key={g.id} className="border-b border-slate-50 last:border-0 hover:bg-slate-50/60">
-                    <td className="px-5 py-3 font-medium text-slate-800">{g.user_name} <span className="text-slate-400 font-normal capitalize">· {g.user_role}</span></td>
-                    <td className="px-5 py-3"><Badge tone="primary">{g.permission_type === 'marks_entry' ? 'Marks entry' : 'Remarks entry'}</Badge></td>
-                    <td className="px-5 py-3 text-slate-500">{g.class_name}</td>
-                    <td className="px-5 py-3 text-slate-500">{g.subject_name || '—'}</td>
-                    <td className="px-5 py-3 text-right">
+                  <tr key={g.id}>
+                    <td className="font-medium text-slate-800">{g.user_name} <span className="text-slate-400 font-normal capitalize">· {g.user_role}</span></td>
+                    <td><Badge tone="primary">{g.permission_type === 'marks_entry' ? 'Marks entry' : 'Remarks entry'}</Badge></td>
+                    <td className="text-slate-500">{g.class_name}</td>
+                    <td className="hidden sm:table-cell text-slate-500">{g.subject_name || '—'}</td>
+                    <td className="text-right">
                       <button className="text-red-600 font-medium" onClick={() => revoke.mutate(g.id)}>Revoke</button>
                     </td>
                   </tr>

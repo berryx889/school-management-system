@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { api } from '../../api/client.js';
-import { PageLoader, SectionHeader, EmptyState } from '../../components/ui.jsx';
+import { Skeleton, SectionHeader, EmptyState } from '../../components/ui.jsx';
 import { IconPrinter, IconBarChart } from '../../components/Icon.jsx';
 
 export default function Broadsheet() {
@@ -43,7 +43,17 @@ export default function Broadsheet() {
       {!classId ? (
         <div className="card"><EmptyState icon={IconBarChart} title="Choose a class" /></div>
       ) : isLoading ? (
-        <PageLoader />
+        <div className="card p-5 space-y-4">
+          {[...Array(6)].map((_, i) => (
+            <div key={i} className="flex items-center gap-4">
+              <Skeleton className="h-4 w-28" />
+              <Skeleton className="h-4 w-12" />
+              <Skeleton className="h-4 w-12" />
+              <Skeleton className="h-4 w-12" />
+              <Skeleton className="h-4 w-12 ml-auto" />
+            </div>
+          ))}
+        </div>
       ) : !data.students.length ? (
         <div className="card"><EmptyState icon={IconBarChart} title="No students in this class" /></div>
       ) : (

@@ -100,3 +100,19 @@ export const IconSparkle = (p) => <Svg {...p}><path d="M12 3.5c.5 3 2 5.3 5 5.8-
 export const IconEye = (p) => <Svg {...p}><path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12Z" /><circle cx="12" cy="12" r="3" /></Svg>;
 
 export const IconEyeOff = (p) => <Svg {...p}><path d="M3 3l18 18" /><path d="M10.6 5.64A9.6 9.6 0 0 1 12 5.5c6 0 9.5 6.5 9.5 6.5a15.6 15.6 0 0 1-3.15 4.02M6.5 6.85C3.75 8.7 2.5 12 2.5 12S6 18.5 12 18.5c1.3 0 2.47-.3 3.5-.78" /><path d="M9.5 9.9a3 3 0 0 0 4.2 4.2" /></Svg>;
+
+export const IconSearch = (p) => <Svg {...p}><circle cx="11" cy="11" r="7" /><path d="m21 21-4.3-4.3" /></Svg>;
+
+export const IconCommand = (p) => <Svg {...p}><path d="M6 9a3 3 0 1 0 0-3h12a3 3 0 1 0 0 3M6 15a3 3 0 1 0 0 3h12a3 3 0 1 0 0-3M6 9h12v6H6z" /></Svg>;
+
+export const IconCornerDownLeft = (p) => <Svg {...p}><path d="M20 4v7a4 4 0 0 1-4 4H5" /><path d="M9 15l-4-4 4-4" /></Svg>;
+
+export const IconActivity = (p) => <Svg {...p}><path d="M22 12h-4l-3 9L9 3l-3 9H2" /></Svg>;
+
+export const IconZap = (p) => <Svg {...p}><path d="M13 2 3 14h9l-1 8 10-12h-9l1-8Z" /></Svg>;
+
+export const IconSun = (p) => <Svg {...p}><circle cx="12" cy="12" r="4" /><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41" /></Svg>;
+
+export const IconMoon = (p) => <Svg {...p}><path d="M12 3a6.36 6.36 0 0 0 9 9 9 9 0 1 1-9-9Z" /></Svg>;
+
+export const IconMonitor = (p) => <Svg {...p}><rect x="3" y="4" width="18" height="12" rx="2" /><path d="M8 20h8M12 16v4" /></Svg>;

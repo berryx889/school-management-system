@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '../../auth/AuthContext.jsx';
 import { api, apiErrorMessage } from '../../api/client.js';
-import { PageLoader, SectionHeader, EmptyState, Badge } from '../../components/ui.jsx';
+import { Skeleton, SectionHeader, EmptyState, Badge } from '../../components/ui.jsx';
 import { useToast } from '../../components/Toast.jsx';
 import { format } from 'date-fns';
 import { IconMegaphone } from '../../components/Icon.jsx';
@@ -76,7 +76,15 @@ export default function Announcements() {
       </div>
 
       {isLoading ? (
-        <PageLoader />
+        <div className="space-y-3">
+          {[...Array(3)].map((_, i) => (
+            <div key={i} className="card p-4 space-y-2">
+              <Skeleton className="h-4 w-1/3" />
+              <Skeleton className="h-3 w-2/3" />
+              <Skeleton className="h-3 w-24" />
+            </div>
+          ))}
+        </div>
       ) : !data.length ? (
         <div className="card"><EmptyState icon={IconMegaphone} title="No announcements yet" /></div>
       ) : (

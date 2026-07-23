@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api, apiErrorMessage } from '../../api/client.js';
-import { PageLoader, SectionHeader, EmptyState } from '../../components/ui.jsx';
+import { Skeleton, SectionHeader, EmptyState } from '../../components/ui.jsx';
 import { useToast } from '../../components/Toast.jsx';
 import { IconLink } from '../../components/Icon.jsx';
 
@@ -64,29 +64,37 @@ export default function ClassSubjects() {
         </button>
       </div>
 
-      <div className="card overflow-hidden">
+      <div className="card table-card overflow-hidden">
         {isLoading ? (
-          <PageLoader />
+          <div className="p-5 space-y-4">
+            {[...Array(5)].map((_, i) => (
+              <div key={i} className="flex items-center gap-4">
+                <Skeleton className="h-4 w-24" />
+                <Skeleton className="h-4 w-28" />
+                <Skeleton className="h-4 w-24 ml-auto" />
+              </div>
+            ))}
+          </div>
         ) : !mappings?.length ? (
           <EmptyState icon={IconLink} title="No assignments yet" description="Choose a class above and assign subjects to teachers." />
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-sm">
+            <table>
               <thead>
-                <tr className="text-left text-slate-500 border-b border-slate-100">
-                  <th className="px-5 py-3 font-medium">Class</th>
-                  <th className="px-5 py-3 font-medium">Subject</th>
-                  <th className="px-5 py-3 font-medium">Teacher</th>
-                  <th className="px-5 py-3 font-medium"></th>
+                <tr>
+                  <th>Class</th>
+                  <th>Subject</th>
+                  <th>Teacher</th>
+                  <th></th>
                 </tr>
               </thead>
               <tbody>
                 {mappings.map((m) => (
-                  <tr key={m.id} className="border-b border-slate-50 last:border-0">
-                    <td className="px-5 py-3">{m.class_name}</td>
-                    <td className="px-5 py-3">{m.subject_name} <span className="text-slate-400">({m.subject_code})</span></td>
-                    <td className="px-5 py-3">{m.teacher_name || <span className="text-amber-600">Unassigned</span>}</td>
-                    <td className="px-5 py-3 text-right">
+                  <tr key={m.id}>
+                    <td>{m.class_name}</td>
+                    <td>{m.subject_name} <span className="text-slate-400">({m.subject_code})</span></td>
+                    <td>{m.teacher_name || <span className="text-amber-600">Unassigned</span>}</td>
+                    <td className="text-right">
                       <button className="text-red-600 font-medium" onClick={() => remove.mutate(m.id)}>Remove</button>
                     </td>
                   </tr>

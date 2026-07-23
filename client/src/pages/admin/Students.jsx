@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import { api, apiErrorMessage } from '../../api/client.js';
-import { PageLoader, SectionHeader, EmptyState, Modal, Avatar, Badge } from '../../components/ui.jsx';
+import { PageLoader, SectionHeader, EmptyState, Modal, Avatar, Badge, Skeleton } from '../../components/ui.jsx';
 import { useToast } from '../../components/Toast.jsx';
 import { IconDownload, IconUpload, IconGraduationCap } from '../../components/Icon.jsx';
 
@@ -164,40 +164,49 @@ export default function Students() {
         </select>
       </div>
 
-      <div className="card overflow-hidden">
+      <div className="card table-card overflow-hidden">
         {isLoading ? (
-          <PageLoader />
+          <div className="p-5 space-y-4">
+            {[...Array(6)].map((_, i) => (
+              <div key={i} className="flex items-center gap-4">
+                <Skeleton className="h-8 w-8 rounded-xl" />
+                <Skeleton className="h-4 w-32" />
+                <Skeleton className="h-4 w-16 ml-auto" />
+                <Skeleton className="h-4 w-20" />
+              </div>
+            ))}
+          </div>
         ) : data.data.length === 0 ? (
           <EmptyState icon={IconGraduationCap} title="No students yet" description="Add your first student to get started." action={<button className="btn-primary" onClick={() => setModalOpen(true)}>+ Add student</button>} />
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-sm">
+            <table>
               <thead>
-                <tr className="text-left text-slate-500 border-b border-slate-100">
-                  <th className="px-5 py-3 font-medium">Student</th>
-                  <th className="px-5 py-3 font-medium">ID</th>
-                  <th className="px-5 py-3 font-medium">Class</th>
-                  <th className="px-5 py-3 font-medium">Parent</th>
-                  <th className="px-5 py-3 font-medium">Status</th>
-                  <th className="px-5 py-3 font-medium"></th>
+                <tr>
+                  <th>Student</th>
+                  <th>ID</th>
+                  <th>Class</th>
+                  <th className="hidden sm:table-cell">Parent</th>
+                  <th className="hidden sm:table-cell">Status</th>
+                  <th></th>
                 </tr>
               </thead>
               <tbody>
                 {data.data.map((s) => (
-                  <tr key={s.id} className="border-b border-slate-50 last:border-0 hover:bg-slate-50/60">
-                    <td className="px-5 py-3">
+                  <tr key={s.id}>
+                    <td>
                       <div className="flex items-center gap-3">
                         <Avatar name={s.full_name} photoUrl={s.photo_url} size={32} />
                         <span className="font-medium text-slate-800">{s.full_name}</span>
                       </div>
                     </td>
-                    <td className="px-5 py-3 text-slate-500">{s.student_code}</td>
-                    <td className="px-5 py-3 text-slate-500">{s.class_name || '—'}</td>
-                    <td className="px-5 py-3 text-slate-500">{s.parent_name || '—'}</td>
-                    <td className="px-5 py-3">
+                    <td className="text-slate-500">{s.student_code}</td>
+                    <td className="text-slate-500">{s.class_name || '—'}</td>
+                    <td className="hidden sm:table-cell text-slate-500">{s.parent_name || '—'}</td>
+                    <td className="hidden sm:table-cell">
                       <Badge tone={s.status === 'active' ? 'green' : 'slate'}>{s.status}</Badge>
                     </td>
-                    <td className="px-5 py-3 text-right space-x-3 whitespace-nowrap">
+                    <td className="text-right space-x-3 whitespace-nowrap">
                       <button
                         className="text-slate-500 font-medium"
                         disabled={resetPassword.isPending}

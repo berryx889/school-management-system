@@ -90,7 +90,7 @@ function PaymentHistory({ studentId }) {
   return (
     <div className="card divide-y divide-slate-50">
       {data.map((p) => (
-        <Link key={p.id} to={`/parent/receipts/${p.id}`} className="flex items-center justify-between p-4 hover:bg-slate-50/60">
+        <Link key={p.id} to={`/parent/receipts/${p.id}`} className="flex items-center justify-between p-4 hover:bg-slate-50">
           <div>
             <p className="font-medium text-slate-800">GHS {Number(p.amount).toLocaleString()}</p>
             <p className="text-xs text-slate-400 capitalize">{p.method} · {format(new Date(p.paid_at), 'd MMM yyyy')}</p>

@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '../../auth/AuthContext.jsx';
 import { api, apiErrorMessage } from '../../api/client.js';
-import { PageLoader, SectionHeader, EmptyState, Modal, Badge } from '../../components/ui.jsx';
+import { Skeleton, SectionHeader, EmptyState, Modal, Badge } from '../../components/ui.jsx';
 import { useToast } from '../../components/Toast.jsx';
 import { IconEdit, IconFileText } from '../../components/Icon.jsx';
 
@@ -108,13 +108,27 @@ export default function MarksEntry() {
       {!classSubjectId ? (
         <div className="card"><EmptyState icon={IconEdit} title="Choose a class-subject" /></div>
       ) : loadingAssessments ? (
-        <PageLoader />
+        <div className="card p-5 space-y-4">
+          {[...Array(3)].map((_, i) => (
+            <div key={i} className="flex items-center gap-4">
+              <Skeleton className="h-4 w-32" />
+              <Skeleton className="h-4 w-20 ml-auto" />
+            </div>
+          ))}
+        </div>
       ) : !assessmentId ? (
         <div className="card"><EmptyState icon={IconFileText} title="Choose or create an assessment" /></div>
       ) : loadingRoster ? (
-        <PageLoader />
+        <div className="card p-5 space-y-4">
+          {[...Array(5)].map((_, i) => (
+            <div key={i} className="flex items-center gap-4">
+              <Skeleton className="h-4 w-36" />
+              <Skeleton className="h-8 w-20 ml-auto" />
+            </div>
+          ))}
+        </div>
       ) : (
-        <div className="card overflow-hidden">
+        <div className="card table-card overflow-hidden">
           <div className="p-4 border-b border-slate-100 flex items-center justify-between flex-wrap gap-2">
             <div>
               <p className="font-semibold text-slate-800">{assessment?.title}</p>
@@ -123,18 +137,18 @@ export default function MarksEntry() {
             {assessment?.locked && <Badge tone="amber">Locked</Badge>}
           </div>
           <div className="overflow-x-auto">
-            <table className="w-full text-sm">
+            <table>
               <thead>
-                <tr className="text-left text-slate-500 border-b border-slate-100">
-                  <th className="px-5 py-3 font-medium">Student</th>
-                  <th className="px-5 py-3 font-medium w-32">Score</th>
+                <tr>
+                  <th>Student</th>
+                  <th className="w-32">Score</th>
                 </tr>
               </thead>
               <tbody>
                 {roster?.map((s, idx) => (
-                  <tr key={s.id} className="border-b border-slate-50 last:border-0">
-                    <td className="px-5 py-2.5">{s.full_name}</td>
-                    <td className="px-5 py-2.5">
+                  <tr key={s.id}>
+                    <td>{s.full_name}</td>
+                    <td>
                       <input
                         type="number"
                         min={0}

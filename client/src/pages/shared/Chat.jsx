@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '../../auth/AuthContext.jsx';
 import { api } from '../../api/client.js';
-import { PageLoader, EmptyState } from '../../components/ui.jsx';
+import { Skeleton, EmptyState } from '../../components/ui.jsx';
 import { IconMessageCircle } from '../../components/Icon.jsx';
 
 export default function Chat({ students }) {
@@ -45,7 +45,11 @@ export default function Chat({ students }) {
 
       <div className="flex-1 overflow-y-auto p-4 space-y-3">
         {isLoading ? (
-          <PageLoader />
+          <div className="space-y-3 py-4">
+            <div className="flex justify-start"><Skeleton className="h-10 w-48 rounded-2xl" /></div>
+            <div className="flex justify-end"><Skeleton className="h-10 w-36 rounded-2xl" /></div>
+            <div className="flex justify-start"><Skeleton className="h-10 w-56 rounded-2xl" /></div>
+          </div>
         ) : !messages.length ? (
           <p className="text-center text-sm text-slate-400 py-10">Say hello 👋</p>
         ) : (

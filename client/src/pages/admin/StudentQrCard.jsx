@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useParams } from 'react-router-dom';
 import { api } from '../../api/client.js';
 import { useSettings } from '../../hooks/useSettings.js';
-import { PageLoader } from '../../components/ui.jsx';
+import { Skeleton } from '../../components/ui.jsx';
 import { IconPrinter } from '../../components/Icon.jsx';
 
 export default function StudentQrCard() {
@@ -13,7 +13,20 @@ export default function StudentQrCard() {
   });
   const { data: settings } = useSettings();
 
-  if (isLoading) return <PageLoader />;
+  if (isLoading) return (
+    <div className="space-y-6">
+      <Skeleton className="h-8 w-48" />
+      <div className="flex justify-center">
+        <div className="w-72 rounded-2xl border-2 border-slate-200 overflow-hidden bg-white p-4 space-y-3 flex flex-col items-center">
+          <Skeleton className="h-5 w-full" />
+          <Skeleton className="h-20 w-20 rounded-full" />
+          <Skeleton className="h-4 w-32" />
+          <Skeleton className="h-3 w-24" />
+          <Skeleton className="h-28 w-28" />
+        </div>
+      </div>
+    </div>
+  );
 
   return (
     <div>

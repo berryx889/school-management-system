@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import { api, apiErrorMessage } from '../../api/client.js';
-import { PageLoader, SectionHeader, EmptyState, Modal } from '../../components/ui.jsx';
+import { SkeletonCard, SectionHeader, EmptyState, Modal } from '../../components/ui.jsx';
 import { useToast } from '../../components/Toast.jsx';
 import { IconBuilding } from '../../components/Icon.jsx';
 
@@ -36,7 +36,9 @@ export default function Classes() {
       } />
 
       {isLoading ? (
-        <PageLoader />
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {[...Array(6)].map((_, i) => <SkeletonCard key={i} />)}
+        </div>
       ) : classes.length === 0 ? (
         <div className="card"><EmptyState icon={IconBuilding} title="No classes yet" action={<button className="btn-primary" onClick={() => setModalOpen(true)}>+ Add class</button>} /></div>
       ) : (

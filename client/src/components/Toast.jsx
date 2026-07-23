@@ -16,17 +16,18 @@ export function ToastProvider({ children }) {
       {children}
       <div
         aria-live="polite"
-        className="fixed bottom-4 right-4 z-50 flex flex-col gap-2 no-print"
+        className="fixed bottom-5 right-5 z-50 flex flex-col gap-2.5 no-print"
       >
         {toasts.map((t) => (
           <div
             key={t.id}
-            className={`rounded-xl px-4 py-3 text-sm font-medium shadow-card border animate-in fade-in slide-in-from-bottom-2
-              ${t.variant === 'error' ? 'bg-red-50 text-red-700 border-red-100' : ''}
-              ${t.variant === 'success' ? 'bg-emerald-50 text-emerald-700 border-emerald-100' : ''}
-              ${t.variant === 'warning' ? 'bg-amber-50 text-amber-700 border-amber-100' : ''}
-              ${t.variant === 'info' ? 'bg-white text-slate-700 border-slate-100' : ''}
+            className={`rounded-2xl px-5 py-3.5 text-sm font-medium animate-slide-in-toast backdrop-blur-sm
+              ${t.variant === 'error' ? 'bg-red-50 text-red-700 shadow-lg shadow-red-100/40' : ''}
+              ${t.variant === 'success' ? 'bg-emerald-50 text-emerald-700 shadow-lg shadow-emerald-100/40' : ''}
+              ${t.variant === 'warning' ? 'bg-amber-50 text-amber-700 shadow-lg shadow-amber-100/40' : ''}
+              ${t.variant === 'info' ? 'bg-white text-slate-700 shadow-lg shadow-slate-200/40' : ''}
             `}
+            style={{ boxShadow: 'var(--shadow-card-hover)' }}
           >
             {t.message}
           </div>

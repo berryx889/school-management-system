@@ -3,7 +3,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { api, apiErrorMessage } from '../../api/client.js';
 import { useAuth } from '../../auth/AuthContext.jsx';
-import { PageLoader, SectionHeader, EmptyState, Modal, Avatar } from '../../components/ui.jsx';
+import { Skeleton, SectionHeader, EmptyState, Modal, Avatar } from '../../components/ui.jsx';
 import { useToast } from '../../components/Toast.jsx';
 import { IconSmartphone, IconCheckCircle, IconArrowLeft } from '../../components/Icon.jsx';
 
@@ -71,7 +71,10 @@ function QuickPayment({ onOpenPayModal }) {
           </div>
 
           {loadingInvoices ? (
-            <PageLoader />
+            <div className="space-y-3">
+              <Skeleton className="h-4 w-32" />
+              <Skeleton className="h-4 w-24" />
+            </div>
           ) : !invoices?.length ? (
             <p className="text-sm text-slate-400">No invoices for this student yet.</p>
           ) : (
@@ -197,39 +200,48 @@ export default function Debtors() {
 
       <QuickPayment onOpenPayModal={openPayModal} />
 
-      <div className="card overflow-hidden">
+      <div className="card table-card overflow-hidden">
         {isLoading ? (
-          <PageLoader />
+          <div className="p-5 space-y-4">
+            {[...Array(5)].map((_, i) => (
+              <div key={i} className="flex items-center gap-4">
+                <Skeleton className="h-4 w-4 rounded" />
+                <Skeleton className="h-4 w-32" />
+                <Skeleton className="h-4 w-20" />
+                <Skeleton className="h-4 w-20 ml-auto" />
+              </div>
+            ))}
+          </div>
         ) : !debtors.length ? (
           <EmptyState icon={IconCheckCircle} title="No outstanding balances" description="Every invoice in this view is fully paid." />
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-sm">
+            <table>
               <thead>
-                <tr className="text-left text-slate-500 border-b border-slate-100">
-                  <th className="px-4 py-3"></th>
-                  <th className="px-4 py-3 font-medium">Student</th>
-                  <th className="px-4 py-3 font-medium">Class</th>
-                  <th className="px-4 py-3 font-medium">Parent</th>
-                  <th className="px-4 py-3 font-medium">Balance</th>
-                  <th className="px-4 py-3 font-medium"></th>
+                <tr>
+                  <th></th>
+                  <th>Student</th>
+                  <th className="hidden sm:table-cell">Class</th>
+                  <th className="hidden sm:table-cell">Parent</th>
+                  <th>Balance</th>
+                  <th></th>
                 </tr>
               </thead>
               <tbody>
                 {debtors.map((d) => (
-                  <tr key={d.invoice_id} className="border-b border-slate-50 last:border-0">
-                    <td className="px-4 py-2.5">
+                  <tr key={d.invoice_id}>
+                    <td>
                       <input type="checkbox" checked={selected.has(d.invoice_id)} onChange={() => toggle(d.invoice_id)} />
                     </td>
-                    <td className="px-4 py-2.5 font-medium text-slate-800">{d.full_name}</td>
-                    <td className="px-4 py-2.5 text-slate-500">{d.class_name}</td>
-                    <td className="px-4 py-2.5 text-slate-500">{d.parent_name} {d.parent_phone && `· ${d.parent_phone}`}</td>
-                    <td className="px-4 py-2.5 font-semibold text-red-600">
+                    <td className="font-medium text-slate-800">{d.full_name}</td>
+                    <td className="hidden sm:table-cell text-slate-500">{d.class_name}</td>
+                    <td className="hidden sm:table-cell text-slate-500">{d.parent_name} {d.parent_phone && `· ${d.parent_phone}`}</td>
+                    <td className="font-semibold text-red-600">
                       GHS {Number(d.balance).toLocaleString()}
                       {d.late_fee > 0 && <span className="text-xs text-amber-600 block font-normal">incl. GHS {Number(d.late_fee).toLocaleString()} late fee</span>}
                       {d.discount > 0 && <span className="text-xs text-slate-400 block font-normal">GHS {Number(d.discount).toLocaleString()} discount applied</span>}
                     </td>
-                    <td className="px-4 py-2.5 text-right whitespace-nowrap">
+                    <td className="text-right whitespace-nowrap">
                       <button
                         className="text-slate-500 font-medium mr-3"
                         onClick={() => openDiscountModal({ invoice_id: d.invoice_id, full_name: d.full_name, discount: d.discount })}

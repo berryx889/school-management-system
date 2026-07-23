@@ -3,9 +3,9 @@ import { useQuery } from '@tanstack/react-query';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, getDay } from 'date-fns';
 import { api } from '../../api/client.js';
-import { PageLoader } from '../../components/ui.jsx';
+import { Skeleton } from '../../components/ui.jsx';
 
-const STATUS_COLOR = { present: '#10b981', late: '#f59e0b', absent: '#ef4444' };
+const STATUS_COLOR = { present: '#059669', late: '#f59e0b', absent: '#ef4444' };
 
 export default function AttendanceCalendar({ studentId }) {
   const [month, setMonth] = useState(format(new Date(), 'yyyy-MM'));
@@ -16,7 +16,16 @@ export default function AttendanceCalendar({ studentId }) {
     enabled: Boolean(studentId),
   });
 
-  if (isLoading) return <PageLoader />;
+  if (isLoading) {
+    return (
+      <div className="card p-5">
+        <Skeleton className="h-10 w-40 mb-4" />
+        <div className="grid grid-cols-7 gap-1">
+          {[...Array(35)].map((_, i) => <Skeleton key={i} className="aspect-square rounded-xl" />)}
+        </div>
+      </div>
+    );
+  }
 
   const byDate = Object.fromEntries((data || []).map((a) => [a.date.slice(0, 10), a.status]));
   const monthDate = new Date(`${month}-01T00:00:00`);
@@ -48,7 +57,7 @@ export default function AttendanceCalendar({ studentId }) {
           <div className="h-40 mb-2">
             <ResponsiveContainer>
               <PieChart>
-                <Pie data={pieData} dataKey="value" innerRadius={40} outerRadius={60} paddingAngle={3}>
+                <Pie data={pieData} dataKey="value" innerRadius={40} outerRadius={60} paddingAngle={4} strokeWidth={0}>
                   {pieData.map((d) => <Cell key={d.name} fill={d.color} />)}
                 </Pie>
                 <Tooltip />
@@ -68,7 +77,7 @@ export default function AttendanceCalendar({ studentId }) {
             return (
               <div
                 key={key}
-                className={`aspect-square rounded-lg flex items-center justify-center text-xs font-medium
+                className={`aspect-square rounded-xl flex items-center justify-center text-xs font-medium
                   ${status ? '' : 'text-slate-300'}`}
                 style={status ? { background: `${STATUS_COLOR[status]}22`, color: STATUS_COLOR[status] } : {}}
               >

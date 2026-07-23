@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { api } from '../../api/client.js';
-import { PageLoader, EmptyState, Badge } from '../../components/ui.jsx';
+import { Skeleton, EmptyState, Badge } from '../../components/ui.jsx';
 import { IconLock } from '../../components/Icon.jsx';
 
 export default function ResultsView({ studentId }) {
@@ -23,7 +23,21 @@ export default function ResultsView({ studentId }) {
       </select>
 
       {isLoading ? (
-        <PageLoader />
+        <div className="space-y-5">
+          <div className="grid grid-cols-3 gap-3">
+            {[...Array(3)].map((_, i) => <div key={i} className="card p-4"><Skeleton className="h-8 w-16 mx-auto" /><Skeleton className="h-3 w-12 mx-auto mt-2" /></div>)}
+          </div>
+          <div className="card p-5 space-y-4">
+            {[...Array(5)].map((_, i) => (
+              <div key={i} className="flex items-center gap-4">
+                <Skeleton className="h-4 w-28" />
+                <Skeleton className="h-4 w-12" />
+                <Skeleton className="h-4 w-12" />
+                <Skeleton className="h-4 w-12 ml-auto" />
+              </div>
+            ))}
+          </div>
+        </div>
       ) : !data?.released ? (
         <div className="card"><EmptyState icon={IconLock} title="Results not yet released" description="Check back once the school releases results for this term." /></div>
       ) : (
@@ -43,23 +57,23 @@ export default function ResultsView({ studentId }) {
             </div>
           </div>
 
-          <div className="card overflow-hidden">
-            <table className="w-full text-sm">
+          <div className="card table-card overflow-hidden">
+            <table>
               <thead>
-                <tr className="text-left text-slate-500 border-b border-slate-100">
-                  <th className="px-4 py-2.5 font-medium">Subject</th>
-                  <th className="px-4 py-2.5 font-medium">Score</th>
-                  <th className="px-4 py-2.5 font-medium">Grade</th>
-                  <th className="px-4 py-2.5 font-medium">Position</th>
+                <tr>
+                  <th>Subject</th>
+                  <th>Score</th>
+                  <th>Grade</th>
+                  <th>Position</th>
                 </tr>
               </thead>
               <tbody>
                 {data.subjects.map((s) => (
-                  <tr key={s.class_subject_id} className="border-b border-slate-50 last:border-0">
-                    <td className="px-4 py-2.5">{s.subject_name}</td>
-                    <td className="px-4 py-2.5 font-semibold">{s.total}</td>
-                    <td className="px-4 py-2.5"><Badge tone={s.total >= 50 ? 'green' : 'red'}>{s.grade}</Badge></td>
-                    <td className="px-4 py-2.5 text-slate-500">{s.position}</td>
+                  <tr key={s.class_subject_id}>
+                    <td>{s.subject_name}</td>
+                    <td className="font-semibold">{s.total}</td>
+                    <td><Badge tone={s.total >= 50 ? 'green' : 'red'}>{s.grade}</Badge></td>
+                    <td className="text-slate-500">{s.position}</td>
                   </tr>
                 ))}
               </tbody>

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api, apiErrorMessage } from '../../api/client.js';
-import { PageLoader, SectionHeader, EmptyState, Modal, Badge } from '../../components/ui.jsx';
+import { Skeleton, SectionHeader, EmptyState, Modal, Badge } from '../../components/ui.jsx';
 import { useToast } from '../../components/Toast.jsx';
 import { IconBook } from '../../components/Icon.jsx';
 
@@ -30,7 +30,14 @@ export default function Subjects() {
 
       <div className="card overflow-hidden">
         {isLoading ? (
-          <PageLoader />
+          <div className="p-5 space-y-4">
+            {[...Array(5)].map((_, i) => (
+              <div key={i} className="flex items-center gap-4">
+                <Skeleton className="h-4 w-32" />
+                <Skeleton className="h-4 w-16 ml-auto" />
+              </div>
+            ))}
+          </div>
         ) : data.length === 0 ? (
           <EmptyState icon={IconBook} title="No subjects yet" action={<button className="btn-primary" onClick={() => setModalOpen(true)}>+ Add subject</button>} />
         ) : (

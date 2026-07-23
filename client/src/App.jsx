@@ -11,6 +11,7 @@ import {
   IconInbox, IconShield, IconBell,
 } from './components/Icon.jsx';
 
+import Landing from './pages/Landing.jsx';
 import Login from './pages/Login.jsx';
 import Signup from './pages/Signup.jsx';
 
@@ -133,7 +134,7 @@ const PARENT_TABS = [
 
 function RoleRedirect() {
   const { user } = useAuth();
-  if (!user) return <Navigate to="/login" replace />;
+  if (!user) return <Landing />;
   return <Navigate to={`/${user.role}`} replace />;
 }
 

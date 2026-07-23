@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api, apiErrorMessage } from '../../api/client.js';
-import { PageLoader, SectionHeader, EmptyState } from '../../components/ui.jsx';
+import { Skeleton, SectionHeader, EmptyState } from '../../components/ui.jsx';
 import { useToast } from '../../components/Toast.jsx';
 import { IconCalendar } from '../../components/Icon.jsx';
 
@@ -66,7 +66,18 @@ export default function Timetable() {
       {!classId ? (
         <div className="card"><EmptyState icon={IconCalendar} title="Choose a class" description="Select a class above to edit its timetable." /></div>
       ) : isLoading ? (
-        <PageLoader />
+        <div className="card p-5 space-y-3">
+          <div className="flex gap-4">
+            <Skeleton className="h-6 w-16" />
+            {[...Array(5)].map((_, i) => <Skeleton key={i} className="h-6 w-24" />)}
+          </div>
+          {[...Array(6)].map((_, i) => (
+            <div key={i} className="flex gap-4">
+              <Skeleton className="h-10 w-16" />
+              {[...Array(5)].map((_, j) => <Skeleton key={j} className="h-10 w-24" />)}
+            </div>
+          ))}
+        </div>
       ) : (
         <div className="card overflow-x-auto">
           <table className="w-full text-xs border-collapse">

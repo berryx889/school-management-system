@@ -10,7 +10,7 @@
 // shows up on primary buttons.
 const LIGHTNESS_STOPS = { 50: 96.3, 100: 92.7, 200: 85.5, 300: 78.2, 400: 70.8, 600: 53.3, 700: 42.4, 800: 31.8, 900: 21.2 };
 
-const DEFAULT_PRIMARY = '#5B4FE9';
+const DEFAULT_PRIMARY = '#059669';
 
 function hexToHsl(hex) {
   const m = hex.trim().match(/^#?([0-9a-f]{6})$/i);

@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { format } from 'date-fns';
 import { api } from '../../api/client.js';
-import { PageLoader } from '../../components/ui.jsx';
+import { Skeleton } from '../../components/ui.jsx';
 
 export default function Kitchen() {
   const { data, isLoading } = useQuery({
@@ -10,7 +10,22 @@ export default function Kitchen() {
     refetchInterval: 30000,
   });
 
-  if (isLoading) return <PageLoader />;
+  if (isLoading) return (
+    <div className="space-y-6">
+      <Skeleton className="h-4 w-40" />
+      <div className="card p-10 space-y-4 flex flex-col items-center">
+        <Skeleton className="h-4 w-20" />
+        <Skeleton className="h-16 w-24" />
+        <Skeleton className="h-4 w-28" />
+      </div>
+      <div className="card p-5 space-y-3">
+        <Skeleton className="h-4 w-24" />
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          {[...Array(4)].map((_, i) => <Skeleton key={i} className="h-16 rounded-xl" />)}
+        </div>
+      </div>
+    </div>
+  );
 
   return (
     <div>
@@ -33,14 +48,14 @@ export default function Kitchen() {
         </div>
       </div>
 
-      <div className="card p-5">
+      <div className="card table-card p-5">
         <h3 className="font-bold text-slate-900 mb-3">Last 7 days</h3>
-        <table className="w-full text-sm">
+        <table>
           <tbody>
             {data.history.map((h) => (
-              <tr key={h.date} className="border-b border-slate-50 last:border-0">
-                <td className="py-2 text-slate-500">{format(new Date(h.date), 'EEE d MMM')}</td>
-                <td className="py-2 text-right font-semibold text-slate-800">{h.present_count}</td>
+              <tr key={h.date}>
+                <td className="text-slate-500">{format(new Date(h.date), 'EEE d MMM')}</td>
+                <td className="text-right font-semibold text-slate-800">{h.present_count}</td>
               </tr>
             ))}
           </tbody>
