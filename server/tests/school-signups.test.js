@@ -2,9 +2,10 @@ import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import { startServer, stopServer, request, login, pool } from './helpers.js';
 
-// Public interest-signup queue (scoped-down Phase 4 of the multi-tenant roadmap): anyone
-// can submit, only admin can view/triage. No separate platform-owner role exists yet —
-// see routes/signups.js.
+// Public interest-signup queue: anyone can submit; only the platform owner can view/triage
+// (users.is_platform_owner — see migration 013). The seeded admin is the platform owner, so
+// the list/triage assertions below still pass. Cross-admin lockout lives in
+// platform-owner.test.js.
 
 let ctx;
 let adminToken;

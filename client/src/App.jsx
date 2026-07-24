@@ -94,7 +94,7 @@ const ADMIN_NAV = [
   { label: 'Communication', icon: IconMegaphone, items: [
     { to: '/admin/announcements', icon: IconMegaphone, label: 'Announcements' },
     { to: '/admin/notifications', icon: IconBell, label: 'Push notifications' },
-    { to: '/admin/signups', icon: IconInbox, label: 'School signups' },
+    { to: '/admin/signups', icon: IconInbox, label: 'School signups', platformOwnerOnly: true },
   ] },
   { to: '/admin/settings', icon: IconSettings, label: 'Settings' },
 ];
@@ -138,6 +138,14 @@ function RoleRedirect() {
   return <Navigate to={`/${user.role}`} replace />;
 }
 
+// Platform-owner-only pages (the SaaS lead queue). A school admin who isn't the platform
+// owner gets bounced back to their dashboard; the server enforces this independently.
+function PlatformOwnerRoute({ children }) {
+  const { user } = useAuth();
+  if (!user?.is_platform_owner) return <Navigate to="/admin" replace />;
+  return children;
+}
+
 export default function App() {
   return (
     <Routes>
@@ -171,7 +179,7 @@ export default function App() {
         <Route path="receipts/:paymentId" element={<Receipt />} />
         <Route path="announcements" element={<Announcements />} />
         <Route path="notifications" element={<AdminNotifications />} />
-        <Route path="signups" element={<Signups />} />
+        <Route path="signups" element={<PlatformOwnerRoute><Signups /></PlatformOwnerRoute>} />
         <Route path="settings" element={<AdminSettings />} />
       </Route>
 

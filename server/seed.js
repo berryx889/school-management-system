@@ -24,6 +24,9 @@ async function seed() {
     full_name: 'School Administrator',
     phone: '233200000001',
   });
+  // Founding admin also owns the platform (sees the school-signup lead queue). On a fresh
+  // DB the migration's bootstrap UPDATE finds no admin rows yet, so set it here too.
+  await pool.query('UPDATE users SET is_platform_owner = true WHERE id = $1', [adminId]);
 
   const kitchenId = await upsertUser({
     role: 'kitchen',

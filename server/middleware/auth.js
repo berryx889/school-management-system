@@ -20,3 +20,13 @@ export function requireRole(...roles) {
     next();
   };
 }
+
+// Gate for platform-wide surfaces (the lead/signup queue, and future cross-tenant admin).
+// A platform owner is always an admin, but not every admin is a platform owner — customer
+// schools' admins must never reach these. Layer after requireAuth.
+export function requirePlatformOwner(req, res, next) {
+  if (!req.user || !req.user.is_platform_owner) {
+    return res.status(403).json({ error: 'Forbidden' });
+  }
+  next();
+}

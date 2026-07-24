@@ -74,6 +74,13 @@ export default function SidebarLayout({ nav, brand: brandProp = 'Bright Future B
   const [passwordModalOpen, setPasswordModalOpen] = useState(false);
   const location = useLocation();
 
+  // Drop platform-owner-only destinations (e.g. the SaaS lead queue) for admins who aren't
+  // the platform owner. The server enforces this too — this just hides dead links.
+  const canSee = (entry) => !entry.platformOwnerOnly || user?.is_platform_owner;
+  const visibleNav = nav
+    .map((entry) => (entry.items ? { ...entry, items: entry.items.filter(canSee) } : entry))
+    .filter((entry) => (entry.items ? entry.items.length > 0 : canSee(entry)));
+
   const navLinkClasses = (isActive) =>
     `flex items-center gap-3 rounded-xl px-3 py-2 text-[13px] font-medium transition-all duration-150
     ${isActive
@@ -114,7 +121,7 @@ export default function SidebarLayout({ nav, brand: brandProp = 'Bright Future B
 
         {/* Nav */}
         <nav className="flex-1 overflow-y-auto py-3 px-3 space-y-0.5">
-          {nav.map((entry) =>
+          {visibleNav.map((entry) =>
             entry.items ? (
               <NavGroup
                 key={entry.label}
@@ -176,7 +183,7 @@ export default function SidebarLayout({ nav, brand: brandProp = 'Bright Future B
         <ChangePasswordForm onDone={() => setPasswordModalOpen(false)} />
       </Modal>
 
-      <CommandPalette nav={nav} />
+      <CommandPalette nav={visibleNav} />
 
       {/* ── Main content ── */}
       <div className="lg:pl-[280px] min-h-screen flex flex-col">
@@ -188,7 +195,7 @@ export default function SidebarLayout({ nav, brand: brandProp = 'Bright Future B
 
           <div className="hidden lg:flex items-center">
             <SearchTrigger />
-            <Breadcrumbs nav={nav} />
+            <Breadcrumbs nav={visibleNav} />
           </div>
 
           <div className="ml-auto flex items-center gap-2">

@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { pool } from '../db/pool.js';
-import { requireAuth, requireRole } from '../middleware/auth.js';
+import { requireAuth, requirePlatformOwner } from '../middleware/auth.js';
 
 const router = Router();
 
@@ -34,10 +34,10 @@ router.post('/', async (req, res) => {
   res.status(201).json(rows[0]);
 });
 
-// Admin-only: temporary conflation of "admin of my one school" and "owner of the
-// platform" — there's no separate super-admin/platform-owner role yet. Once real customer
-// schools exist, THEIR admins must not see this lead queue; revisit then.
-router.get('/', requireAuth, requireRole('admin'), async (req, res) => {
+// Platform-owner-only: this is the SaaS lead queue, not per-school data. Gated on the
+// users.is_platform_owner flag so a customer school's admin can never see other schools'
+// leads — see middleware/auth.js and migration 013.
+router.get('/', requireAuth, requirePlatformOwner, async (req, res) => {
   const { status } = req.query;
   const values = [];
   let where = '';
@@ -49,7 +49,7 @@ router.get('/', requireAuth, requireRole('admin'), async (req, res) => {
   res.json(rows);
 });
 
-router.patch('/:id', requireAuth, requireRole('admin'), async (req, res) => {
+router.patch('/:id', requireAuth, requirePlatformOwner, async (req, res) => {
   const { status } = req.body;
   if (!STATUSES.includes(status)) {
     return res.status(400).json({ error: `status must be one of: ${STATUSES.join(', ')}` });
