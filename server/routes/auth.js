@@ -35,24 +35,48 @@ async function buildAuthResponse(user) {
       photo_url: user.photo_url,
       must_change_password: user.must_change_password,
       is_platform_owner: user.is_platform_owner === true,
+      school_id: user.school_id,
       studentId,
     },
   };
 }
 
-// A single username is unique across every role, so login doesn't ask the user to pick
-// a role — it asks which portal (staff vs. student/parent) and resolves the exact role
-// (admin/teacher/kitchen, or student/parent) from whichever account matches.
+// Resolves which tenant a pre-login request is for. Usernames/phones are only unique WITHIN
+// a school now, so every credential lookup must be scoped. Order: explicit school code
+// (X-School-Code header or body.schoolCode) → subdomain (prod: <sub>.app.tld) → the sole
+// school if only one exists (single-tenant convenience so the current UI keeps working
+// without sending a code). Runs on the admin pool — these are public, pre-auth lookups.
+async function resolveSchoolId(req) {
+  const code = (req.headers['x-school-code'] || req.body?.schoolCode || '').toString().trim();
+  if (code) {
+    const r = await pool.query('SELECT id FROM schools WHERE lower(code)=lower($1) AND is_active=true', [code]);
+    return r.rows[0]?.id ?? null;
+  }
+  const host = (req.hostname || '').toLowerCase();
+  const sub = host.split('.')[0];
+  if (host.includes('.') && !['localhost', '127', 'www'].includes(sub)) {
+    const r = await pool.query('SELECT id FROM schools WHERE lower(subdomain)=lower($1) AND is_active=true', [sub]);
+    if (r.rows[0]) return r.rows[0].id;
+  }
+  const only = await pool.query('SELECT id FROM schools WHERE is_active=true');
+  return only.rows.length === 1 ? only.rows[0].id : null;
+}
+
+// Login asks which portal (staff vs. student/parent) and which school, then resolves the
+// exact role (admin/teacher/kitchen, or student/parent) from whichever account matches
+// that username within that school.
 router.post('/login', async (req, res) => {
   const { username, password, portal } = req.body;
   const roles = PORTAL_ROLES[portal];
   if (!username || !password || !roles) {
     return res.status(400).json({ error: 'username, password and a valid portal are required' });
   }
+  const schoolId = await resolveSchoolId(req);
+  if (!schoolId) return res.status(400).json({ error: 'A school code is required to sign in' });
 
   const { rows } = await pool.query(
-    'SELECT * FROM users WHERE username=$1 AND role = ANY($2::user_role[]) AND is_active=true',
-    [username, roles]
+    'SELECT * FROM users WHERE username=$1 AND school_id=$2 AND role = ANY($3::user_role[]) AND is_active=true',
+    [username, schoolId, roles]
   );
   const user = rows[0];
   if (!user) return res.status(401).json({ error: 'Invalid credentials' });
@@ -66,18 +90,20 @@ router.post('/login', async (req, res) => {
 router.post('/otp/request', async (req, res) => {
   const { phone } = req.body;
   if (!phone) return res.status(400).json({ error: 'phone is required' });
+  const schoolId = await resolveSchoolId(req);
+  if (!schoolId) return res.status(400).json({ error: 'A school code is required to sign in' });
 
   const { rows } = await pool.query(
-    "SELECT id FROM users WHERE phone=$1 AND role = ANY($2::user_role[])",
-    [phone, PORTAL_ROLES.family]
+    "SELECT id FROM users WHERE phone=$1 AND school_id=$2 AND role = ANY($3::user_role[])",
+    [phone, schoolId, PORTAL_ROLES.family]
   );
   if (!rows.length) return res.status(404).json({ error: 'No account found for this phone number' });
 
   const code = String(Math.floor(100000 + Math.random() * 900000));
   const expires_at = new Date(Date.now() + 10 * 60 * 1000);
   await pool.query(
-    'INSERT INTO otp_codes (phone, code, expires_at) VALUES ($1,$2,$3)',
-    [phone, code, expires_at]
+    'INSERT INTO otp_codes (phone, code, expires_at, school_id) VALUES ($1,$2,$3,$4)',
+    [phone, code, expires_at, schoolId]
   );
   await sendSms(phone, `Your login code is ${code}. It expires in 10 minutes.`);
   res.json({ ok: true });
@@ -86,19 +112,21 @@ router.post('/otp/request', async (req, res) => {
 router.post('/otp/verify', async (req, res) => {
   const { phone, code } = req.body;
   if (!phone || !code) return res.status(400).json({ error: 'phone and code are required' });
+  const schoolId = await resolveSchoolId(req);
+  if (!schoolId) return res.status(400).json({ error: 'A school code is required to sign in' });
 
   const { rows } = await pool.query(
-    `SELECT * FROM otp_codes WHERE phone=$1 AND code=$2 AND used=false AND expires_at > now()
+    `SELECT * FROM otp_codes WHERE phone=$1 AND code=$2 AND school_id=$3 AND used=false AND expires_at > now()
      ORDER BY created_at DESC LIMIT 1`,
-    [phone, code]
+    [phone, code, schoolId]
   );
   if (!rows.length) return res.status(401).json({ error: 'Invalid or expired code' });
 
   await pool.query('UPDATE otp_codes SET used=true WHERE id=$1', [rows[0].id]);
 
   const userRes = await pool.query(
-    "SELECT * FROM users WHERE phone=$1 AND role = ANY($2::user_role[])",
-    [phone, PORTAL_ROLES.family]
+    "SELECT * FROM users WHERE phone=$1 AND school_id=$2 AND role = ANY($3::user_role[])",
+    [phone, schoolId, PORTAL_ROLES.family]
   );
   const user = userRes.rows[0];
   if (!user) return res.status(404).json({ error: 'No account found' });
@@ -109,10 +137,12 @@ router.post('/otp/verify', async (req, res) => {
 router.post('/forgot-password', async (req, res) => {
   const { username } = req.body;
   if (!username) return res.status(400).json({ error: 'username is required' });
+  const schoolId = await resolveSchoolId(req);
+  if (!schoolId) return res.status(400).json({ error: 'A school code is required' });
 
   const { rows } = await pool.query(
-    'SELECT id, phone FROM users WHERE username=$1 AND is_active=true',
-    [username]
+    'SELECT id, phone FROM users WHERE username=$1 AND school_id=$2 AND is_active=true',
+    [username, schoolId]
   );
   if (!rows.length || !rows[0].phone) {
     return res.status(404).json({ error: 'No account with a registered phone number found for this username' });
@@ -122,8 +152,8 @@ router.post('/forgot-password', async (req, res) => {
   const code = String(Math.floor(100000 + Math.random() * 900000));
   const expires_at = new Date(Date.now() + 10 * 60 * 1000);
   await pool.query(
-    'INSERT INTO otp_codes (phone, code, expires_at) VALUES ($1,$2,$3)',
-    [phone, code, expires_at]
+    'INSERT INTO otp_codes (phone, code, expires_at, school_id) VALUES ($1,$2,$3,$4)',
+    [phone, code, expires_at, schoolId]
   );
   await sendSms(phone, `Your password reset code is ${code}. It expires in 10 minutes.`);
 
@@ -139,17 +169,19 @@ router.post('/reset-password', async (req, res) => {
   if (new_password.length < 6) {
     return res.status(400).json({ error: 'Password must be at least 6 characters' });
   }
+  const schoolId = await resolveSchoolId(req);
+  if (!schoolId) return res.status(400).json({ error: 'A school code is required' });
 
   const user = (await pool.query(
-    'SELECT id, phone FROM users WHERE username=$1 AND is_active=true',
-    [username]
+    'SELECT id, phone FROM users WHERE username=$1 AND school_id=$2 AND is_active=true',
+    [username, schoolId]
   )).rows[0];
   if (!user || !user.phone) return res.status(404).json({ error: 'Account not found' });
 
   const otp = (await pool.query(
-    `SELECT * FROM otp_codes WHERE phone=$1 AND code=$2 AND used=false AND expires_at > now()
+    `SELECT * FROM otp_codes WHERE phone=$1 AND code=$2 AND school_id=$3 AND used=false AND expires_at > now()
      ORDER BY created_at DESC LIMIT 1`,
-    [user.phone, code]
+    [user.phone, code, schoolId]
   )).rows[0];
   if (!otp) return res.status(401).json({ error: 'Invalid or expired code' });
 
