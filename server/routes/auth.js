@@ -13,7 +13,7 @@ const PORTAL_ROLES = {
 
 function signToken(user) {
   return jwt.sign(
-    { id: user.id, role: user.role, full_name: user.full_name, username: user.username, is_platform_owner: user.is_platform_owner === true },
+    { id: user.id, role: user.role, full_name: user.full_name, username: user.username, is_platform_owner: user.is_platform_owner === true, school_id: user.school_id },
     process.env.JWT_SECRET,
     { expiresIn: '24h' }
   );

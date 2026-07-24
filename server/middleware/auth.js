@@ -1,15 +1,30 @@
 import jwt from 'jsonwebtoken';
+import { runInTenantScope } from '../db/pool.js';
 
+// Verifies the JWT AND opens the tenant scope for the rest of the request: every query the
+// handlers run then executes as the restricted role with app.school_id set to this user's
+// school, so row-level security confines them to their own tenant. The client is released
+// when the response finishes (or the connection closes). school_id defaults to 1 for tokens
+// minted before multi-tenancy (transition shim; Phase 3 makes it authoritative).
 export function requireAuth(req, res, next) {
   const header = req.headers.authorization || '';
   const token = header.startsWith('Bearer ') ? header.slice(7) : null;
   if (!token) return res.status(401).json({ error: 'Missing token' });
   try {
     req.user = jwt.verify(token, process.env.JWT_SECRET);
-    next();
   } catch {
     return res.status(401).json({ error: 'Invalid or expired token' });
   }
+  const schoolId = req.user.school_id || 1;
+  req.schoolId = schoolId;
+  runInTenantScope(
+    schoolId,
+    (release) => {
+      res.on('finish', release);
+      res.on('close', release);
+    },
+    () => next()
+  ).catch(next);
 }
 
 export function requireRole(...roles) {
