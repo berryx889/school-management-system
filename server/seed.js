@@ -17,6 +17,14 @@ async function upsertUser({ role, username, password, full_name, phone }) {
 async function seed() {
   console.log('Seeding...');
 
+  // Founding tenant. Migration 014 creates this from school_settings; ensure it exists so
+  // the school_id DEFAULT 1 on every table always has a valid FK target on a fresh seed.
+  await pool.query(
+    `INSERT INTO schools (id, name, subdomain, code)
+     VALUES (1, 'Bright Future Basic School', 'bfbs', 'BFBS')
+     ON CONFLICT (id) DO NOTHING`
+  );
+
   const adminId = await upsertUser({
     role: 'admin',
     username: 'admin',
