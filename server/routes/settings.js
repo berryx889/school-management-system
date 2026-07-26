@@ -1,10 +1,12 @@
 import { Router } from 'express';
 import { pool } from '../db/pool.js';
 import { requireAuth, requireRole } from '../middleware/auth.js';
+import { resolveSchoolId } from '../utils/resolveSchool.js';
 
 const router = Router();
 
 router.get('/', requireAuth, async (_req, res) => {
+  // Runs in the tenant scope, so RLS confines these to the caller's school (LIMIT 1 = its row).
   const settings = await pool.query('SELECT * FROM school_settings LIMIT 1');
   const bands = await pool.query('SELECT * FROM grade_bands ORDER BY min_score DESC');
   res.json({ ...settings.rows[0], grade_bands: bands.rows });
@@ -12,9 +14,13 @@ router.get('/', requireAuth, async (_req, res) => {
 
 // No requireAuth: the login screen needs the school's name/logo/color before anyone is
 // signed in. Only non-sensitive branding fields are exposed here, nothing operational.
-router.get('/public', async (_req, res) => {
+// Resolves which school from the code/subdomain so the right branding shows per tenant.
+router.get('/public', async (req, res) => {
+  const schoolId = await resolveSchoolId(req);
+  if (!schoolId) return res.json({});
   const { rows } = await pool.query(
-    'SELECT name, short_name, logo_url, favicon_url, primary_color, motto FROM school_settings LIMIT 1'
+    'SELECT name, short_name, logo_url, favicon_url, primary_color, motto FROM school_settings WHERE school_id=$1',
+    [schoolId]
   );
   res.json(rows[0] || {});
 });
