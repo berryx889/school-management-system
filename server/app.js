@@ -27,6 +27,7 @@ import receiptRoutes from './routes/receipts.js';
 import announcementRoutes from './routes/announcements.js';
 import messageRoutes from './routes/messages.js';
 import signupRoutes from './routes/signups.js';
+import schoolRoutes from './routes/schools.js';
 import permissionRoutes from './routes/permissions.js';
 import notificationRoutes from './routes/notifications.js';
 
@@ -66,6 +67,7 @@ app.use('/api/receipts', receiptRoutes);
 app.use('/api/announcements', announcementRoutes);
 app.use('/api/messages', messageRoutes);
 app.use('/api/signups', signupRoutes);
+app.use('/api/schools', schoolRoutes);
 app.use('/api/permissions', permissionRoutes);
 app.use('/api/notifications', notificationRoutes);
 

@@ -33,6 +33,7 @@ import FeeStructures from './pages/admin/FeeStructures.jsx';
 import Debtors from './pages/admin/Debtors.jsx';
 import AdminSettings from './pages/admin/Settings.jsx';
 import Signups from './pages/admin/Signups.jsx';
+import Schools from './pages/admin/Schools.jsx';
 import AdminNotifications from './pages/admin/Notifications.jsx';
 
 import TeacherDashboard from './pages/teacher/Dashboard.jsx';
@@ -94,6 +95,7 @@ const ADMIN_NAV = [
   { label: 'Communication', icon: IconMegaphone, items: [
     { to: '/admin/announcements', icon: IconMegaphone, label: 'Announcements' },
     { to: '/admin/notifications', icon: IconBell, label: 'Push notifications' },
+    { to: '/admin/schools', icon: IconBuilding, label: 'Schools', platformOwnerOnly: true },
     { to: '/admin/signups', icon: IconInbox, label: 'School signups', platformOwnerOnly: true },
   ] },
   { to: '/admin/settings', icon: IconSettings, label: 'Settings' },
@@ -179,6 +181,7 @@ export default function App() {
         <Route path="receipts/:paymentId" element={<Receipt />} />
         <Route path="announcements" element={<Announcements />} />
         <Route path="notifications" element={<AdminNotifications />} />
+        <Route path="schools" element={<PlatformOwnerRoute><Schools /></PlatformOwnerRoute>} />
         <Route path="signups" element={<PlatformOwnerRoute><Signups /></PlatformOwnerRoute>} />
         <Route path="settings" element={<AdminSettings />} />
       </Route>
