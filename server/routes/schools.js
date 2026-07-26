@@ -93,6 +93,48 @@ router.post('/', async (req, res) => {
   }
 });
 
+// Full detail for one school, including its admin accounts (so the owner can see who to
+// contact and reset their access). Never returns password hashes.
+router.get('/:id', async (req, res) => {
+  const school = (await adminPool.query(
+    'SELECT id, name, subdomain, code, is_active, created_at FROM schools WHERE id=$1',
+    [req.params.id]
+  )).rows[0];
+  if (!school) return res.status(404).json({ error: 'Not found' });
+
+  const counts = (await adminPool.query(
+    `SELECT (SELECT count(*) FROM users    WHERE school_id=$1) AS user_count,
+            (SELECT count(*) FROM users    WHERE school_id=$1 AND role='teacher') AS teacher_count,
+            (SELECT count(*) FROM students WHERE school_id=$1) AS student_count`,
+    [school.id]
+  )).rows[0];
+
+  const admins = (await adminPool.query(
+    "SELECT id, username, full_name, is_active, must_change_password, created_at FROM users WHERE school_id=$1 AND role='admin' ORDER BY id",
+    [school.id]
+  )).rows;
+
+  res.json({ ...school, ...counts, admins });
+});
+
+// Reset a school admin's password. Original temp passwords are never recoverable (stored
+// hashed), so recovery = regenerate. Returns the new temp password ONCE and forces a change
+// on next login.
+router.post('/:id/reset-admin-password', async (req, res) => {
+  const { user_id } = req.body;
+  if (!user_id) return res.status(400).json({ error: 'user_id is required' });
+  const admin = (await adminPool.query(
+    "SELECT id, username FROM users WHERE id=$1 AND school_id=$2 AND role='admin'",
+    [user_id, req.params.id]
+  )).rows[0];
+  if (!admin) return res.status(404).json({ error: 'Admin not found for this school' });
+
+  const tempPassword = Math.random().toString(36).slice(2, 10);
+  const password_hash = await bcrypt.hash(tempPassword, 10);
+  await adminPool.query('UPDATE users SET password_hash=$1, must_change_password=true WHERE id=$2', [password_hash, admin.id]);
+  res.json({ username: admin.username, temp_password: tempPassword });
+});
+
 // Suspend / reactivate (or rename) a school. A suspended school can't be resolved at login.
 router.patch('/:id', async (req, res) => {
   const { name, is_active } = req.body;

@@ -33,12 +33,12 @@ after(async () => {
 
 test('login response exposes is_platform_owner (true for owner, false for other admin)', async () => {
   const owner = await request(ctx.baseUrl, '/auth/login', {
-    method: 'POST', body: { username: 'admin', password: 'admin123', portal: 'staff' },
+    method: 'POST', body: { username: 'admin', password: 'admin123', portal: 'staff', schoolCode: 'BFBS' },
   });
   assert.equal(owner.data.user.is_platform_owner, true);
 
   const other = await request(ctx.baseUrl, '/auth/login', {
-    method: 'POST', body: { username: 'admin2', password: 'admin2pass', portal: 'staff' },
+    method: 'POST', body: { username: 'admin2', password: 'admin2pass', portal: 'staff', schoolCode: 'BFBS' },
   });
   assert.equal(other.data.user.is_platform_owner, false);
 });

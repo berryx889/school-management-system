@@ -8,7 +8,7 @@ import {
   IconHome, IconGraduationCap, IconUser, IconUsers, IconBuilding, IconBook, IconLink, IconCalendar,
   IconCamera, IconUtensils, IconEdit, IconBarChart, IconFileText, IconUnlock, IconWallet,
   IconClipboardList, IconMegaphone, IconSettings, IconCreditCard, IconMessageCircle, IconTrendingUp,
-  IconInbox, IconShield, IconBell,
+  IconInbox, IconShield, IconBell, IconCommand,
 } from './components/Icon.jsx';
 
 import Landing from './pages/Landing.jsx';
@@ -95,6 +95,10 @@ const ADMIN_NAV = [
   { label: 'Communication', icon: IconMegaphone, items: [
     { to: '/admin/announcements', icon: IconMegaphone, label: 'Announcements' },
     { to: '/admin/notifications', icon: IconBell, label: 'Push notifications' },
+  ] },
+  // Platform-owner-only control plane. The whole group disappears for ordinary school admins,
+  // since every item is platformOwnerOnly and SidebarLayout drops emptied groups.
+  { label: 'Platform', icon: IconCommand, items: [
     { to: '/admin/schools', icon: IconBuilding, label: 'Schools', platformOwnerOnly: true },
     { to: '/admin/signups', icon: IconInbox, label: 'School signups', platformOwnerOnly: true },
   ] },

@@ -29,8 +29,11 @@ const PORTAL_BY_ROLE = { admin: 'staff', teacher: 'staff', kitchen: 'staff', acc
 
 // `role` is kept as the helper's public parameter (tests read clearly as "log in as this
 // role") even though the API itself now only takes a portal and resolves the exact role.
+// The seeded users all belong to the founding school (code BFBS). Pass the code explicitly
+// rather than leaning on the single-school fallback, so the suite stays green even when the
+// dev DB has other schools in it (e.g. ones created through the Schools UI).
 export async function login(baseUrl, username, password, role) {
-  const { data } = await request(baseUrl, '/auth/login', { method: 'POST', body: { username, password, portal: PORTAL_BY_ROLE[role] } });
+  const { data } = await request(baseUrl, '/auth/login', { method: 'POST', body: { username, password, portal: PORTAL_BY_ROLE[role], schoolCode: 'BFBS' } });
   return data.token;
 }
 

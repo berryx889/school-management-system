@@ -15,7 +15,7 @@ before(async () => {
 
   const t1 = await request(ctx.baseUrl, '/auth/login', {
     method: 'POST',
-    body: { username: 'teacher1', password: 'teacher123', portal: 'staff' },
+    body: { username: 'teacher1', password: 'teacher123', portal: 'staff', schoolCode: 'BFBS' },
   });
   teacherToken = t1.data.token;
   teacherId = t1.data.user.id;

@@ -88,8 +88,91 @@ function AddSchoolModal({ open, onClose }) {
   );
 }
 
+function DetailRow({ label, value }) {
+  return (
+    <div className="flex justify-between gap-4 py-1.5">
+      <dt className="text-slate-500">{label}</dt>
+      <dd className="font-medium text-slate-800 text-right">{value}</dd>
+    </div>
+  );
+}
+
+function SchoolDetailModal({ id, onClose }) {
+  const toast = useToast();
+  const [resetResult, setResetResult] = useState(null);
+
+  const { data, isLoading } = useQuery({
+    queryKey: ['school', id],
+    queryFn: () => api.get(`/schools/${id}`).then((r) => r.data),
+    enabled: !!id,
+  });
+
+  const resetPw = useMutation({
+    mutationFn: (user_id) => api.post(`/schools/${id}/reset-admin-password`, { user_id }).then((r) => r.data),
+    onSuccess: (d) => { setResetResult(d); toast('Password reset — share the new one.', 'success'); },
+    onError: (err) => toast(apiErrorMessage(err), 'error'),
+  });
+
+  const close = () => { setResetResult(null); onClose(); };
+
+  return (
+    <Modal open={!!id} onClose={close} title={data?.name || 'School'}>
+      {isLoading || !data ? (
+        <div className="space-y-3">{[...Array(4)].map((_, i) => <Skeleton key={i} className="h-4 w-full" />)}</div>
+      ) : (
+        <div className="space-y-5">
+          <dl className="rounded-2xl bg-slate-50 p-4 text-sm">
+            <DetailRow label="School code" value={<span className="font-mono">{data.code}</span>} />
+            <DetailRow label="Subdomain" value={data.subdomain} />
+            <DetailRow label="Status" value={<Badge tone={data.is_active ? 'green' : 'slate'}>{data.is_active ? 'Active' : 'Suspended'}</Badge>} />
+            <DetailRow label="Created" value={format(new Date(data.created_at), 'd MMM yyyy')} />
+          </dl>
+
+          <div className="grid grid-cols-3 gap-3 text-center">
+            {[['Users', data.user_count], ['Teachers', data.teacher_count], ['Students', data.student_count]].map(([label, n]) => (
+              <div key={label} className="rounded-2xl border border-slate-100 py-3">
+                <p className="text-2xl font-bold text-slate-900 tabular-nums">{n}</p>
+                <p className="text-xs text-slate-500">{label}</p>
+              </div>
+            ))}
+          </div>
+
+          <div>
+            <p className="text-sm font-semibold text-slate-700 mb-2">Admin accounts</p>
+            <div className="space-y-2">
+              {data.admins.map((a) => (
+                <div key={a.id} className="flex items-center justify-between gap-3 rounded-xl border border-slate-100 px-4 py-2.5">
+                  <div className="min-w-0">
+                    <p className="font-medium text-slate-800 truncate">{a.full_name}</p>
+                    <p className="text-xs text-slate-500">@{a.username}{a.must_change_password && ' · must change password'}</p>
+                  </div>
+                  <button className="text-primary-600 font-medium text-sm shrink-0" disabled={resetPw.isPending} onClick={() => resetPw.mutate(a.id)}>
+                    Reset password
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {resetResult && (
+            <div className="rounded-2xl border border-primary-100 bg-primary-50/50 p-4 text-sm">
+              <p className="text-slate-600 mb-2">New temporary password for <span className="font-semibold">@{resetResult.username}</span> — shown once:</p>
+              <p className="font-mono font-bold text-lg text-slate-900">{resetResult.temp_password}</p>
+            </div>
+          )}
+
+          <div className="flex justify-end pt-1">
+            <button className="btn-primary" onClick={close}>Done</button>
+          </div>
+        </div>
+      )}
+    </Modal>
+  );
+}
+
 export default function Schools() {
   const [addOpen, setAddOpen] = useState(false);
+  const [detailId, setDetailId] = useState(null);
   const toast = useToast();
   const qc = useQueryClient();
 
@@ -143,7 +226,7 @@ export default function Schools() {
               </thead>
               <tbody>
                 {data.map((s) => (
-                  <tr key={s.id}>
+                  <tr key={s.id} className="cursor-pointer" onClick={() => setDetailId(s.id)}>
                     <td>
                       <span className="font-medium text-slate-800">{s.name}</span>
                       <span className="text-xs text-slate-400 block">{s.subdomain} · {format(new Date(s.created_at), 'd MMM yyyy')}</span>
@@ -152,7 +235,7 @@ export default function Schools() {
                     <td className="hidden sm:table-cell text-slate-500 tabular-nums">{s.user_count}</td>
                     <td className="hidden sm:table-cell text-slate-500 tabular-nums">{s.student_count}</td>
                     <td><Badge tone={s.is_active ? 'green' : 'slate'}>{s.is_active ? 'Active' : 'Suspended'}</Badge></td>
-                    <td className="text-right whitespace-nowrap">
+                    <td className="text-right whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
                       {s.id === 1 ? (
                         <span className="text-xs text-slate-400">Founding school</span>
                       ) : s.is_active ? (
@@ -170,6 +253,7 @@ export default function Schools() {
       </div>
 
       <AddSchoolModal open={addOpen} onClose={() => setAddOpen(false)} />
+      <SchoolDetailModal id={detailId} onClose={() => setDetailId(null)} />
     </div>
   );
 }

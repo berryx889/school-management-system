@@ -62,6 +62,36 @@ test('provisioning a school creates it with an admin who can log in to that tena
   assert.equal(students.data.total, 0);
 });
 
+test('school detail returns counts and admin accounts (no hashes)', async () => {
+  const r = await request(ctx.baseUrl, `/schools/${createdSchoolId}`, { token: ownerToken });
+  assert.equal(r.status, 200);
+  assert.equal(Number(r.data.user_count), 1);
+  assert.ok(Array.isArray(r.data.admins) && r.data.admins.length === 1);
+  assert.equal(r.data.admins[0].username, 'admin');
+  assert.ok(!('password_hash' in r.data.admins[0]), 'never leaks the hash');
+});
+
+test('resetting an admin password issues a new working temp password', async () => {
+  const detail = await request(ctx.baseUrl, `/schools/${createdSchoolId}`, { token: ownerToken });
+  const adminId = detail.data.admins[0].id;
+
+  const reset = await request(ctx.baseUrl, `/schools/${createdSchoolId}/reset-admin-password`, {
+    method: 'POST', token: ownerToken, body: { user_id: adminId },
+  });
+  assert.equal(reset.status, 200);
+  assert.ok(reset.data.temp_password && reset.data.temp_password !== 'prov12345');
+
+  // The old password no longer works; the new one does.
+  const oldPw = await request(ctx.baseUrl, '/auth/login', {
+    method: 'POST', body: { username: 'admin', password: 'prov12345', portal: 'staff', schoolCode: 'PROVTEST' },
+  });
+  assert.equal(oldPw.status, 401);
+  const newPw = await request(ctx.baseUrl, '/auth/login', {
+    method: 'POST', body: { username: 'admin', password: reset.data.temp_password, portal: 'staff', schoolCode: 'PROVTEST' },
+  });
+  assert.equal(newPw.status, 200);
+});
+
 test('duplicate code is rejected with 409', async () => {
   const dup = await request(ctx.baseUrl, '/schools', {
     method: 'POST', token: ownerToken, body: { name: 'Another', code: 'PROVTEST' },
