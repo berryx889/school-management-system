@@ -101,6 +101,42 @@ router.post('/', async (req, res) => {
   }
 });
 
+// Cross-tenant platform overview for the super-admin dashboard: totals across every school,
+// the lead funnel, the newest schools, and a live activity feed. All on the admin pool.
+// Declared before '/:id' so "overview" isn't captured as a school id.
+router.get('/overview', async (_req, res) => {
+  const schools = (await adminPool.query(
+    `SELECT count(*)::int AS total,
+            count(*) FILTER (WHERE is_active)::int AS active,
+            count(*) FILTER (WHERE NOT is_active)::int AS suspended
+     FROM schools`
+  )).rows[0];
+
+  const people = (await adminPool.query(
+    `SELECT (SELECT count(*) FROM users)::int AS users,
+            (SELECT count(*) FROM users WHERE role='teacher')::int AS teachers,
+            (SELECT count(*) FROM students)::int AS students`
+  )).rows[0];
+
+  const signups = (await adminPool.query(
+    `SELECT count(*)::int AS total, count(*) FILTER (WHERE status='new')::int AS new FROM school_signups`
+  )).rows[0];
+
+  const recentSchools = (await adminPool.query(
+    `SELECT s.id, s.name, s.code, s.is_active, s.created_at,
+            (SELECT count(*) FROM students st WHERE st.school_id = s.id)::int AS student_count
+     FROM schools s ORDER BY s.created_at DESC LIMIT 5`
+  )).rows;
+
+  const recentActivity = (await adminPool.query(
+    `SELECT a.action, a.actor_label, a.summary, a.created_at, s.name AS school_name
+     FROM audit_logs a JOIN schools s ON s.id = a.school_id
+     ORDER BY a.created_at DESC LIMIT 12`
+  )).rows;
+
+  res.json({ schools, people, signups, recentSchools, recentActivity });
+});
+
 // Full detail for one school, including its admin accounts (so the owner can see who to
 // contact and reset their access). Never returns password hashes.
 router.get('/:id', async (req, res) => {

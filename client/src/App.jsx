@@ -34,6 +34,7 @@ import Debtors from './pages/admin/Debtors.jsx';
 import AdminSettings from './pages/admin/Settings.jsx';
 import Signups from './pages/admin/Signups.jsx';
 import Schools from './pages/admin/Schools.jsx';
+import PlatformOverview from './pages/admin/PlatformOverview.jsx';
 import AuditLog from './pages/admin/AuditLog.jsx';
 import AdminNotifications from './pages/admin/Notifications.jsx';
 
@@ -100,6 +101,7 @@ const ADMIN_NAV = [
   // Platform-owner-only control plane. The whole group disappears for ordinary school admins,
   // since every item is platformOwnerOnly and SidebarLayout drops emptied groups.
   { label: 'Platform', icon: IconCommand, items: [
+    { to: '/admin/platform', end: true, icon: IconCommand, label: 'Overview', platformOwnerOnly: true },
     { to: '/admin/schools', icon: IconBuilding, label: 'Schools', platformOwnerOnly: true },
     { to: '/admin/signups', icon: IconInbox, label: 'School signups', platformOwnerOnly: true },
   ] },
@@ -187,6 +189,7 @@ export default function App() {
         <Route path="receipts/:paymentId" element={<Receipt />} />
         <Route path="announcements" element={<Announcements />} />
         <Route path="notifications" element={<AdminNotifications />} />
+        <Route path="platform" element={<PlatformOwnerRoute><PlatformOverview /></PlatformOwnerRoute>} />
         <Route path="schools" element={<PlatformOwnerRoute><Schools /></PlatformOwnerRoute>} />
         <Route path="signups" element={<PlatformOwnerRoute><Signups /></PlatformOwnerRoute>} />
         <Route path="audit" element={<AuditLog />} />

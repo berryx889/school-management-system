@@ -62,6 +62,18 @@ test('provisioning a school creates it with an admin who can log in to that tena
   assert.equal(students.data.total, 0);
 });
 
+test('platform overview aggregates across all schools (owner only)', async () => {
+  const forbidden = await request(ctx.baseUrl, '/schools/overview', { token: otherAdminToken });
+  assert.equal(forbidden.status, 403);
+
+  const r = await request(ctx.baseUrl, '/schools/overview', { token: ownerToken });
+  assert.equal(r.status, 200);
+  assert.ok(r.data.schools.total >= 2, 'counts the founding + provisioned schools');
+  assert.equal(r.data.schools.total, r.data.schools.active + r.data.schools.suspended);
+  assert.ok(typeof r.data.people.students === 'number');
+  assert.ok(Array.isArray(r.data.recentSchools) && Array.isArray(r.data.recentActivity));
+});
+
 test('school detail returns counts and admin accounts (no hashes)', async () => {
   const r = await request(ctx.baseUrl, `/schools/${createdSchoolId}`, { token: ownerToken });
   assert.equal(r.status, 200);
