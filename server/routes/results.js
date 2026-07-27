@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { pool } from '../db/pool.js';
 import { requireAuth, requireRole } from '../middleware/auth.js';
+import { auditFromReq } from '../utils/audit.js';
 
 const router = Router();
 
@@ -234,6 +235,13 @@ router.post('/release', requireAuth, requireRole('admin'), async (req, res) => {
      RETURNING *`,
     [term_id, class_id, Boolean(released), req.user.id]
   );
+  await auditFromReq(req, {
+    action: 'results.release',
+    entityType: 'class',
+    entityId: class_id,
+    summary: `${released ? 'Released' : 'Unreleased'} results for class #${class_id}, term #${term_id}`,
+    metadata: { class_id, term_id, released: Boolean(released) },
+  });
   res.json(rows[0]);
 });
 

@@ -30,6 +30,7 @@ import signupRoutes from './routes/signups.js';
 import schoolRoutes from './routes/schools.js';
 import permissionRoutes from './routes/permissions.js';
 import notificationRoutes from './routes/notifications.js';
+import auditRoutes from './routes/audit.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 dotenv.config({ path: path.join(__dirname, '../.env') });
@@ -70,6 +71,7 @@ app.use('/api/signups', signupRoutes);
 app.use('/api/schools', schoolRoutes);
 app.use('/api/permissions', permissionRoutes);
 app.use('/api/notifications', notificationRoutes);
+app.use('/api/audit-logs', auditRoutes);
 
 app.use((err, _req, res, _next) => {
   console.error(err);

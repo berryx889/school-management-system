@@ -4,6 +4,15 @@ import jwt from 'jsonwebtoken';
 import { pool } from '../db/pool.js';
 import { sendSms } from '../services/sms.js';
 import { resolveSchoolId } from '../utils/resolveSchool.js';
+import { logAudit } from '../utils/audit.js';
+
+function reqMeta(req) {
+  const fwd = req.headers['x-forwarded-for'];
+  return {
+    ip: fwd ? String(fwd).split(',')[0].trim() : req.ip || req.socket?.remoteAddress || null,
+    userAgent: req.headers['user-agent'] || null,
+  };
+}
 
 const router = Router();
 
@@ -59,11 +68,19 @@ router.post('/login', async (req, res) => {
     [username, schoolId, roles]
   );
   const user = rows[0];
-  if (!user) return res.status(401).json({ error: 'Invalid credentials' });
+  const meta = reqMeta(req);
+  if (!user) {
+    await logAudit({ schoolId, action: 'auth.login_failed', summary: `Failed sign-in for "${username}" (no such account)`, ...meta });
+    return res.status(401).json({ error: 'Invalid credentials' });
+  }
 
   const ok = await bcrypt.compare(password, user.password_hash);
-  if (!ok) return res.status(401).json({ error: 'Invalid credentials' });
+  if (!ok) {
+    await logAudit({ schoolId, actor: user, action: 'auth.login_failed', summary: `Failed sign-in for "${username}" (wrong password)`, ...meta });
+    return res.status(401).json({ error: 'Invalid credentials' });
+  }
 
+  await logAudit({ schoolId, actor: user, action: 'auth.login', summary: 'Signed in', ...meta });
   res.json(await buildAuthResponse(user));
 });
 

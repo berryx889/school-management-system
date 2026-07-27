@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { pool } from '../db/pool.js';
 import { requireAuth, requireRole } from '../middleware/auth.js';
+import { auditFromReq } from '../utils/audit.js';
 
 const router = Router();
 
@@ -64,6 +65,13 @@ router.put('/bulk', requireAuth, requireRole('admin', 'teacher'), async (req, re
     );
     saved.push(rows[0]);
   }
+  await auditFromReq(req, {
+    action: 'marks.update',
+    entityType: 'assessment',
+    entityId: assessment_id,
+    summary: `Saved ${saved.length} mark(s) for "${assessment.title}"`,
+    metadata: { assessment_id, scores: saved.map((m) => ({ student_id: m.student_id, score: Number(m.score) })) },
+  });
   res.json(saved);
 });
 

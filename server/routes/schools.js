@@ -2,6 +2,7 @@ import { Router } from 'express';
 import bcrypt from 'bcryptjs';
 import { adminPool } from '../db/pool.js';
 import { requireAuth, requirePlatformOwner } from '../middleware/auth.js';
+import { auditFromReq } from '../utils/audit.js';
 
 const router = Router();
 
@@ -84,6 +85,13 @@ router.post('/', async (req, res) => {
     );
 
     await client.query('COMMIT');
+    await auditFromReq(req, {
+      action: 'school.provision',
+      entityType: 'school',
+      entityId: school.id,
+      summary: `Provisioned school "${school.name}" (${school.code})`,
+      metadata: { code: school.code, subdomain: school.subdomain, admin_username: adminUser },
+    });
     res.status(201).json({ ...school, admin_username: adminUser, admin_temp_password: tempPassword });
   } catch (err) {
     await client.query('ROLLBACK');
@@ -132,6 +140,12 @@ router.post('/:id/reset-admin-password', async (req, res) => {
   const tempPassword = Math.random().toString(36).slice(2, 10);
   const password_hash = await bcrypt.hash(tempPassword, 10);
   await adminPool.query('UPDATE users SET password_hash=$1, must_change_password=true WHERE id=$2', [password_hash, admin.id]);
+  await auditFromReq(req, {
+    action: 'school.reset_admin_password',
+    entityType: 'school',
+    entityId: req.params.id,
+    summary: `Reset admin password for @${admin.username} (school #${req.params.id})`,
+  });
   res.json({ username: admin.username, temp_password: tempPassword });
 });
 
@@ -144,6 +158,13 @@ router.patch('/:id', async (req, res) => {
     [name ?? null, is_active ?? null, req.params.id]
   );
   if (!rows.length) return res.status(404).json({ error: 'Not found' });
+  await auditFromReq(req, {
+    action: 'school.update',
+    entityType: 'school',
+    entityId: rows[0].id,
+    summary: `${is_active === false ? 'Suspended' : is_active === true ? 'Reactivated' : 'Updated'} school "${rows[0].name}"`,
+    metadata: { is_active: rows[0].is_active },
+  });
   res.json(rows[0]);
 });
 

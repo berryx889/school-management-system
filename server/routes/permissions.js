@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { pool } from '../db/pool.js';
 import { requireAuth, requireRole } from '../middleware/auth.js';
+import { auditFromReq } from '../utils/audit.js';
 
 const router = Router();
 const STAFF_ROLES = ['admin', 'teacher', 'kitchen', 'accountant'];
@@ -61,11 +62,24 @@ router.post('/', requireAuth, requireRole('admin'), async (req, res) => {
     [user_id, 'Permission granted', `You have been granted ${label}.`]
   );
 
+  await auditFromReq(req, {
+    action: 'permission.grant',
+    entityType: 'staff_permission',
+    entityId: rows[0].id,
+    summary: `Granted ${label} to user #${user_id}`,
+    metadata: { user_id, permission_type, class_id, subject_id: subject_id ?? null },
+  });
   res.status(201).json(rows[0]);
 });
 
 router.delete('/:id', requireAuth, requireRole('admin'), async (req, res) => {
   await pool.query('DELETE FROM staff_permissions WHERE id=$1', [req.params.id]);
+  await auditFromReq(req, {
+    action: 'permission.revoke',
+    entityType: 'staff_permission',
+    entityId: req.params.id,
+    summary: `Revoked staff permission #${req.params.id}`,
+  });
   res.status(204).end();
 });
 

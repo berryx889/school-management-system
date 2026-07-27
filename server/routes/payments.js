@@ -4,6 +4,7 @@ import { pool } from '../db/pool.js';
 import { requireAuth, requireRole } from '../middleware/auth.js';
 import { sendSms } from '../services/sms.js';
 import { initializeTransaction, verifyTransaction, verifyWebhookSignature, paystackConfigured } from '../services/paystack.js';
+import { auditFromReq } from '../utils/audit.js';
 
 const router = Router();
 
@@ -69,6 +70,13 @@ router.post('/manual', requireAuth, requireRole('admin', 'accountant'), async (r
     amount,
     method,
     recordedBy: req.user.id,
+  });
+  await auditFromReq(req, {
+    action: 'payment.record',
+    entityType: 'payment',
+    entityId: payment.id,
+    summary: `Recorded ${method} payment of ${amount} on invoice #${invoice_id}`,
+    metadata: { invoice_id, amount, method },
   });
   res.status(201).json(payment);
 });
