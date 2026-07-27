@@ -40,7 +40,7 @@ async function computeClassResults(classId, termId) {
 
   const assessments = (
     await pool.query(
-      `SELECT a.* FROM assessments a WHERE a.term_id=$1 AND a.class_subject_id = ANY($2::int[])`,
+      `SELECT a.* FROM assessments a WHERE a.term_id=$1 AND a.class_subject_id = ANY($2::int[]) AND a.deleted_at IS NULL`,
       [termId, classSubjects.map((c) => c.id)]
     )
   ).rows;

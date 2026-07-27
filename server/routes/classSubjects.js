@@ -6,7 +6,7 @@ const router = Router();
 
 router.get('/', requireAuth, async (req, res) => {
   const { class_id, teacher_id } = req.query;
-  const conditions = [];
+  const conditions = ['cs.deleted_at IS NULL'];
   const values = [];
   if (class_id) { values.push(class_id); conditions.push(`cs.class_id=$${values.length}`); }
   if (teacher_id) { values.push(teacher_id); conditions.push(`cs.teacher_id=$${values.length}`); }
@@ -38,7 +38,7 @@ router.post('/', requireAuth, requireRole('admin'), async (req, res) => {
 });
 
 router.delete('/:id', requireAuth, requireRole('admin'), async (req, res) => {
-  await pool.query('DELETE FROM class_subjects WHERE id=$1', [req.params.id]);
+  await pool.query('UPDATE class_subjects SET deleted_at=now() WHERE id=$1', [req.params.id]);
   res.status(204).end();
 });
 

@@ -13,7 +13,7 @@ async function canAccessClassSubject(user, classSubjectId) {
 router.get('/', requireAuth, async (req, res) => {
   const { class_subject_id, term_id } = req.query;
   const values = [];
-  const conditions = [];
+  const conditions = ['a.deleted_at IS NULL'];
   if (class_subject_id) { values.push(class_subject_id); conditions.push(`a.class_subject_id=$${values.length}`); }
   if (term_id) { values.push(term_id); conditions.push(`a.term_id=$${values.length}`); }
   const where = conditions.length ? `WHERE ${conditions.join(' AND ')}` : '';
@@ -47,7 +47,7 @@ router.delete('/:id', requireAuth, requireRole('admin', 'teacher'), async (req, 
   if (!(await canAccessClassSubject(req.user, a.rows[0].class_subject_id))) {
     return res.status(403).json({ error: 'Not assigned to this class-subject' });
   }
-  await pool.query('DELETE FROM assessments WHERE id=$1', [req.params.id]);
+  await pool.query('UPDATE assessments SET deleted_at=now() WHERE id=$1', [req.params.id]);
   res.status(204).end();
 });
 

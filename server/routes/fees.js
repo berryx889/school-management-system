@@ -14,10 +14,10 @@ const router = Router();
 router.get('/structures', requireAuth, async (req, res) => {
   const { class_id, term_id } = req.query;
   const values = [];
-  const conditions = [];
+  const conditions = ['deleted_at IS NULL'];
   if (class_id) { values.push(class_id); conditions.push(`class_id=$${values.length}`); }
   if (term_id) { values.push(term_id); conditions.push(`term_id=$${values.length}`); }
-  const where = conditions.length ? `WHERE ${conditions.join(' AND ')}` : '';
+  const where = `WHERE ${conditions.join(' AND ')}`;
   const { rows } = await pool.query(`SELECT * FROM fee_structures ${where} ORDER BY item_name`, values);
   res.json(rows);
 });
@@ -35,7 +35,7 @@ router.post('/structures', requireAuth, requireRole('admin', 'accountant'), asyn
 });
 
 router.delete('/structures/:id', requireAuth, requireRole('admin', 'accountant'), async (req, res) => {
-  await pool.query('DELETE FROM fee_structures WHERE id=$1', [req.params.id]);
+  await pool.query('UPDATE fee_structures SET deleted_at=now() WHERE id=$1', [req.params.id]);
   res.status(204).end();
 });
 
@@ -49,7 +49,7 @@ router.post('/invoices/generate', requireAuth, requireRole('admin', 'accountant'
   const structureFilter = class_id ? 'AND class_id=$2' : '';
   const structureValues = class_id ? [term_id, class_id] : [term_id];
   const structures = await pool.query(
-    `SELECT * FROM fee_structures WHERE term_id=$1 ${structureFilter}`,
+    `SELECT * FROM fee_structures WHERE term_id=$1 ${structureFilter} AND deleted_at IS NULL`,
     structureValues
   );
   const totalByClass = new Map();
@@ -115,7 +115,7 @@ router.get('/invoices', requireAuth, async (req, res) => {
   const items = await pool.query(
     `SELECT fs.* FROM fee_structures fs
      JOIN fee_invoices fi ON fi.term_id = fs.term_id
-     WHERE fi.student_id=$1 ${term_id ? 'AND fs.term_id=$2' : ''}`,
+     WHERE fi.student_id=$1 ${term_id ? 'AND fs.term_id=$2' : ''} AND fs.deleted_at IS NULL`,
     values
   );
   res.json({ invoices: await withBalance(invoices.rows), items: items.rows });

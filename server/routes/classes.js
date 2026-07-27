@@ -10,6 +10,7 @@ router.get('/', requireAuth, async (_req, res) => {
       (SELECT COUNT(*) FROM students s WHERE s.class_id = c.id AND s.status='active') AS student_count
     FROM classes c
     LEFT JOIN users u ON u.id = c.class_teacher_id
+    WHERE c.deleted_at IS NULL
     ORDER BY c.name
   `);
   res.json(rows);
@@ -53,7 +54,7 @@ router.post('/bulk-generate', requireAuth, requireRole('admin'), async (req, res
       [stage_name]
     );
 
-    const existing = await client.query('SELECT name FROM classes');
+    const existing = await client.query('SELECT name FROM classes WHERE deleted_at IS NULL');
     const existingNames = new Set(existing.rows.map((r) => r.name.toLowerCase()));
 
     const created = [];
@@ -99,7 +100,7 @@ router.put('/:id', requireAuth, requireRole('admin'), async (req, res) => {
 });
 
 router.delete('/:id', requireAuth, requireRole('admin'), async (req, res) => {
-  await pool.query('DELETE FROM classes WHERE id=$1', [req.params.id]);
+  await pool.query('UPDATE classes SET deleted_at=now() WHERE id=$1', [req.params.id]);
   res.status(204).end();
 });
 

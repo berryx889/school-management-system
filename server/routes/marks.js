@@ -27,7 +27,7 @@ router.put('/bulk', requireAuth, requireRole('admin', 'teacher'), async (req, re
   const assessmentRes = await pool.query(
     `SELECT a.*, cs.teacher_id, cs.class_id, cs.subject_id FROM assessments a
      JOIN class_subjects cs ON cs.id = a.class_subject_id
-     WHERE a.id=$1`,
+     WHERE a.id=$1 AND a.deleted_at IS NULL`,
     [assessment_id]
   );
   if (!assessmentRes.rows.length) return res.status(404).json({ error: 'Assessment not found' });

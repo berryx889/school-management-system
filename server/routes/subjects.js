@@ -5,7 +5,7 @@ import { requireAuth, requireRole } from '../middleware/auth.js';
 const router = Router();
 
 router.get('/', requireAuth, async (_req, res) => {
-  const { rows } = await pool.query('SELECT * FROM subjects ORDER BY name');
+  const { rows } = await pool.query('SELECT * FROM subjects WHERE deleted_at IS NULL ORDER BY name');
   res.json(rows);
 });
 
@@ -36,7 +36,7 @@ router.put('/:id', requireAuth, requireRole('admin'), async (req, res) => {
 });
 
 router.delete('/:id', requireAuth, requireRole('admin'), async (req, res) => {
-  await pool.query('DELETE FROM subjects WHERE id=$1', [req.params.id]);
+  await pool.query('UPDATE subjects SET deleted_at=now() WHERE id=$1', [req.params.id]);
   res.status(204).end();
 });
 
