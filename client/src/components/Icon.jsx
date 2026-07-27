@@ -70,6 +70,7 @@ export const IconTrendingUp = (p) => <Svg {...p}><path d="M3.5 16 10 9.5l4 4 6.5
 export const IconMessageCircle = (p) => <Svg {...p}><path d="M12 20c4.7 0 8.5-3.4 8.5-7.5S16.7 5 12 5s-8.5 3.4-8.5 7.5c0 1.7.6 3.2 1.7 4.5L4.5 20l4-1.2c1 .4 2.2.7 3.5.7Z" /></Svg>;
 
 export const IconInbox = (p) => <Svg {...p}><path d="M4 12.5h4.5l1.5 2.5h4l1.5-2.5H20" /><path d="M4.5 7 4 12.5V18a1.5 1.5 0 0 0 1.5 1.5h13A1.5 1.5 0 0 0 20 18v-5.5L19.5 7a1.5 1.5 0 0 0-1.5-1.5H6A1.5 1.5 0 0 0 4.5 7Z" /></Svg>;
+export const IconTrash = (p) => <Svg {...p}><path d="M4 7h16" /><path d="M10 11v6M14 11v6" /><path d="M5 7l1 12.5A1.5 1.5 0 0 0 7.5 21h9a1.5 1.5 0 0 0 1.5-1.5L19 7" /><path d="M9 7V4.5A1.5 1.5 0 0 1 10.5 3h3A1.5 1.5 0 0 1 15 4.5V7" /></Svg>;
 
 export const IconPrinter = (p) => <Svg {...p}><path d="M7 8.5V4h10v4.5" /><rect x="4.5" y="8.5" width="15" height="8" rx="1.5" /><path d="M7 15.5h10V20H7v-4.5Z" /></Svg>;
 

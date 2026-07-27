@@ -8,7 +8,7 @@ import {
   IconHome, IconGraduationCap, IconUser, IconUsers, IconBuilding, IconBook, IconLink, IconCalendar,
   IconCamera, IconUtensils, IconEdit, IconBarChart, IconFileText, IconUnlock, IconWallet,
   IconClipboardList, IconMegaphone, IconSettings, IconCreditCard, IconMessageCircle, IconTrendingUp,
-  IconInbox, IconShield, IconBell, IconCommand, IconActivity,
+  IconInbox, IconShield, IconBell, IconCommand, IconActivity, IconTrash,
 } from './components/Icon.jsx';
 
 import Landing from './pages/Landing.jsx';
@@ -36,6 +36,7 @@ import Signups from './pages/admin/Signups.jsx';
 import Schools from './pages/admin/Schools.jsx';
 import PlatformOverview from './pages/admin/PlatformOverview.jsx';
 import AuditLog from './pages/admin/AuditLog.jsx';
+import Trash from './pages/admin/Trash.jsx';
 import AdminNotifications from './pages/admin/Notifications.jsx';
 
 import TeacherDashboard from './pages/teacher/Dashboard.jsx';
@@ -106,6 +107,7 @@ const ADMIN_NAV = [
     { to: '/admin/signups', icon: IconInbox, label: 'School signups', platformOwnerOnly: true },
   ] },
   { to: '/admin/audit', icon: IconActivity, label: 'Audit log' },
+  { to: '/admin/trash', icon: IconTrash, label: 'Trash' },
   { to: '/admin/settings', icon: IconSettings, label: 'Settings' },
 ];
 
@@ -193,6 +195,7 @@ export default function App() {
         <Route path="schools" element={<PlatformOwnerRoute><Schools /></PlatformOwnerRoute>} />
         <Route path="signups" element={<PlatformOwnerRoute><Signups /></PlatformOwnerRoute>} />
         <Route path="audit" element={<AuditLog />} />
+        <Route path="trash" element={<Trash />} />
         <Route path="settings" element={<AdminSettings />} />
       </Route>
 
