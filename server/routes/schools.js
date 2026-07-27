@@ -3,6 +3,7 @@ import bcrypt from 'bcryptjs';
 import { adminPool } from '../db/pool.js';
 import { requireAuth, requirePlatformOwner } from '../middleware/auth.js';
 import { auditFromReq } from '../utils/audit.js';
+import { PLANS, FEATURES, PLAN_ORDER, effectiveFeatures } from '../config/plans.js';
 
 const router = Router();
 
@@ -29,7 +30,7 @@ function slugify(s) {
 // List every school with its user/student counts.
 router.get('/', async (_req, res) => {
   const { rows } = await adminPool.query(
-    `SELECT s.id, s.name, s.subdomain, s.code, s.is_active, s.created_at,
+    `SELECT s.id, s.name, s.subdomain, s.code, s.is_active, s.plan, s.created_at,
             (SELECT count(*) FROM users u WHERE u.school_id = s.id) AS user_count,
             (SELECT count(*) FROM students st WHERE st.school_id = s.id) AS student_count
      FROM schools s
@@ -141,10 +142,14 @@ router.get('/overview', async (_req, res) => {
 // contact and reset their access). Never returns password hashes.
 router.get('/:id', async (req, res) => {
   const school = (await adminPool.query(
-    'SELECT id, name, subdomain, code, is_active, created_at FROM schools WHERE id=$1',
+    'SELECT id, name, subdomain, code, is_active, plan, feature_overrides, created_at FROM schools WHERE id=$1',
     [req.params.id]
   )).rows[0];
   if (!school) return res.status(404).json({ error: 'Not found' });
+  school.features = effectiveFeatures(school.plan, school.feature_overrides);
+  // Static catalog so the detail modal can render the plan picker + feature toggles.
+  school.plan_catalog = PLAN_ORDER.map((key) => ({ key, label: PLANS[key].label, features: PLANS[key].features }));
+  school.feature_catalog = FEATURES;
 
   const counts = (await adminPool.query(
     `SELECT (SELECT count(*) FROM users    WHERE school_id=$1) AS user_count,
@@ -185,23 +190,34 @@ router.post('/:id/reset-admin-password', async (req, res) => {
   res.json({ username: admin.username, temp_password: tempPassword });
 });
 
-// Suspend / reactivate (or rename) a school. A suspended school can't be resolved at login.
+// Suspend / reactivate / rename a school, or change its plan + feature overrides.
 router.patch('/:id', async (req, res) => {
-  const { name, is_active } = req.body;
+  const { name, is_active, plan, feature_overrides } = req.body;
+  if (plan !== undefined && !PLAN_ORDER.includes(plan)) {
+    return res.status(400).json({ error: `plan must be one of: ${PLAN_ORDER.join(', ')}` });
+  }
   const { rows } = await adminPool.query(
-    `UPDATE schools SET name = COALESCE($1, name), is_active = COALESCE($2, is_active)
-     WHERE id=$3 RETURNING id, name, subdomain, code, is_active, created_at`,
-    [name ?? null, is_active ?? null, req.params.id]
+    `UPDATE schools SET
+       name = COALESCE($1, name),
+       is_active = COALESCE($2, is_active),
+       plan = COALESCE($3, plan),
+       feature_overrides = COALESCE($4, feature_overrides)
+     WHERE id=$5 RETURNING id, name, subdomain, code, is_active, plan, feature_overrides, created_at`,
+    [name ?? null, is_active ?? null, plan ?? null, feature_overrides ? JSON.stringify(feature_overrides) : null, req.params.id]
   );
   if (!rows.length) return res.status(404).json({ error: 'Not found' });
+
+  const changedPlan = plan !== undefined || feature_overrides !== undefined;
   await auditFromReq(req, {
-    action: 'school.update',
+    action: changedPlan ? 'school.plan_change' : 'school.update',
     entityType: 'school',
     entityId: rows[0].id,
-    summary: `${is_active === false ? 'Suspended' : is_active === true ? 'Reactivated' : 'Updated'} school "${rows[0].name}"`,
-    metadata: { is_active: rows[0].is_active },
+    summary: changedPlan
+      ? `Changed plan for "${rows[0].name}" to ${rows[0].plan}`
+      : `${is_active === false ? 'Suspended' : is_active === true ? 'Reactivated' : 'Updated'} school "${rows[0].name}"`,
+    metadata: { is_active: rows[0].is_active, plan: rows[0].plan },
   });
-  res.json(rows[0]);
+  res.json({ ...rows[0], features: effectiveFeatures(rows[0].plan, rows[0].feature_overrides) });
 });
 
 export default router;

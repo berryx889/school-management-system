@@ -83,6 +83,29 @@ test('school detail returns counts and admin accounts (no hashes)', async () => 
   assert.ok(!('password_hash' in r.data.admins[0]), 'never leaks the hash');
 });
 
+test('subscription plan (and per-school overrides) gate optional modules', async () => {
+  const tok = (await request(ctx.baseUrl, '/auth/login', {
+    method: 'POST', body: { username: 'admin', password: 'prov12345', portal: 'staff', schoolCode: 'PROVTEST' },
+  })).data.token;
+
+  // Provisioned schools default to 'standard' → chat on, gate scanner off.
+  const feat = await request(ctx.baseUrl, '/account/features', { token: tok });
+  assert.equal(feat.data.plan, 'standard');
+  assert.ok(feat.data.features.includes('chat'));
+  assert.ok(!feat.data.features.includes('gate_scanner'));
+  // chat on → the feature gate lets the request through (handler then 400s on the missing
+  // student_id param — the point is it is NOT gated with 403).
+  assert.notEqual((await request(ctx.baseUrl, '/messages', { token: tok })).status, 403);
+
+  // Downgrade to starter → the chat module is gated off at the API with 403.
+  await request(ctx.baseUrl, `/schools/${createdSchoolId}`, { method: 'PATCH', token: ownerToken, body: { plan: 'starter' } });
+  assert.equal((await request(ctx.baseUrl, '/messages', { token: tok })).status, 403);
+
+  // A per-school override re-enables one feature without changing the plan.
+  await request(ctx.baseUrl, `/schools/${createdSchoolId}`, { method: 'PATCH', token: ownerToken, body: { feature_overrides: { chat: true } } });
+  assert.notEqual((await request(ctx.baseUrl, '/messages', { token: tok })).status, 403);
+});
+
 test('resetting an admin password issues a new working temp password', async () => {
   const detail = await request(ctx.baseUrl, `/schools/${createdSchoolId}`, { token: ownerToken });
   const adminId = detail.data.admins[0].id;

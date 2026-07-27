@@ -87,7 +87,7 @@ const ADMIN_NAV = [
     { to: '/admin/grading/release', icon: IconUnlock, label: 'Results release' },
     { to: '/admin/remarks/sheet', icon: IconEdit, label: 'Remark sheet' },
     { to: '/admin/remarks/setup', icon: IconFileText, label: 'Remarks setup' },
-    { to: '/admin/attendance/scanner', icon: IconCamera, label: 'Gate scanner' },
+    { to: '/admin/attendance/scanner', icon: IconCamera, label: 'Gate scanner', feature: 'gate_scanner' },
     { to: '/admin/kitchen', icon: IconUtensils, label: 'Kitchen report' },
   ] },
   { label: 'Finance', icon: IconWallet, items: [
@@ -115,7 +115,7 @@ const TEACHER_NAV = [
   { to: '/teacher/marks', icon: IconEdit, label: 'Marks entry' },
   { to: '/teacher/remarks', icon: IconFileText, label: 'Remarks' },
   { to: '/teacher/timetable', icon: IconCalendar, label: 'My timetable' },
-  { to: '/teacher/chat', icon: IconMessageCircle, label: 'Parent chat' },
+  { to: '/teacher/chat', icon: IconMessageCircle, label: 'Parent chat', feature: 'chat' },
   { to: '/teacher/announcements', icon: IconMegaphone, label: 'Announcements' },
 ];
 

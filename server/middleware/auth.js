@@ -1,5 +1,6 @@
 import jwt from 'jsonwebtoken';
-import { runInTenantScope } from '../db/pool.js';
+import { runInTenantScope, adminPool } from '../db/pool.js';
+import { effectiveFeatures } from '../config/plans.js';
 
 // Verifies the JWT AND opens the tenant scope for the rest of the request: every query the
 // handlers run then executes as the restricted role with app.school_id set to this user's
@@ -31,6 +32,21 @@ export function requireRole(...roles) {
   return (req, res, next) => {
     if (!req.user || !roles.includes(req.user.role)) {
       return res.status(403).json({ error: 'Forbidden' });
+    }
+    next();
+  };
+}
+
+// Gate an optional module behind the school's subscription plan. Layer after requireAuth
+// (needs req.schoolId). Returns 403 when the caller's school hasn't got the feature.
+export function requireFeature(key) {
+  return async (req, res, next) => {
+    const schoolId = req.schoolId || req.user?.school_id;
+    if (!schoolId) return res.status(400).json({ error: 'No school context' });
+    const { rows } = await adminPool.query('SELECT plan, feature_overrides FROM schools WHERE id=$1', [schoolId]);
+    if (!rows.length) return res.status(404).json({ error: 'School not found' });
+    if (!effectiveFeatures(rows[0].plan, rows[0].feature_overrides).includes(key)) {
+      return res.status(403).json({ error: 'This feature is not included in your plan' });
     }
     next();
   };

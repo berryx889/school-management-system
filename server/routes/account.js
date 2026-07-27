@@ -3,8 +3,17 @@ import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
 import { pool } from '../db/pool.js';
 import { requireAuth, requireRole } from '../middleware/auth.js';
+import { effectiveFeatures } from '../config/plans.js';
 
 const router = Router();
+
+// The current school's plan and the optional modules it unlocks — the client gates nav and
+// routes on this. Reads the caller's own school row (RLS self-policy confines it).
+router.get('/features', requireAuth, async (req, res) => {
+  const { rows } = await pool.query('SELECT plan, feature_overrides FROM schools WHERE id=$1', [req.schoolId]);
+  const school = rows[0] || { plan: 'standard', feature_overrides: {} };
+  res.json({ plan: school.plan, features: effectiveFeatures(school.plan, school.feature_overrides) });
+});
 
 router.get('/me', requireAuth, async (req, res) => {
   const { rows } = await pool.query(

@@ -1,6 +1,9 @@
 import { Router } from 'express';
 import { pool } from '../db/pool.js';
-import { requireAuth } from '../middleware/auth.js';
+import { requireAuth, requireFeature } from '../middleware/auth.js';
+
+// Parent–teacher chat is a plan-gated add-on module.
+const chat = requireFeature('chat');
 
 const router = Router();
 
@@ -15,7 +18,7 @@ async function assertParticipant(req, studentId) {
   return req.user.role === 'admin';
 }
 
-router.get('/', requireAuth, async (req, res) => {
+router.get('/', requireAuth, chat, async (req, res) => {
   const { student_id } = req.query;
   if (!student_id) return res.status(400).json({ error: 'student_id is required' });
   if (!(await assertParticipant(req, student_id))) return res.status(403).json({ error: 'Forbidden' });
@@ -29,7 +32,7 @@ router.get('/', requireAuth, async (req, res) => {
   res.json(rows);
 });
 
-router.post('/', requireAuth, async (req, res) => {
+router.post('/', requireAuth, chat, async (req, res) => {
   const { student_id, body } = req.body;
   if (!student_id || !body) return res.status(400).json({ error: 'student_id and body are required' });
   if (!(await assertParticipant(req, student_id))) return res.status(403).json({ error: 'Forbidden' });

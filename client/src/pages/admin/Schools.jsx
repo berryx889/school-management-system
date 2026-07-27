@@ -99,6 +99,7 @@ function DetailRow({ label, value }) {
 
 function SchoolDetailModal({ id, onClose }) {
   const toast = useToast();
+  const qc = useQueryClient();
   const [resetResult, setResetResult] = useState(null);
 
   const { data, isLoading } = useQuery({
@@ -110,6 +111,16 @@ function SchoolDetailModal({ id, onClose }) {
   const resetPw = useMutation({
     mutationFn: (user_id) => api.post(`/schools/${id}/reset-admin-password`, { user_id }).then((r) => r.data),
     onSuccess: (d) => { setResetResult(d); toast('Password reset — share the new one.', 'success'); },
+    onError: (err) => toast(apiErrorMessage(err), 'error'),
+  });
+
+  const patchSchool = useMutation({
+    mutationFn: (body) => api.patch(`/schools/${id}`, body).then((r) => r.data),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['school', id] });
+      qc.invalidateQueries({ queryKey: ['schools'] });
+      toast('Plan updated.', 'success');
+    },
     onError: (err) => toast(apiErrorMessage(err), 'error'),
   });
 
@@ -135,6 +146,30 @@ function SchoolDetailModal({ id, onClose }) {
                 <p className="text-xs text-slate-500">{label}</p>
               </div>
             ))}
+          </div>
+
+          <div>
+            <p className="text-sm font-semibold text-slate-700 mb-2">Plan &amp; features</p>
+            <div className="rounded-2xl border border-slate-100 p-4 space-y-3">
+              <div className="flex items-center justify-between gap-3">
+                <span className="text-sm text-slate-600">Subscription plan</span>
+                <select className="input max-w-[180px]" value={data.plan}
+                  onChange={(e) => patchSchool.mutate({ plan: e.target.value })} disabled={patchSchool.isPending}>
+                  {data.plan_catalog.map((p) => <option key={p.key} value={p.key}>{p.label}</option>)}
+                </select>
+              </div>
+              {Object.entries(data.feature_catalog).map(([key, f]) => (
+                <label key={key} className="flex items-center justify-between gap-3 cursor-pointer">
+                  <span className="min-w-0">
+                    <span className="block text-sm text-slate-700">{f.label}</span>
+                    <span className="block text-xs text-slate-400">{f.description}</span>
+                  </span>
+                  <input type="checkbox" className="h-4 w-4 shrink-0 accent-primary-600" checked={data.features.includes(key)}
+                    disabled={patchSchool.isPending}
+                    onChange={(e) => patchSchool.mutate({ feature_overrides: { ...(data.feature_overrides || {}), [key]: e.target.checked } })} />
+                </label>
+              ))}
+            </div>
           </div>
 
           <div>
@@ -229,7 +264,7 @@ export default function Schools() {
                   <tr key={s.id} className="cursor-pointer" onClick={() => setDetailId(s.id)}>
                     <td>
                       <span className="font-medium text-slate-800">{s.name}</span>
-                      <span className="text-xs text-slate-400 block">{s.subdomain} · {format(new Date(s.created_at), 'd MMM yyyy')}</span>
+                      <span className="text-xs text-slate-400 block capitalize">{s.subdomain} · {s.plan} plan · {format(new Date(s.created_at), 'd MMM yyyy')}</span>
                     </td>
                     <td className="font-mono text-slate-600">{s.code}</td>
                     <td className="hidden sm:table-cell text-slate-500 tabular-nums">{s.user_count}</td>

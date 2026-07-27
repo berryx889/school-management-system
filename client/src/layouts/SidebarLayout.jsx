@@ -69,14 +69,19 @@ export default function SidebarLayout({ nav, brand: brandProp = 'Bright Future B
   const { user, logout } = useAuth();
   const { data: settings } = useSettings();
   const { data: me } = useQuery({ queryKey: ['account', 'me'], queryFn: () => api.get('/account/me').then((r) => r.data) });
+  const { data: featureData } = useQuery({ queryKey: ['account', 'features'], queryFn: () => api.get('/account/features').then((r) => r.data) });
+  const features = featureData?.features; // undefined while loading
   const brand = settings?.name || brandProp;
   const [open, setOpen] = useState(false);
   const [passwordModalOpen, setPasswordModalOpen] = useState(false);
   const location = useLocation();
 
-  // Drop platform-owner-only destinations (e.g. the SaaS lead queue) for admins who aren't
-  // the platform owner. The server enforces this too — this just hides dead links.
-  const canSee = (entry) => !entry.platformOwnerOnly || user?.is_platform_owner;
+  // Hide destinations the caller shouldn't see: platform-owner-only pages for non-owners, and
+  // plan-gated modules the school hasn't got. The server enforces both — this just hides dead
+  // links. While features are still loading we show gated items (no flash of hiding).
+  const canSee = (entry) =>
+    (!entry.platformOwnerOnly || user?.is_platform_owner) &&
+    (!entry.feature || !features || features.includes(entry.feature));
   const visibleNav = nav
     .map((entry) => (entry.items ? { ...entry, items: entry.items.filter(canSee) } : entry))
     .filter((entry) => (entry.items ? entry.items.length > 0 : canSee(entry)));
