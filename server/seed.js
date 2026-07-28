@@ -19,9 +19,11 @@ async function seed() {
 
   // Founding tenant. Migration 014 creates this from school_settings; ensure it exists so
   // the school_id DEFAULT 1 on every table always has a valid FK target on a fresh seed.
+  // Single-tenant: this instance is one school. A fresh clone for another school just renames
+  // it in Settings after first login (or edit the name here before seeding).
   await pool.query(
     `INSERT INTO schools (id, name, subdomain, code)
-     VALUES (1, 'Bright Future Basic School', 'bfbs', 'BFBS')
+     VALUES (1, 'OUR WORLD MODEL SCHOOL', 'school', 'SCHOOL')
      ON CONFLICT (id) DO NOTHING`
   );
 

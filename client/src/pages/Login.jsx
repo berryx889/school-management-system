@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { GrainGradient } from '@paper-design/shaders-react';
 import { useAuth } from '../auth/AuthContext.jsx';
 import { api, apiErrorMessage } from '../api/client.js';
@@ -106,11 +106,10 @@ function BrandPanel({ branding }) {
   );
 }
 
-function PortalPicker({ onChoose, branding, schoolCode, setSchoolCode }) {
-  const name = branding?.name || 'Bright Future Basic School';
+function PortalPicker({ onChoose, branding }) {
+  const name = branding?.name || 'OUR WORLD MODEL SCHOOL';
   const lastUser = readLastUser();
   const firstName = lastUser?.name?.split(' ')[0];
-  const [showCode, setShowCode] = useState(Boolean(schoolCode));
 
   return (
     <div className="animate-fade-in-up">
@@ -157,34 +156,6 @@ function PortalPicker({ onChoose, branding, schoolCode, setSchoolCode }) {
         ))}
       </div>
 
-      <div className="mt-6 text-center">
-        {showCode ? (
-          <div className="text-left animate-fade-in">
-            <label className="auth-label" htmlFor="school-code">School code</label>
-            <input
-              id="school-code"
-              className="auth-input"
-              placeholder="e.g. BFBS"
-              value={schoolCode}
-              onChange={(e) => setSchoolCode(e.target.value)}
-              autoCapitalize="characters"
-            />
-            <p className="mt-1.5 text-xs text-slate-400">Only needed if you're signing in to a different school.</p>
-          </div>
-        ) : (
-          <button
-            type="button"
-            onClick={() => setShowCode(true)}
-            className="text-xs text-slate-400 hover:text-slate-600 transition-colors"
-          >
-            Signing in to a different school?
-          </button>
-        )}
-      </div>
-
-      <p className="text-center text-xs text-slate-400 mt-8 lg:hidden">
-        Represent a school? <Link to="/signup" className="font-medium" style={{ color: '#0B7A55' }}>Request access</Link>
-      </p>
     </div>
   );
 }
@@ -408,22 +379,10 @@ export default function Login() {
   const [stage, setStage] = useState('portal');
   const [portalKey, setPortalKey] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [schoolCode, setSchoolCode] = useState(
-    () => new URLSearchParams(window.location.search).get('school') || localStorage.getItem('sms_school_code') || ''
-  );
   const { login, loginWithOtp } = useAuth();
   const navigate = useNavigate();
   const toast = useToast();
-  const { data: branding } = usePublicBranding(schoolCode.trim());
-
-  // Persist the chosen school so api/client.js sends it as X-School-Code on every pre-login
-  // request (login, OTP, branding). On a real subdomain the server resolves the tenant from
-  // the host, so this is mainly for localhost / a shared domain.
-  useEffect(() => {
-    const code = schoolCode.trim();
-    if (code) localStorage.setItem('sms_school_code', code);
-    else localStorage.removeItem('sms_school_code');
-  }, [schoolCode]);
+  const { data: branding } = usePublicBranding();
 
   useEffect(() => {
     if (branding?.primary_color) applyBrandColor(branding.primary_color);
@@ -449,7 +408,7 @@ export default function Login() {
         >
           <div className="mx-auto w-full max-w-[440px]">
             {stage === 'portal' && (
-              <PortalPicker onChoose={choosePortal} branding={branding} schoolCode={schoolCode} setSchoolCode={setSchoolCode} />
+              <PortalPicker onChoose={choosePortal} branding={branding} />
             )}
 
             {stage === 'form' && portal && (
@@ -480,15 +439,6 @@ export default function Login() {
 
         {/* Right: Brand panel with shader gradient */}
         <BrandPanel branding={branding} />
-
-        {/* Mobile footer — only shown when not on portal picker (which has its own) */}
-        {stage !== 'portal' && (
-          <div className="lg:hidden pb-4">
-            <p className="text-center text-xs text-slate-400">
-              Represent a school? <Link to="/signup" className="font-medium" style={{ color: '#0B7A55' }}>Request access</Link>
-            </p>
-          </div>
-        )}
       </div>
     </section>
   );

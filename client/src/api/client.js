@@ -8,8 +8,6 @@ api.interceptors.request.use((config) => {
   // Tells the server which tenant a pre-login request is for (login, OTP, public branding).
   // Ignored once authenticated — the JWT carries school_id then. On a real subdomain the
   // server resolves the tenant from the host, so this is mainly for localhost/dev.
-  const schoolCode = localStorage.getItem('sms_school_code');
-  if (schoolCode) config.headers['X-School-Code'] = schoolCode;
   return config;
 });
 

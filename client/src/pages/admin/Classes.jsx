@@ -13,7 +13,7 @@ export default function Classes() {
   const qc = useQueryClient();
 
   const { data: classes, isLoading } = useQuery({ queryKey: ['classes'], queryFn: () => api.get('/classes').then((r) => r.data) });
-  const { data: teachers } = useQuery({ queryKey: ['teachers'], queryFn: () => api.get('/teachers').then((r) => r.data.data) });
+  const { data: teachers } = useQuery({ queryKey: ['teachers'], queryFn: () => api.get('/teachers').then((r) => (Array.isArray(r.data?.data) ? r.data.data : [])) });
 
   const create = useMutation({
     mutationFn: (payload) => api.post('/classes', payload),

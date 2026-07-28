@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { pool } from '../db/pool.js';
-import { requireAuth, requireRole, requireFeature } from '../middleware/auth.js';
+import { requireAuth, requireRole } from '../middleware/auth.js';
 
 const router = Router();
 
@@ -16,7 +16,7 @@ async function getLateThreshold() {
 // Scan a student's QR code at the gate. QR attendance always wins: a later manual
 // mark can only add an absent record where no QR record exists for the day, never
 // downgrade a QR "present"/"late" into "absent".
-router.post('/scan', requireAuth, requireRole('admin', 'teacher'), requireFeature('gate_scanner'), async (req, res) => {
+router.post('/scan', requireAuth, requireRole('admin', 'teacher'), async (req, res) => {
   const { qr_token } = req.body;
   if (!qr_token) return res.status(400).json({ error: 'qr_token is required' });
 

@@ -13,7 +13,6 @@ import {
 
 import Landing from './pages/Landing.jsx';
 import Login from './pages/Login.jsx';
-import Signup from './pages/Signup.jsx';
 
 import AdminDashboard from './pages/admin/Dashboard.jsx';
 import Students from './pages/admin/Students.jsx';
@@ -32,9 +31,6 @@ import RemarksSetup from './pages/admin/RemarksSetup.jsx';
 import FeeStructures from './pages/admin/FeeStructures.jsx';
 import Debtors from './pages/admin/Debtors.jsx';
 import AdminSettings from './pages/admin/Settings.jsx';
-import Signups from './pages/admin/Signups.jsx';
-import Schools from './pages/admin/Schools.jsx';
-import PlatformOverview from './pages/admin/PlatformOverview.jsx';
 import Expenses from './pages/admin/Expenses.jsx';
 import AuditLog from './pages/admin/AuditLog.jsx';
 import Trash from './pages/admin/Trash.jsx';
@@ -89,7 +85,7 @@ const ADMIN_NAV = [
     { to: '/admin/grading/release', icon: IconUnlock, label: 'Results release' },
     { to: '/admin/remarks/sheet', icon: IconEdit, label: 'Remark sheet' },
     { to: '/admin/remarks/setup', icon: IconFileText, label: 'Remarks setup' },
-    { to: '/admin/attendance/scanner', icon: IconCamera, label: 'Gate scanner', feature: 'gate_scanner' },
+    { to: '/admin/attendance/scanner', icon: IconCamera, label: 'Gate scanner' },
     { to: '/admin/kitchen', icon: IconUtensils, label: 'Kitchen report' },
   ] },
   { label: 'Finance', icon: IconWallet, items: [
@@ -100,13 +96,6 @@ const ADMIN_NAV = [
   { label: 'Communication', icon: IconMegaphone, items: [
     { to: '/admin/announcements', icon: IconMegaphone, label: 'Announcements' },
     { to: '/admin/notifications', icon: IconBell, label: 'Push notifications' },
-  ] },
-  // Platform-owner-only control plane. The whole group disappears for ordinary school admins,
-  // since every item is platformOwnerOnly and SidebarLayout drops emptied groups.
-  { label: 'Platform', icon: IconCommand, items: [
-    { to: '/admin/platform', end: true, icon: IconCommand, label: 'Overview', platformOwnerOnly: true },
-    { to: '/admin/schools', icon: IconBuilding, label: 'Schools', platformOwnerOnly: true },
-    { to: '/admin/signups', icon: IconInbox, label: 'School signups', platformOwnerOnly: true },
   ] },
   { to: '/admin/audit', icon: IconActivity, label: 'Audit log' },
   { to: '/admin/trash', icon: IconTrash, label: 'Trash' },
@@ -119,7 +108,7 @@ const TEACHER_NAV = [
   { to: '/teacher/marks', icon: IconEdit, label: 'Marks entry' },
   { to: '/teacher/remarks', icon: IconFileText, label: 'Remarks' },
   { to: '/teacher/timetable', icon: IconCalendar, label: 'My timetable' },
-  { to: '/teacher/chat', icon: IconMessageCircle, label: 'Parent chat', feature: 'chat' },
+  { to: '/teacher/chat', icon: IconMessageCircle, label: 'Parent chat' },
   { to: '/teacher/announcements', icon: IconMegaphone, label: 'Announcements' },
 ];
 
@@ -153,19 +142,10 @@ function RoleRedirect() {
   return <Navigate to={`/${user.role}`} replace />;
 }
 
-// Platform-owner-only pages (the SaaS lead queue). A school admin who isn't the platform
-// owner gets bounced back to their dashboard; the server enforces this independently.
-function PlatformOwnerRoute({ children }) {
-  const { user } = useAuth();
-  if (!user?.is_platform_owner) return <Navigate to="/admin" replace />;
-  return children;
-}
-
 export default function App() {
   return (
     <Routes>
       <Route path="/login" element={<Login />} />
-      <Route path="/signup" element={<Signup />} />
       <Route path="/" element={<RoleRedirect />} />
 
       <Route path="/admin" element={<ProtectedRoute roles={['admin']}><SidebarLayout nav={ADMIN_NAV} /></ProtectedRoute>}>
@@ -195,9 +175,6 @@ export default function App() {
         <Route path="receipts/:paymentId" element={<Receipt />} />
         <Route path="announcements" element={<Announcements />} />
         <Route path="notifications" element={<AdminNotifications />} />
-        <Route path="platform" element={<PlatformOwnerRoute><PlatformOverview /></PlatformOwnerRoute>} />
-        <Route path="schools" element={<PlatformOwnerRoute><Schools /></PlatformOwnerRoute>} />
-        <Route path="signups" element={<PlatformOwnerRoute><Signups /></PlatformOwnerRoute>} />
         <Route path="audit" element={<AuditLog />} />
         <Route path="trash" element={<Trash />} />
         <Route path="settings" element={<AdminSettings />} />
