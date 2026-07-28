@@ -1,4 +1,4 @@
-# Progress & continuation guide — Bright Future Basic School SMS
+# Progress & continuation guide — OUR WORLD MODEL SCHOOL SMS (single-school)
 
 **Purpose of this file:** you're a fresh Claude Code session picking this project up in a
 new context window. Read this top to bottom before touching anything — it tells you what
@@ -10,11 +10,20 @@ Also read [`SMS-PRD.md`](SMS-PRD.md) (the original spec) and [`HANDOFF.md`](HAND
 
 ## 1. What this project is
 
-A full school management system for a Ghanaian basic school (creche–JHS), built for
-**Bright Future Basic School** (placeholder branding — see §6). Four portals: Staff
-(admin/teacher/kitchen, auto-detected by account), and Student & Parent (also
-auto-detected). Monorepo: `/client` (React 18 + Vite + Tailwind v4 + TanStack Query +
-Recharts) and `/server` (Node/Express + `pg`, plain-SQL migrations, no ORM).
+A full school management system for a Ghanaian basic school (creche–JHS), now built as a
+**single-school app for OUR WORLD MODEL SCHOOL**. Portals: Staff (admin/teacher/kitchen/
+accountant, auto-detected by account) and Student & Parent (also auto-detected). Monorepo:
+`/client` (React 18 + Vite + Tailwind v4 + TanStack Query + Recharts) and `/server`
+(Node/Express + `pg`, plain-SQL migrations, no ORM).
+
+> **⚠️ DIRECTION (2026-07-28): single-school, NOT SaaS.** Earlier this project was built out
+> into a multi-tenant SaaS (Postgres RLS tenant isolation, school provisioning, subscription
+> plans, super-admin dashboard). The user then **reversed that** — it's now one school per
+> deployment; a new school = clone the repo, its own DB + domain + `.env`, customize via
+> Settings. The SaaS *surface* (school provisioning, plans, signups, super-admin, school-code
+> login) was stripped and the dormant server code deleted; the `school_id`/RLS schema was kept
+> as a harmless single-tenant safety net. **Don't rebuild SaaS features unless the user
+> reverses this again.** Full detail in §4's "SaaS build, then single-school pivot" entry.
 
 **Everything in `SMS-PRD.md` is built.** All 7 planned phases (foundation, people,
 attendance, grading, fees, comms, polish) shipped and were verified against the PRD's
@@ -24,9 +33,18 @@ hardening, and UI polish — see §4 for the full chronological log.
 ## 2. Repo / environment state right now
 
 - Git: `main` branch, working tree **clean** — everything described in §4 is committed
-  and **pushed to origin/main**. 16 commits total on main (the original 8 + 9 atomic
-  feature commits + 1 PROGRESS.md update + 5 permissions/remarks/staff-directory/nav +
-  1 notifications + 1 forgot-password).
+  and **pushed to origin/main**. **48 commits on main** (HEAD `ab07c14`). The big recent
+  arc: full design-system/UI overhaul + public landing page, then the multi-tenant SaaS
+  build (migrations 013–017), then the single-school pivot that stripped it back out, plus
+  security hardening (rate limiting, 2FA, auto-logout), audit logs, soft-deletes/trash, and
+  an expense module. See §4.
+- **Server test suite: 60 tests across 17 files, all passing.** Run with `npm test` from
+  `/server` (`NODE_ENV=test` is set by the script so rate limiting doesn't throttle the
+  suite; `--test-concurrency=1`).
+- **DB now uses TWO roles** (multi-tenancy leftover, still in force): `DATABASE_URL` = admin/
+  owner (migrations, seed, trusted paths) and `DATABASE_APP_URL` = the non-superuser `sms_app`
+  role the running server uses so Postgres RLS actually enforces. Recreate `sms_app` with
+  `psql "$DATABASE_URL" -f server/db/create_app_role.sql`. Both are in local `.env`.
 - Local dev DB: Homebrew Postgres 16 running on **port 5433** (not 5432 — deliberately
   avoids Postgres.app's macOS GUI permission dialog, which blocks headless/CLI
   connections entirely). Database name `sms_dev`. Start command if it's not running:
@@ -596,6 +614,77 @@ needed. Reuses the existing `otp_codes` table and Arkesel `sendSms` service.
 - API verified via curl (both endpoints return correct responses). UI verified in browser
   (form renders correctly, full flow structure confirmed). 43/43 tests pass (no regressions).
 
+### Design-system overhaul + public landing page (2026-07-24)
+Full visual redesign across every portal: new design tokens (emerald/gold on warm cream,
+Plus Jakarta Sans), reworked `ui.jsx` components, a floating sidebar layout, a Cmd+K
+`CommandPalette`, dark-mode foundation, contextual skeletons replacing the generic loader,
+and mobile/micro-interaction polish. Added a public **landing page** (`pages/Landing.jsx`)
+and redesigned the login into a split panel with a `@paper-design/shaders-react` GrainGradient
+brand panel. (Much of this later got reskinned/stripped in the single-school pivot — see below.)
+
+### Platform-owner gating (2026-07-24)
+Added `users.is_platform_owner` (migration 013) + `requirePlatformOwner` to gate the
+school-signup lead queue, so a future customer school's admin couldn't see other schools'
+leads. **(All removed later in the single-school tidy.)**
+
+### Multi-tenant SaaS build — migrations 014–017 (2026-07-24 → 26)
+In response to a detailed gap-analysis the user shared (aiming to compete with Fedena/Classter/
+etc.), built real multi-tenancy and the SaaS layer:
+- **014/015**: `schools` tenant table + `school_id` on all 24 tenant tables + per-school unique
+  constraints; Postgres **row-level security** enforced via the non-superuser `sms_app` role and
+  a request-scoped tenant client (AsyncLocalStorage façade in `db/pool.js`, tenant set from the
+  JWT in `requireAuth`). Cross-tenant isolation proven by tests at API + raw-DB level.
+- **Auth**: login resolves the school (X-School-Code header / subdomain / sole-school fallback);
+  JWT carries `school_id`.
+- **Super-admin**: in-app school provisioning + detail/reset + a cross-tenant overview dashboard.
+- **017**: subscription **plans** (starter/standard/premium) + per-school **feature flags**
+  (`config/plans.js`, `requireFeature`) gating chat + the QR gate scanner.
+
+### Data-architecture + security additions (2026-07-26)
+From the same gap-analysis, the "highest priority" items — these all SURVIVED the single-school
+pivot and are current:
+- **Audit logs** (migration 016, `audit_logs`, `utils/audit.js`, admin viewer `AuditLog.jsx`):
+  who/action/detail/IP/timestamp, RLS-scoped, instrumented on login, failed login, marks edits,
+  payments, results release, permission grant/revoke. Answers "who changed the marks?".
+- **Soft deletes** (migration 018): `deleted_at` on classes/subjects/class_subjects/assessments/
+  fee_structures — deleting no longer CASCADEs down to marks. (students/teachers/staff already
+  soft-deleted via status/is_active.) Plus a **Trash/restore** UI (`routes/trash.js`, `Trash.jsx`).
+- **Expense module** (migration 019, `routes/expenses.js`, `Expenses.jsx`): record outgoings +
+  an income statement (fee income − expenses, by-category). Admin + accountant.
+- **Rate limiting** (`middleware/rateLimit.js`, express-rate-limit): global 600/min, auth 15
+  FAILED logins/15min (skipSuccessfulRequests so real users aren't locked out). `trust proxy` set.
+- **2FA** (migration 020, opt-in TOTP via `otplib` + `qrcode`): setup/enable/disable in the
+  "Account security" modal; login demands a code when enabled. Uses a throwaway user in tests.
+- **Auto-logout** after 30 min inactivity (`hooks/useIdleLogout.js`, mounted in `ProtectedRoute`).
+
+### SaaS build, then single-school pivot (2026-07-28) — ⚠️ current direction
+The user decided to **stop being SaaS** and make it one app per school (OUR WORLD MODEL SCHOOL;
+new school = clone the repo). Chosen approach: keep the good foundations, strip the SaaS surface.
+- **Stripped (frontend):** the "Platform" nav group (super-admin overview, Schools, School
+  signups); deleted `Schools.jsx`/`PlatformOverview.jsx`/`Signups.jsx`/`Signup.jsx` + routes +
+  `PlatformOwnerRoute`; removed the login school-code field + "Request access" links (single-
+  school fallback resolves the one school, so login needs no code); stopped gating chat/gate
+  scanner; removed the sidebar feature filter.
+- **Tidied (backend, commit ab07c14):** deleted `routes/schools.js`, `routes/signups.js`,
+  `config/plans.js`, `GET /account/features`, `requireFeature`/`requirePlatformOwner`,
+  `is_platform_owner` from the JWT, and `publicFormLimiter` + the tests for the dead routes.
+- **KEPT:** `utils/resolveSchool.js` (login fallback + public branding), audit, soft-delete/trash,
+  expenses, rate limiting, 2FA, auto-logout, and the `school_id`/RLS schema + dormant DB columns
+  (harmless single-tenant safety net; not worth a migration to drop).
+- **Landing reskinned** into a single-school welcome page (`Landing.jsx`): pulls real branding
+  (name/logo/motto) via `usePublicBranding`, hero + "choose your portal" (Staff / Students &
+  parents) + a community-framed feature list; dropped pricing/testimonials/stats/FAQ/sales funnel.
+- **DB consolidated:** school 1 renamed to OUR WORLD MODEL SCHOOL and is the ONLY school (the
+  Kalakuta test school created during the SaaS phase was hard-deleted). Fixed a real crash on the
+  Classes page (`teachers?.map` when the teachers response wasn't an array).
+
+### The clone-per-school workflow (how to onboard a new school)
+One codebase, per-school deployments — **do NOT fork/edit the code per school.** For a new
+school: clone the repo → give it its own database + domain + `.env` (both DB URLs, JWT secret,
+Paystack/Arkesel keys) → create the `sms_app` role (`server/db/create_app_role.sql`) → run
+migrations + seed → the admin renames the school and sets logo/colors in Settings. Keep one
+`main` so a fix ships to every school with a redeploy.
+
 ## 5. Production database (Neon) — current state
 
 - A Neon Postgres project exists and both migrations have been applied (schema is live,
@@ -623,8 +712,9 @@ needed. Reuses the existing `otp_codes` table and Arkesel `sendSms` service.
    Payments show "not configured" to parents; SMS sends log to `sms_log` with status
    `not_configured` instead of delivering. Needs real keys from the user when they're
    ready to go live with payments/SMS.
-3. **School branding is still placeholder**, on both local dev and Neon. User will edit
-   via Settings themselves.
+3. **School branding**: local dev is set to **OUR WORLD MODEL SCHOOL** (name + a logo the user
+   uploaded; motto "Knowledge is Light"). Editable via Settings. A fresh clone/seed starts with
+   the name "OUR WORLD MODEL SCHOOL" (see `seed.js`) — each new-school clone renames via Settings.
 4. **Cloudinary not implemented.** Student/staff photos store as base64 directly in
    Postgres (PRD's own v1 scope). Only matters if real photo uploads are used at real
    scale (see the Neon-storage-budget conversation in this session's history — with
@@ -633,12 +723,18 @@ needed. Reuses the existing `otp_codes` table and Arkesel `sendSms` service.
    avoided). Was flagged twice as a "fix before scale" item; user hasn't asked for it yet.
 5. ~~Forgot password~~ **Done** — "Forgot password?" link on the login form, OTP-based
    self-service reset via SMS to the user's registered phone number.
-6. Deliberately out of scope per the PRD: transport tracking, library management,
-   payroll/HR. **Multi-tenancy is no longer simply "out of scope"** — see §4's
-   "Multi-tenant SaaS discussion" entry: a phased roadmap was discussed and agreed
-   (architecture-only, nothing built) if the user wants to eventually sell this to other
-   schools, and one small scoped-down piece of it (a public lead-capture signup form) does
-   exist in code. Don't assume real tenant isolation exists anywhere — it doesn't.
+6. **Multi-tenancy / SaaS: built, then deliberately removed — the app is single-school now.**
+   See §1's direction note and §4's "single-school pivot" entry. Full RLS tenant isolation was
+   built and works at the schema level (kept as a dormant safety net), but all SaaS product
+   surface is gone. **Do not rebuild school provisioning, plans, signups, or a super-admin
+   dashboard unless the user reverses direction.**
+7. Deliberately out of scope per the PRD: transport tracking, library management, payroll/HR.
+8. **Much of the gap-analysis is now DONE** (don't re-suggest as "missing"): audit logs, soft
+   deletes + trash/restore, expense module + income statement, rate limiting, 2FA, auto-logout,
+   student ID cards (QR), parent communication. Still genuinely open from that list: Paystack
+   subscription/billing, WhatsApp, native mobile app, AI report remarks, assignments/homework,
+   house system, and the security items 2FA didn't cover (session/device management, password
+   expiry, IP allow-listing, field encryption, CAPTCHA, signed URLs, virus scanning).
 
 ## 7. Security notes for whoever continues this
 
