@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { pool } from '../db/pool.js';
 import { requireAuth, requirePlatformOwner } from '../middleware/auth.js';
+import { publicFormLimiter } from '../middleware/rateLimit.js';
 
 const router = Router();
 
@@ -10,7 +11,7 @@ const STATUSES = ['new', 'contacted', 'declined'];
 // No requireAuth: this is the public "interested school" signup form — a prospective
 // customer submits it before they have any account at all. Mirrors GET /settings/public's
 // pattern of an unauthenticated route reserved for the pre-login funnel.
-router.post('/', async (req, res) => {
+router.post('/', publicFormLimiter, async (req, res) => {
   const { school_name, contact_name, contact_email, contact_phone, desired_subdomain, message } = req.body;
   if (!school_name?.trim() || !contact_name?.trim() || !contact_email?.trim()) {
     return res.status(400).json({ error: 'school_name, contact_name and contact_email are required' });

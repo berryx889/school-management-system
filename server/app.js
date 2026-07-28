@@ -33,11 +33,16 @@ import notificationRoutes from './routes/notifications.js';
 import auditRoutes from './routes/audit.js';
 import trashRoutes from './routes/trash.js';
 import expenseRoutes from './routes/expenses.js';
+import { globalLimiter, authLimiter } from './middleware/rateLimit.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 dotenv.config({ path: path.join(__dirname, '../.env') });
 
 export const app = express();
+
+// Behind a proxy in production (Render/Vercel/etc.), trust the first hop so rate limiting and
+// audit logging see the real client IP from X-Forwarded-For rather than the proxy's.
+app.set('trust proxy', 1);
 
 app.use(cors({ origin: process.env.CLIENT_URL || '*' }));
 
@@ -47,7 +52,10 @@ app.use(express.json({ limit: '5mb' }));
 
 app.get('/api/health', (_req, res) => res.json({ ok: true }));
 
-app.use('/api/auth', authRoutes);
+// Broad abuse limiter across the whole API, plus a strict brute-force limiter on auth.
+app.use('/api', globalLimiter);
+
+app.use('/api/auth', authLimiter, authRoutes);
 app.use('/api/account', accountRoutes);
 app.use('/api/settings', settingsRoutes);
 app.use('/api/terms', termRoutes);
