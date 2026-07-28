@@ -32,6 +32,7 @@ import permissionRoutes from './routes/permissions.js';
 import notificationRoutes from './routes/notifications.js';
 import auditRoutes from './routes/audit.js';
 import trashRoutes from './routes/trash.js';
+import expenseRoutes from './routes/expenses.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 dotenv.config({ path: path.join(__dirname, '../.env') });
@@ -74,6 +75,7 @@ app.use('/api/permissions', permissionRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/audit-logs', auditRoutes);
 app.use('/api/trash', trashRoutes);
+app.use('/api/expenses', expenseRoutes);
 
 app.use((err, _req, res, _next) => {
   console.error(err);

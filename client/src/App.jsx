@@ -35,6 +35,7 @@ import AdminSettings from './pages/admin/Settings.jsx';
 import Signups from './pages/admin/Signups.jsx';
 import Schools from './pages/admin/Schools.jsx';
 import PlatformOverview from './pages/admin/PlatformOverview.jsx';
+import Expenses from './pages/admin/Expenses.jsx';
 import AuditLog from './pages/admin/AuditLog.jsx';
 import Trash from './pages/admin/Trash.jsx';
 import AdminNotifications from './pages/admin/Notifications.jsx';
@@ -94,6 +95,7 @@ const ADMIN_NAV = [
   { label: 'Finance', icon: IconWallet, items: [
     { to: '/admin/fees/structures', icon: IconWallet, label: 'Fee structures' },
     { to: '/admin/fees/debtors', icon: IconClipboardList, label: 'Debtors' },
+    { to: '/admin/expenses', icon: IconWallet, label: 'Expenses' },
   ] },
   { label: 'Communication', icon: IconMegaphone, items: [
     { to: '/admin/announcements', icon: IconMegaphone, label: 'Announcements' },
@@ -126,6 +128,7 @@ const KITCHEN_NAV = [{ to: '/kitchen', end: true, icon: IconUtensils, label: 'He
 const ACCOUNTANT_NAV = [
   { to: '/accountant', end: true, icon: IconClipboardList, label: 'Debtors' },
   { to: '/accountant/structures', icon: IconWallet, label: 'Fee structures' },
+  { to: '/accountant/expenses', icon: IconWallet, label: 'Expenses' },
 ];
 
 const STUDENT_TABS = [
@@ -188,6 +191,7 @@ export default function App() {
         <Route path="remarks/setup" element={<RemarksSetup />} />
         <Route path="fees/structures" element={<FeeStructures />} />
         <Route path="fees/debtors" element={<Debtors />} />
+        <Route path="expenses" element={<Expenses />} />
         <Route path="receipts/:paymentId" element={<Receipt />} />
         <Route path="announcements" element={<Announcements />} />
         <Route path="notifications" element={<AdminNotifications />} />
@@ -216,6 +220,7 @@ export default function App() {
       <Route path="/accountant" element={<ProtectedRoute roles={['accountant']}><SidebarLayout nav={ACCOUNTANT_NAV} /></ProtectedRoute>}>
         <Route index element={<Debtors />} />
         <Route path="structures" element={<FeeStructures />} />
+        <Route path="expenses" element={<Expenses />} />
         <Route path="receipts/:paymentId" element={<Receipt />} />
       </Route>
 
