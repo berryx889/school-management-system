@@ -24,7 +24,7 @@ const PORTAL_ROLES = {
 
 function signToken(user) {
   return jwt.sign(
-    { id: user.id, role: user.role, full_name: user.full_name, username: user.username, is_platform_owner: user.is_platform_owner === true, school_id: user.school_id },
+    { id: user.id, role: user.role, full_name: user.full_name, username: user.username, school_id: user.school_id },
     process.env.JWT_SECRET,
     { expiresIn: '24h' }
   );
@@ -45,7 +45,6 @@ async function buildAuthResponse(user) {
       username: user.username,
       photo_url: user.photo_url,
       must_change_password: user.must_change_password,
-      is_platform_owner: user.is_platform_owner === true,
       school_id: user.school_id,
       studentId,
     },

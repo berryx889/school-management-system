@@ -28,11 +28,3 @@ export const authLimiter = rateLimit({
   skipSuccessfulRequests: true,
   message: { error: 'Too many failed attempts. Please wait a few minutes and try again.' },
 });
-
-// Spam protection for unauthenticated public form submissions (e.g. the school-signup form).
-export const publicFormLimiter = rateLimit({
-  ...shared,
-  windowMs: 60 * 60 * 1000,
-  limit: 10, // submissions per IP per hour
-  message: { error: 'Too many submissions. Please try again later.' },
-});
