@@ -153,8 +153,8 @@ export default function Landing() {
           </div>
           <div className="nav-actions">
             <Link to="/login" className="nav-login">Login</Link>
-            <Link to="/signup" className="btn-nav btn-nav-s">Book Demo</Link>
-            <Link to="/signup" className="btn-nav btn-nav-p">Get Started</Link>
+            <Link to="/login" className="btn-nav btn-nav-s">Book Demo</Link>
+            <Link to="/login" className="btn-nav btn-nav-p">Get Started</Link>
           </div>
           <button className="nav-burger" onClick={() => setMobileOpen(true)} aria-label="Open menu">
             <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><line x1="3" y1="5" x2="17" y2="5" /><line x1="3" y1="10" x2="17" y2="10" /><line x1="3" y1="15" x2="17" y2="15" /></svg>
@@ -175,8 +175,8 @@ export default function Landing() {
         <a href="#footer" onClick={closeMobile}>About</a>
         <Link to="/login" className="mm-login" onClick={closeMobile}>Log in</Link>
         <div className="mm-actions">
-          <Link to="/signup" className="btn btn-s" onClick={closeMobile}>Book Demo</Link>
-          <Link to="/signup" className="btn btn-a" onClick={closeMobile}>Get Started</Link>
+          <Link to="/login" className="btn btn-s" onClick={closeMobile}>Book Demo</Link>
+          <Link to="/login" className="btn btn-a" onClick={closeMobile}>Get Started</Link>
         </div>
       </div>
 
@@ -199,8 +199,8 @@ export default function Landing() {
             <h1 className="reveal reveal-d1"><span className="em-accent">The school</span> platform <span className="em-primary">Africa deserves.</span></h1>
             <p className="hero-sub reveal reveal-d2">One beautiful system for administrators, teachers, and parents to manage attendance, fees, exams, and communication &mdash; so your school can focus on what matters.</p>
             <div className="hero-actions reveal reveal-d3">
-              <Link to="/signup" className="btn btn-a">Start free trial</Link>
-              <Link to="/signup" className="btn btn-s">Book a demo</Link>
+              <Link to="/login" className="btn btn-a">Start free trial</Link>
+              <Link to="/login" className="btn btn-s">Book a demo</Link>
             </div>
             <div className="hero-trust reveal reveal-d4">
               <span className="hero-trust-label">Trusted by schools across West Africa</span>
@@ -666,7 +666,7 @@ export default function Landing() {
                     </div>
                   ))}
                 </div>
-                <Link to="/signup" className={plan.btnClass}>{plan.btnText}</Link>
+                <Link to="/login" className={plan.btnClass}>{plan.btnText}</Link>
               </div>
             ))}
           </div>
@@ -708,8 +708,8 @@ export default function Landing() {
             <h2 className="reveal">Ready to modernize your school?</h2>
             <p className="reveal reveal-d1">Join hundreds of schools across West Africa already using Bright Future to save time, reduce paperwork, and keep parents informed.</p>
             <div className="cta-actions reveal reveal-d2">
-              <Link to="/signup" className="btn btn-w">Book a demo</Link>
-              <Link to="/signup" className="btn" style={{ padding: '16px 38px', color: 'rgba(255,255,255,0.9)', border: '2px solid rgba(255,255,255,0.3)' }}>Start free trial</Link>
+              <Link to="/login" className="btn btn-w">Book a demo</Link>
+              <Link to="/login" className="btn" style={{ padding: '16px 38px', color: 'rgba(255,255,255,0.9)', border: '2px solid rgba(255,255,255,0.3)' }}>Start free trial</Link>
             </div>
           </div>
         </div>
