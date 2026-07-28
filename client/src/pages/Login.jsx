@@ -195,14 +195,17 @@ function LoginForm({ portal, portalKey, onBack, onForgot, loading, setLoading, t
   const [otpMode, setOtpMode] = useState(false);
   const [otpSent, setOtpSent] = useState(false);
   const [otpCode, setOtpCode] = useState('');
+  const [need2fa, setNeed2fa] = useState(false);
+  const [totpCode, setTotpCode] = useState('');
 
   async function handleSubmit(e) {
     e.preventDefault();
     setLoading(true);
     try {
-      const user = await login({ username, password, portal: portalKey });
-      localStorage.setItem('sms_last_user', JSON.stringify({ name: user.full_name }));
-      navigate(`/${user.role}`);
+      const result = await login({ username, password, portal: portalKey, totp_code: need2fa ? totpCode : undefined });
+      if (result.requires_2fa) { setNeed2fa(true); setLoading(false); return; }
+      localStorage.setItem('sms_last_user', JSON.stringify({ name: result.full_name }));
+      navigate(`/${result.role}`);
     } catch (err) {
       toast(apiErrorMessage(err), 'error');
     } finally {
@@ -286,8 +289,16 @@ function LoginForm({ portal, portalKey, onBack, onForgot, loading, setLoading, t
             <label className="auth-label" htmlFor="password">Password</label>
             <PasswordInput id="password" value={password} onChange={(e) => setPassword(e.target.value)} required autoComplete="current-password" className="auth-input" />
           </div>
+          {need2fa && (
+            <div>
+              <label className="auth-label" htmlFor="totp">Authentication code</label>
+              <input id="totp" className="auth-input tracking-[0.3em] text-center" value={totpCode} onChange={(e) => setTotpCode(e.target.value)}
+                placeholder="000000" inputMode="numeric" autoComplete="one-time-code" maxLength={6} required autoFocus />
+              <p className="text-xs text-slate-400 mt-1.5">Enter the 6-digit code from your authenticator app.</p>
+            </div>
+          )}
           <button type="submit" className="auth-submit" disabled={loading}>
-            {loading ? 'Signing in…' : 'Sign in'}
+            {loading ? 'Signing in…' : need2fa ? 'Verify & sign in' : 'Sign in'}
           </button>
           <button type="button" className="text-sm text-slate-500 hover:text-slate-700 w-full text-center transition-colors" onClick={onForgot}>
             Forgot password?

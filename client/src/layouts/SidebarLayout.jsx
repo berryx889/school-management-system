@@ -6,7 +6,7 @@ import { useSettings } from '../hooks/useSettings.js';
 import { api } from '../api/client.js';
 import { Avatar, Modal, NavGroup } from '../components/ui.jsx';
 import ErrorBoundary from '../components/ErrorBoundary.jsx';
-import ChangePasswordForm from '../components/ChangePassword.jsx';
+import ChangePasswordForm, { TwoFactorSettings } from '../components/ChangePassword.jsx';
 import { IconMenu, IconX, IconSettings } from '../components/Icon.jsx';
 import NotificationBell from '../components/NotificationBell.jsx';
 import CommandPalette from '../components/CommandPalette.jsx';
@@ -184,8 +184,12 @@ export default function SidebarLayout({ nav, brand: brandProp = 'Bright Future B
         </div>
       </aside>
 
-      <Modal open={passwordModalOpen} onClose={() => setPasswordModalOpen(false)} title="Change password">
+      <Modal open={passwordModalOpen} onClose={() => setPasswordModalOpen(false)} title="Account security">
         <ChangePasswordForm onDone={() => setPasswordModalOpen(false)} />
+        <div className="border-t border-slate-100 mt-6 pt-6">
+          <h3 className="font-semibold text-slate-800 mb-3">Two-factor authentication</h3>
+          <TwoFactorSettings />
+        </div>
       </Modal>
 
       <CommandPalette nav={visibleNav} />

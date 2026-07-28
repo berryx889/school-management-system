@@ -2,8 +2,11 @@ import { Router } from 'express';
 import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
 import { pool } from '../db/pool.js';
+import QRCode from 'qrcode';
+import { generateSecret, generateURI, verify as verifyTotp } from 'otplib';
 import { requireAuth, requireRole } from '../middleware/auth.js';
 import { effectiveFeatures } from '../config/plans.js';
+import { auditFromReq } from '../utils/audit.js';
 
 const router = Router();
 
@@ -17,11 +20,49 @@ router.get('/features', requireAuth, async (req, res) => {
 
 router.get('/me', requireAuth, async (req, res) => {
   const { rows } = await pool.query(
-    'SELECT id, role, full_name, username, phone, email, department, photo_url FROM users WHERE id=$1',
+    'SELECT id, role, full_name, username, phone, email, department, photo_url, totp_enabled FROM users WHERE id=$1',
     [req.user.id]
   );
   if (!rows.length) return res.status(404).json({ error: 'Not found' });
   res.json(rows[0]);
+});
+
+// ── Two-factor authentication (TOTP / authenticator app) ──
+
+// Step 1: generate a secret (not yet active) and return a QR + otpauth URI to scan.
+router.post('/2fa/setup', requireAuth, async (req, res) => {
+  const secret = await generateSecret();
+  await pool.query('UPDATE users SET totp_secret=$1, totp_enabled=false WHERE id=$2', [secret, req.user.id]);
+  const label = req.user.username || `user-${req.user.id}`;
+  const uri = generateURI({ secret, label, issuer: 'School Management System' });
+  const qr = await QRCode.toDataURL(uri);
+  res.json({ secret, uri, qr });
+});
+
+// Step 2: confirm a code from the app to switch 2FA on.
+router.post('/2fa/enable', requireAuth, async (req, res) => {
+  const { code } = req.body;
+  if (!code) return res.status(400).json({ error: 'code is required' });
+  const { rows } = await pool.query('SELECT totp_secret FROM users WHERE id=$1', [req.user.id]);
+  const secret = rows[0]?.totp_secret;
+  if (!secret) return res.status(400).json({ error: 'Start 2FA setup first' });
+  const result = await verifyTotp({ token: String(code).trim(), secret });
+  if (!result.valid) return res.status(401).json({ error: 'That code is not valid — try again' });
+  await pool.query('UPDATE users SET totp_enabled=true WHERE id=$1', [req.user.id]);
+  await auditFromReq(req, { action: 'account.2fa_enabled', entityType: 'user', entityId: req.user.id, summary: 'Enabled two-factor authentication' });
+  res.json({ ok: true });
+});
+
+// Turn 2FA off (requires a current code to prove possession of the device).
+router.post('/2fa/disable', requireAuth, async (req, res) => {
+  const { code } = req.body;
+  const { rows } = await pool.query('SELECT totp_secret, totp_enabled FROM users WHERE id=$1', [req.user.id]);
+  if (!rows[0]?.totp_enabled) return res.json({ ok: true });
+  const result = await verifyTotp({ token: String(code || '').trim(), secret: rows[0].totp_secret });
+  if (!result.valid) return res.status(401).json({ error: 'Enter a current code to turn 2FA off' });
+  await pool.query('UPDATE users SET totp_enabled=false, totp_secret=NULL WHERE id=$1', [req.user.id]);
+  await auditFromReq(req, { action: 'account.2fa_disabled', entityType: 'user', entityId: req.user.id, summary: 'Disabled two-factor authentication' });
+  res.json({ ok: true });
 });
 
 // Self-service password change. A forced first-time change (must_change_password)

@@ -16,8 +16,9 @@ export function AuthProvider({ children }) {
     }
   });
 
-  const login = useCallback(async ({ username, password, portal }) => {
-    const { data } = await api.post('/auth/login', { username, password, portal });
+  const login = useCallback(async ({ username, password, portal, totp_code }) => {
+    const { data } = await api.post('/auth/login', { username, password, portal, totp_code });
+    if (data.requires_2fa) return { requires_2fa: true }; // caller prompts for the code
     localStorage.setItem('sms_token', data.token);
     localStorage.setItem('sms_user', JSON.stringify(data.user));
     setUser(data.user);

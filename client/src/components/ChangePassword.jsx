@@ -1,8 +1,71 @@
 import { useState } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { api, apiErrorMessage } from '../api/client.js';
 import { useAuth } from '../auth/AuthContext.jsx';
 import { useToast } from './Toast.jsx';
 import { PasswordInput } from './ui.jsx';
+
+// Two-factor (TOTP) setup/disable — rendered under the password form in the account modal.
+export function TwoFactorSettings() {
+  const qc = useQueryClient();
+  const toast = useToast();
+  const { data: me } = useQuery({ queryKey: ['account', 'me'], queryFn: () => api.get('/account/me').then((r) => r.data) });
+  const [setup, setSetup] = useState(null); // { secret, qr, uri }
+  const [code, setCode] = useState('');
+  const [busy, setBusy] = useState(false);
+
+  const run = async (fn) => { setBusy(true); try { await fn(); } catch (e) { toast(apiErrorMessage(e), 'error'); } finally { setBusy(false); } };
+  const begin = () => run(async () => { const { data } = await api.post('/account/2fa/setup'); setSetup(data); });
+  const enable = () => run(async () => {
+    await api.post('/account/2fa/enable', { code });
+    toast('Two-factor authentication is on.', 'success');
+    setSetup(null); setCode(''); qc.invalidateQueries({ queryKey: ['account', 'me'] });
+  });
+  const disable = () => run(async () => {
+    await api.post('/account/2fa/disable', { code });
+    toast('Two-factor authentication turned off.', 'success');
+    setCode(''); qc.invalidateQueries({ queryKey: ['account', 'me'] });
+  });
+
+  const codeInput = (
+    <input className="input tracking-[0.3em] text-center" value={code} onChange={(e) => setCode(e.target.value)}
+      placeholder="000000" inputMode="numeric" maxLength={6} />
+  );
+
+  if (me?.totp_enabled) {
+    return (
+      <div className="space-y-3">
+        <p className="text-sm text-slate-600">Two-factor authentication is <span className="font-semibold text-primary-700">on</span>. You'll enter a code from your authenticator app each time you sign in.</p>
+        <label className="label">Enter a current code to turn it off</label>
+        {codeInput}
+        <button className="btn-danger w-full" disabled={busy || code.length < 6} onClick={disable}>Turn off two-factor</button>
+      </div>
+    );
+  }
+
+  if (setup) {
+    return (
+      <div className="space-y-3">
+        <p className="text-sm text-slate-600">Scan this with Google Authenticator, Authy, or any TOTP app, then enter the 6-digit code to confirm.</p>
+        <img src={setup.qr} alt="2FA QR code" className="mx-auto h-44 w-44 rounded-xl border border-slate-100" />
+        <p className="text-center text-xs text-slate-400 break-all">Or enter this key manually: <span className="font-mono text-slate-600">{setup.secret}</span></p>
+        <label className="label">6-digit code</label>
+        {codeInput}
+        <div className="flex gap-3">
+          <button className="btn-secondary flex-1" onClick={() => setSetup(null)}>Cancel</button>
+          <button className="btn-primary flex-1" disabled={busy || code.length < 6} onClick={enable}>Confirm &amp; enable</button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-3">
+      <p className="text-sm text-slate-600">Add an extra layer of security — a one-time code from your phone is required to sign in.</p>
+      <button className="btn-secondary w-full" disabled={busy} onClick={begin}>Set up two-factor authentication</button>
+    </div>
+  );
+}
 
 function ChangePasswordForm({ forced, onDone }) {
   const [currentPassword, setCurrentPassword] = useState('');

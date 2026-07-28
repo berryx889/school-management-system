@@ -3,6 +3,7 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { pool } from '../db/pool.js';
 import { sendSms } from '../services/sms.js';
+import { verify as verifyTotp } from 'otplib';
 import { resolveSchoolId } from '../utils/resolveSchool.js';
 import { logAudit } from '../utils/audit.js';
 
@@ -78,6 +79,17 @@ router.post('/login', async (req, res) => {
   if (!ok) {
     await logAudit({ schoolId, actor: user, action: 'auth.login_failed', summary: `Failed sign-in for "${username}" (wrong password)`, ...meta });
     return res.status(401).json({ error: 'Invalid credentials' });
+  }
+
+  // Second factor, if the account has it enabled. Password is already verified here.
+  if (user.totp_enabled) {
+    const { totp_code } = req.body;
+    if (!totp_code) return res.json({ requires_2fa: true });
+    const result = await verifyTotp({ token: String(totp_code).trim(), secret: user.totp_secret });
+    if (!result.valid) {
+      await logAudit({ schoolId, actor: user, action: 'auth.login_failed', summary: `Failed sign-in for "${username}" (bad 2FA code)`, ...meta });
+      return res.status(401).json({ error: 'That authentication code is not valid' });
+    }
   }
 
   await logAudit({ schoolId, actor: user, action: 'auth.login', summary: 'Signed in', ...meta });
