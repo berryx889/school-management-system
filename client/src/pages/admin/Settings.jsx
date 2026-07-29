@@ -7,8 +7,9 @@ import { IconX } from '../../components/Icon.jsx';
 
 const MAX_IMAGE_BYTES = 500 * 1024;
 
-function ImageUpload({ label, value, onChange, helpText }) {
+function ImageUpload({ label, value, onChange, helpText, maxBytes = MAX_IMAGE_BYTES }) {
   const toast = useToast();
+  const maxLabel = maxBytes >= 1024 * 1024 ? `${Math.round(maxBytes / (1024 * 1024))}MB` : `${Math.round(maxBytes / 1024)}KB`;
 
   function handleFile(e) {
     const file = e.target.files?.[0];
@@ -18,10 +19,12 @@ function ImageUpload({ label, value, onChange, helpText }) {
       toast('Please choose an image file.', 'error');
       return;
     }
-    if (file.size > MAX_IMAGE_BYTES) {
-      toast(`${label} must be under 500KB.`, 'error');
+    if (file.size > maxBytes) {
+      toast(`${label} must be under ${maxLabel}.`, 'error');
       return;
     }
+    // No compression or resizing — the image is stored exactly as chosen, so quality is preserved
+    // up to the size cap. Uploading a larger, higher-resolution file yields a sharper logo.
     const reader = new FileReader();
     reader.onload = () => onChange(reader.result);
     reader.readAsDataURL(file);
@@ -46,7 +49,7 @@ function ImageUpload({ label, value, onChange, helpText }) {
           )}
         </div>
       </div>
-      <p className="text-xs text-slate-400 mt-1.5">{helpText} PNG or JPG, under 500KB.</p>
+      <p className="text-xs text-slate-400 mt-1.5">{helpText} PNG or JPG, under {maxLabel}.</p>
     </div>
   );
 }
@@ -323,7 +326,8 @@ export default function Settings() {
         <Disclosure title="Branding">
           <div className="grid sm:grid-cols-2 gap-4 items-start">
             <ImageUpload label="Logo" value={form.logo_url} onChange={(logo_url) => setForm({ ...form, logo_url })}
-              helpText="Shown on report cards and ID cards." />
+              maxBytes={2 * 1024 * 1024}
+              helpText="Shown on report cards and ID cards. Upload the highest-resolution file you have for the sharpest result." />
             <div>
               <label className="label">Brand color</label>
               <div className="flex items-center gap-2">
@@ -343,6 +347,7 @@ export default function Settings() {
               <p className="text-xs text-slate-400 mt-1.5">Used as the accent color across the app and on printable documents.</p>
             </div>
             <ImageUpload label="Favicon" value={form.favicon_url} onChange={(favicon_url) => setForm({ ...form, favicon_url })}
+              maxBytes={2 * 1024 * 1024}
               helpText="Shown in the browser tab." />
             <ImageUpload label="School seal" value={form.school_seal_url} onChange={(school_seal_url) => setForm({ ...form, school_seal_url })}
               helpText="Shown on certificates." />
