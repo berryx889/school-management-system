@@ -22,10 +22,12 @@ import Teachers from './pages/admin/Teachers.jsx';
 import StaffDirectory from './pages/admin/StaffDirectory.jsx';
 import Permissions from './pages/admin/Permissions.jsx';
 import Classes from './pages/admin/Classes.jsx';
+import ClassDetail from './pages/admin/ClassDetail.jsx';
 import StructureBuilder from './pages/admin/StructureBuilder.jsx';
 import Subjects from './pages/admin/Subjects.jsx';
 import ClassSubjects from './pages/admin/ClassSubjects.jsx';
 import AdminTimetable from './pages/admin/Timetable.jsx';
+import AcademicTerms from './pages/admin/AcademicTerms.jsx';
 import ResultsRelease from './pages/admin/ResultsRelease.jsx';
 import RemarksSetup from './pages/admin/RemarksSetup.jsx';
 import FeeStructures from './pages/admin/FeeStructures.jsx';
@@ -78,6 +80,7 @@ const ADMIN_NAV = [
     { to: '/admin/class-subjects', icon: IconLink, label: 'Subject teachers' },
   ] },
   { label: 'Academic', icon: IconBarChart, items: [
+    { to: '/admin/academic-terms', icon: IconCalendar, label: 'Academic terms' },
     { to: '/admin/timetable', icon: IconCalendar, label: 'Timetable' },
     { to: '/admin/grading/marks', icon: IconEdit, label: 'Marks entry' },
     { to: '/admin/grading/broadsheet', icon: IconBarChart, label: 'Broadsheet' },
@@ -158,11 +161,13 @@ export default function App() {
         <Route path="permissions" element={<Permissions />} />
         <Route path="classes" element={<Classes />} />
         <Route path="classes/structure-builder" element={<StructureBuilder />} />
+        <Route path="classes/:id" element={<ClassDetail />} />
         <Route path="subjects" element={<Subjects />} />
         <Route path="class-subjects" element={<ClassSubjects />} />
         <Route path="timetable" element={<AdminTimetable />} />
         <Route path="attendance/scanner" element={<GateScanner />} />
         <Route path="kitchen" element={<Kitchen />} />
+        <Route path="academic-terms" element={<AcademicTerms />} />
         <Route path="grading/marks" element={<MarksEntry />} />
         <Route path="grading/broadsheet" element={<Broadsheet />} />
         <Route path="grading/report-cards" element={<ReportCards />} />

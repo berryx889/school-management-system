@@ -23,11 +23,11 @@ router.get('/:id', requireAuth, async (req, res) => {
 });
 
 router.post('/', requireAuth, requireRole('admin'), async (req, res) => {
-  const { name, level, class_teacher_id } = req.body;
+  const { name, level, class_teacher_id, section } = req.body;
   if (!name || !level) return res.status(400).json({ error: 'name and level are required' });
   const { rows } = await pool.query(
-    'INSERT INTO classes (name, level, class_teacher_id) VALUES ($1,$2,$3) RETURNING *',
-    [name, level, class_teacher_id || null]
+    'INSERT INTO classes (name, level, class_teacher_id, section) VALUES ($1,$2,$3,$4) RETURNING *',
+    [name, level, class_teacher_id || null, section || null]
   );
   res.status(201).json(rows[0]);
 });
@@ -90,10 +90,10 @@ router.post('/bulk-generate', requireAuth, requireRole('admin'), async (req, res
 });
 
 router.put('/:id', requireAuth, requireRole('admin'), async (req, res) => {
-  const { name, level, class_teacher_id } = req.body;
+  const { name, level, class_teacher_id, section } = req.body;
   const { rows } = await pool.query(
-    'UPDATE classes SET name=COALESCE($1,name), level=COALESCE($2,level), class_teacher_id=$3 WHERE id=$4 RETURNING *',
-    [name, level, class_teacher_id || null, req.params.id]
+    'UPDATE classes SET name=COALESCE($1,name), level=COALESCE($2,level), class_teacher_id=$3, section=COALESCE($4,section) WHERE id=$5 RETURNING *',
+    [name, level, class_teacher_id || null, section || null, req.params.id]
   );
   if (!rows.length) return res.status(404).json({ error: 'Not found' });
   res.json(rows[0]);

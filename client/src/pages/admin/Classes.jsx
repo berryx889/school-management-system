@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { api, apiErrorMessage } from '../../api/client.js';
 import { SkeletonCard, SectionHeader, EmptyState, Modal } from '../../components/ui.jsx';
 import { useToast } from '../../components/Toast.jsx';
@@ -8,9 +8,11 @@ import { IconBuilding } from '../../components/Icon.jsx';
 
 export default function Classes() {
   const [modalOpen, setModalOpen] = useState(false);
-  const [form, setForm] = useState({ name: '', level: '', class_teacher_id: '' });
+  const [form, setForm] = useState({ name: '', level: '', class_teacher_id: '', section: '' });
+  const [toDelete, setToDelete] = useState(null);
   const toast = useToast();
   const qc = useQueryClient();
+  const navigate = useNavigate();
 
   const { data: classes, isLoading } = useQuery({ queryKey: ['classes'], queryFn: () => api.get('/classes').then((r) => r.data) });
   const { data: teachers } = useQuery({ queryKey: ['teachers'], queryFn: () => api.get('/teachers').then((r) => (Array.isArray(r.data?.data) ? r.data.data : [])) });
@@ -21,7 +23,17 @@ export default function Classes() {
       qc.invalidateQueries({ queryKey: ['classes'] });
       toast('Class created.', 'success');
       setModalOpen(false);
-      setForm({ name: '', level: '', class_teacher_id: '' });
+      setForm({ name: '', level: '', class_teacher_id: '', section: '' });
+    },
+    onError: (err) => toast(apiErrorMessage(err), 'error'),
+  });
+
+  const remove = useMutation({
+    mutationFn: (id) => api.delete(`/classes/${id}`),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['classes'] });
+      toast('Class moved to Trash.', 'success');
+      setToDelete(null);
     },
     onError: (err) => toast(apiErrorMessage(err), 'error'),
   });
@@ -44,8 +56,30 @@ export default function Classes() {
       ) : (
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {classes.map((c) => (
-            <div key={c.id} className="card p-5">
-              <p className="font-bold text-slate-900">{c.name}</p>
+            <div
+              key={c.id}
+              className="card p-5 group relative cursor-pointer hover:shadow-md hover:border-primary-200 transition-shadow"
+              onClick={() => navigate(`/admin/classes/${c.id}`)}
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => { if (e.key === 'Enter') navigate(`/admin/classes/${c.id}`); }}
+            >
+              <button
+                className="absolute top-3 right-3 text-slate-300 hover:text-red-600 text-xs transition-colors"
+                onClick={(e) => { e.stopPropagation(); setToDelete(c); }}
+                disabled={remove.isPending}
+                title="Delete class"
+              >
+                Delete
+              </button>
+              <p className="font-bold text-slate-900 flex items-center gap-2">
+                {c.name}
+                {c.section && (
+                  <span className="inline-flex items-center justify-center px-2 py-0.5 rounded-full bg-primary-50 text-primary-700 text-xs font-semibold">
+                    Section {c.section}
+                  </span>
+                )}
+              </p>
               <p className="text-sm text-slate-500">{c.level}</p>
               <div className="mt-3 pt-3 border-t border-slate-100 text-sm flex justify-between">
                 <span className="text-slate-500">{c.student_count} students</span>
@@ -67,6 +101,14 @@ export default function Classes() {
             <input className="input" required placeholder="e.g. JHS" value={form.level} onChange={(e) => setForm({ ...form, level: e.target.value })} />
           </div>
           <div>
+            <label className="label">Section</label>
+            <select className="input" value={form.section} onChange={(e) => setForm({ ...form, section: e.target.value })}>
+              <option value="">None</option>
+              <option value="A">A</option>
+              <option value="B">B</option>
+            </select>
+          </div>
+          <div>
             <label className="label">Class teacher</label>
             <select className="input" value={form.class_teacher_id} onChange={(e) => setForm({ ...form, class_teacher_id: e.target.value })}>
               <option value="">None</option>
@@ -75,6 +117,20 @@ export default function Classes() {
           </div>
           <button className="btn-primary w-full" disabled={create.isPending}>{create.isPending ? 'Saving…' : 'Add class'}</button>
         </form>
+      </Modal>
+
+      <Modal open={!!toDelete} onClose={() => setToDelete(null)} title="Delete class">
+        <p className="text-sm text-slate-600">
+          {toDelete?.student_count > 0
+            ? <>“{toDelete?.name}” still has <b>{toDelete?.student_count}</b> student(s). They keep their records but won’t be assigned to a class. It will be moved to Trash, where you can restore it.</>
+            : <>Move “{toDelete?.name}” to Trash? You can restore it later.</>}
+        </p>
+        <div className="mt-6 flex gap-3 justify-end">
+          <button className="btn-secondary" onClick={() => setToDelete(null)}>Cancel</button>
+          <button className="btn-danger" disabled={remove.isPending} onClick={() => remove.mutate(toDelete.id)}>
+            {remove.isPending ? 'Deleting…' : 'Delete'}
+          </button>
+        </div>
       </Modal>
     </div>
   );
