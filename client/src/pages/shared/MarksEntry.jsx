@@ -43,6 +43,7 @@ export default function MarksEntry() {
   const [editOpen, setEditOpen] = useState(false);
   const [editForm, setEditForm] = useState({ title: '', max_score: '' });
   const [submitOpen, setSubmitOpen] = useState(false);
+  const [bulkScore, setBulkScore] = useState('');
 
   const createAssessment = useMutation({
     mutationFn: (payload) => api.post('/assessments', payload),
@@ -140,6 +141,23 @@ export default function MarksEntry() {
     } finally {
       e.target.value = '';
     }
+  }
+
+  // WAEC "change over-all score": stamp one value across every student in the roster.
+  function applyBulkScore() {
+    if (bulkScore === '') return;
+    const max = Number(assessment?.max_score);
+    const v = Number(bulkScore);
+    if (Number.isNaN(v) || v < 0 || (max && v > max)) {
+      toast(`Score must be between 0 and ${assessment?.max_score}.`, 'error');
+      return;
+    }
+    setScores(Object.fromEntries((roster ?? []).map((s) => [s.id, bulkScore])));
+  }
+
+  function refresh() {
+    qc.invalidateQueries({ queryKey: ['marks', assessmentId] });
+    qc.invalidateQueries({ queryKey: ['class-subject-roster', classSubjectId] });
   }
 
   const enteredCount = roster?.filter((s) => scores[s.id] != null && scores[s.id] !== '').length ?? 0;
@@ -261,11 +279,24 @@ export default function MarksEntry() {
           <div className="p-4 border-t border-slate-100 flex flex-wrap items-center gap-3">
             {!locked ? (
               <>
-                <button className="btn-primary" onClick={() => saveScores.mutate()} disabled={saveScores.isPending}>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="number"
+                    min={0}
+                    max={assessment?.max_score}
+                    className="input py-1.5 w-40"
+                    placeholder="Change over-all score"
+                    value={bulkScore}
+                    onChange={(e) => setBulkScore(e.target.value)}
+                  />
+                  <button className="btn-ghost text-sm" onClick={applyBulkScore} type="button">Set all</button>
+                </div>
+                <button className="btn-secondary text-sm" onClick={refresh} type="button">Refresh</button>
+                <button className="btn-primary ml-auto" onClick={() => saveScores.mutate()} disabled={saveScores.isPending}>
                   {saveScores.isPending ? 'Saving…' : 'Save scores'}
                 </button>
                 <button
-                  className="btn-danger ml-auto"
+                  className="btn-danger"
                   onClick={() => setSubmitOpen(true)}
                   disabled={lockAssessment.isPending}
                 >
