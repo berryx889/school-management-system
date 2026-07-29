@@ -79,11 +79,23 @@ export default function Students() {
   const [classFilter, setClassFilter] = useState('');
   const [modalOpen, setModalOpen] = useState(false);
   const [resetResult, setResetResult] = useState(null);
+  const [toDelete, setToDelete] = useState(null);
   const toast = useToast();
+  const qc = useQueryClient();
 
   const resetPassword = useMutation({
     mutationFn: (userId) => api.post(`/account/reset-password/${userId}`),
     onSuccess: (res) => setResetResult(res.data),
+    onError: (err) => toast(apiErrorMessage(err), 'error'),
+  });
+
+  const remove = useMutation({
+    mutationFn: (id) => api.delete(`/students/${id}`),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['students'] });
+      toast('Student moved to Trash.', 'success');
+      setToDelete(null);
+    },
     onError: (err) => toast(apiErrorMessage(err), 'error'),
   });
 
@@ -215,6 +227,7 @@ export default function Students() {
                         Reset password
                       </button>
                       <Link to={`/admin/students/${s.id}/qr-card`} className="text-primary-600 font-medium">QR card →</Link>
+                      <button className="text-red-500 font-medium" onClick={() => setToDelete(s)}>Delete</button>
                     </td>
                   </tr>
                 ))}
@@ -241,6 +254,19 @@ export default function Students() {
           </button>
         </div>
         <button className="btn-primary w-full" onClick={() => setResetResult(null)}>Done</button>
+      </Modal>
+
+      <Modal open={!!toDelete} onClose={() => setToDelete(null)} title="Delete student">
+        <p className="text-sm text-slate-600">
+          Move <b>{toDelete?.full_name}</b> to Trash? Their records are kept and you can restore
+          them later from the Trash page.
+        </p>
+        <div className="mt-6 flex gap-3 justify-end">
+          <button className="btn-secondary" onClick={() => setToDelete(null)}>Cancel</button>
+          <button className="btn-danger" disabled={remove.isPending} onClick={() => remove.mutate(toDelete.id)}>
+            {remove.isPending ? 'Deleting…' : 'Delete'}
+          </button>
+        </div>
       </Modal>
     </div>
   );

@@ -9,7 +9,7 @@ const STAFF_ROLES = ['admin', 'teacher', 'kitchen', 'accountant'];
 router.get('/', requireAuth, requireRole('admin'), async (req, res) => {
   const { page = 1, limit = 50, search, role, department, is_active } = req.query;
   const offset = (page - 1) * limit;
-  const conditions = ['role = ANY($1::user_role[])'];
+  const conditions = ['role = ANY($1::user_role[])', 'deleted_at IS NULL'];
   const values = [STAFF_ROLES];
   if (search) { values.push(`%${search}%`); conditions.push(`(full_name ILIKE $${values.length} OR username ILIKE $${values.length})`); }
   if (role && STAFF_ROLES.includes(role)) { values.push(role); conditions.push(`role=$${values.length}`); }
@@ -31,12 +31,12 @@ router.get('/summary', requireAuth, requireRole('admin'), async (_req, res) => {
   const totals = await pool.query(
     `SELECT COUNT(*) AS total, COUNT(*) FILTER (WHERE is_active) AS active,
             COUNT(*) FILTER (WHERE NOT is_active) AS inactive
-     FROM users WHERE role = ANY($1::user_role[])`,
+     FROM users WHERE role = ANY($1::user_role[]) AND deleted_at IS NULL`,
     [STAFF_ROLES]
   );
   const byDept = await pool.query(
     `SELECT COALESCE(department,'Unassigned') AS department, COUNT(*) AS count
-     FROM users WHERE role = ANY($1::user_role[]) GROUP BY department ORDER BY count DESC`,
+     FROM users WHERE role = ANY($1::user_role[]) AND deleted_at IS NULL GROUP BY department ORDER BY count DESC`,
     [STAFF_ROLES]
   );
   res.json({
@@ -83,8 +83,18 @@ router.put('/:id', requireAuth, requireRole('admin'), async (req, res) => {
   res.json(rows[0]);
 });
 
+// Soft delete — stamps deleted_at so the member drops out of the directory but can be restored
+// from Trash. Records they created stay attributed. Deactivate (is_active=false) remains the
+// lighter option. Guarded against self-deletion so an admin can't remove their own account.
 router.delete('/:id', requireAuth, requireRole('admin'), async (req, res) => {
-  await pool.query('UPDATE users SET is_active=false WHERE id=$1 AND role = ANY($2::user_role[])', [req.params.id, STAFF_ROLES]);
+  if (Number(req.params.id) === req.user.id) {
+    return res.status(400).json({ error: 'You can’t delete your own account.' });
+  }
+  const { rows } = await pool.query(
+    'UPDATE users SET deleted_at=now() WHERE id=$1 AND role = ANY($2::user_role[]) AND deleted_at IS NULL RETURNING id',
+    [req.params.id, STAFF_ROLES]
+  );
+  if (!rows.length) return res.status(404).json({ error: 'Staff member not found' });
   res.status(204).end();
 });
 

@@ -9,7 +9,7 @@ router.get('/', requireAuth, async (req, res) => {
   const { page = 1, limit = 50, search } = req.query;
   const offset = (page - 1) * limit;
   const values = [];
-  let where = "WHERE role='teacher'";
+  let where = "WHERE role='teacher' AND deleted_at IS NULL";
   if (search) {
     values.push(`%${search}%`);
     where += ` AND (full_name ILIKE $${values.length} OR username ILIKE $${values.length})`;
@@ -55,8 +55,15 @@ router.put('/:id', requireAuth, requireRole('admin'), async (req, res) => {
   res.json(rows[0]);
 });
 
+// Soft delete — stamps deleted_at so the teacher drops out of the directory but can be restored
+// from Trash. Their marks/classes stay attributed. Deactivate (is_active=false) remains the
+// lighter option that keeps them listed.
 router.delete('/:id', requireAuth, requireRole('admin'), async (req, res) => {
-  await pool.query("UPDATE users SET is_active=false WHERE id=$1 AND role='teacher'", [req.params.id]);
+  const { rows } = await pool.query(
+    "UPDATE users SET deleted_at=now() WHERE id=$1 AND role='teacher' AND deleted_at IS NULL RETURNING id",
+    [req.params.id]
+  );
+  if (!rows.length) return res.status(404).json({ error: 'Teacher not found' });
   res.status(204).end();
 });
 

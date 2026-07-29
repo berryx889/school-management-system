@@ -30,6 +30,17 @@ router.get('/', requireAuth, requireRole('admin'), async (_req, res) => {
      WHERE s.status = 'deleted' ORDER BY u.full_name`
   )).rows;
 
+  // Teachers and staff soft-delete via users.deleted_at.
+  result.teachers = (await pool.query(
+    `SELECT id, full_name AS label, deleted_at FROM users
+     WHERE role='teacher' AND deleted_at IS NOT NULL ORDER BY deleted_at DESC`
+  )).rows;
+  result.staff = (await pool.query(
+    `SELECT id, full_name AS label, deleted_at FROM users
+     WHERE role = ANY($1::user_role[]) AND role <> 'teacher' AND deleted_at IS NOT NULL ORDER BY deleted_at DESC`,
+    [['admin', 'kitchen', 'accountant']]
+  )).rows;
+
   res.json(result);
 });
 
@@ -40,10 +51,12 @@ router.post('/restore', requireAuth, requireRole('admin'), async (req, res) => {
   let restored;
   if (type === 'students') {
     restored = (await pool.query("UPDATE students SET status='active' WHERE id=$1 AND status='deleted' RETURNING id", [id])).rows[0];
+  } else if (type === 'teachers' || type === 'staff') {
+    restored = (await pool.query('UPDATE users SET deleted_at=NULL WHERE id=$1 AND deleted_at IS NOT NULL RETURNING id', [id])).rows[0];
   } else if (TYPES[type]) {
     restored = (await pool.query(`UPDATE ${TYPES[type].table} SET deleted_at=NULL WHERE id=$1 AND deleted_at IS NOT NULL RETURNING id`, [id])).rows[0];
   } else {
-    return res.status(400).json({ error: `type must be one of: ${[...Object.keys(TYPES), 'students'].join(', ')}` });
+    return res.status(400).json({ error: `type must be one of: ${[...Object.keys(TYPES), 'students', 'teachers', 'staff'].join(', ')}` });
   }
 
   if (!restored) return res.status(404).json({ error: 'Nothing to restore' });

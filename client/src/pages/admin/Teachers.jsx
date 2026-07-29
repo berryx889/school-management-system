@@ -29,6 +29,17 @@ export default function Teachers() {
     onSuccess: () => qc.invalidateQueries({ queryKey: ['teachers'] }),
   });
 
+  const [toDelete, setToDelete] = useState(null);
+  const remove = useMutation({
+    mutationFn: (id) => api.delete(`/teachers/${id}`),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['teachers'] });
+      toast('Teacher moved to Trash.', 'success');
+      setToDelete(null);
+    },
+    onError: (err) => toast(apiErrorMessage(err), 'error'),
+  });
+
   const [resetResult, setResetResult] = useState(null);
   const resetPassword = useMutation({
     mutationFn: (id) => api.post(`/account/reset-password/${id}`),
@@ -100,6 +111,12 @@ export default function Teachers() {
                       >
                         {t.is_active ? 'Deactivate' : 'Activate'}
                       </button>
+                      <button
+                        className="text-red-500 font-medium"
+                        onClick={() => setToDelete(t)}
+                      >
+                        Delete
+                      </button>
                     </td>
                   </tr>
                 ))}
@@ -154,6 +171,20 @@ export default function Teachers() {
           </button>
         </div>
         <button className="btn-primary w-full" onClick={() => setResetResult(null)}>Done</button>
+      </Modal>
+
+      <Modal open={!!toDelete} onClose={() => setToDelete(null)} title="Delete teacher">
+        <p className="text-sm text-slate-600">
+          Move <b>{toDelete?.full_name}</b> to Trash? Their marks and classes stay attributed and
+          you can restore them later from the Trash page. To only remove their access without
+          deleting, use <b>Deactivate</b> instead.
+        </p>
+        <div className="mt-6 flex gap-3 justify-end">
+          <button className="btn-secondary" onClick={() => setToDelete(null)}>Cancel</button>
+          <button className="btn-danger" disabled={remove.isPending} onClick={() => remove.mutate(toDelete.id)}>
+            {remove.isPending ? 'Deleting…' : 'Delete'}
+          </button>
+        </div>
       </Modal>
     </div>
   );

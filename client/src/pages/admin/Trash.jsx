@@ -7,6 +7,8 @@ import { IconTrash } from '../../components/Icon.jsx';
 
 const GROUPS = [
   { key: 'students', label: 'Students' },
+  { key: 'teachers', label: 'Teachers' },
+  { key: 'staff', label: 'Staff' },
   { key: 'classes', label: 'Classes' },
   { key: 'subjects', label: 'Subjects' },
   { key: 'assessments', label: 'Assessments' },

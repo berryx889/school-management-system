@@ -8,6 +8,7 @@ import { IconBook } from '../../components/Icon.jsx';
 export default function Subjects() {
   const [modalOpen, setModalOpen] = useState(false);
   const [form, setForm] = useState({ name: '', code: '', type: 'core' });
+  const [toDelete, setToDelete] = useState(null);
   const toast = useToast();
   const qc = useQueryClient();
 
@@ -20,6 +21,16 @@ export default function Subjects() {
       toast('Subject added.', 'success');
       setModalOpen(false);
       setForm({ name: '', code: '', type: 'core' });
+    },
+    onError: (err) => toast(apiErrorMessage(err), 'error'),
+  });
+
+  const remove = useMutation({
+    mutationFn: (id) => api.delete(`/subjects/${id}`),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['subjects'] });
+      toast('Subject moved to Trash.', 'success');
+      setToDelete(null);
     },
     onError: (err) => toast(apiErrorMessage(err), 'error'),
   });
@@ -43,11 +54,19 @@ export default function Subjects() {
         ) : (
           <div className="divide-y divide-slate-50">
             {data.map((s) => (
-              <div key={s.id} className="px-5 py-3 flex items-center justify-between">
+              <div key={s.id} className="px-5 py-3 flex items-center justify-between group">
                 <span className="font-medium text-slate-800">{s.name}</span>
                 <div className="flex items-center gap-2">
                   <Badge tone={s.type === 'elective' ? 'amber' : 'slate'}>{s.type}</Badge>
                   <Badge tone="primary">{s.code}</Badge>
+                  <button
+                    className="text-slate-300 hover:text-red-600 text-xs transition-colors"
+                    onClick={() => setToDelete(s)}
+                    disabled={remove.isPending}
+                    title="Delete subject"
+                  >
+                    Delete
+                  </button>
                 </div>
               </div>
             ))}
@@ -74,6 +93,16 @@ export default function Subjects() {
           </div>
           <button className="btn-primary w-full" disabled={create.isPending}>{create.isPending ? 'Saving…' : 'Add subject'}</button>
         </form>
+      </Modal>
+
+      <Modal open={!!toDelete} onClose={() => setToDelete(null)} title="Delete subject">
+        <p className="text-sm text-slate-600">Move “{toDelete?.name}” to Trash? You can restore it later.</p>
+        <div className="mt-6 flex gap-3 justify-end">
+          <button className="btn-secondary" onClick={() => setToDelete(null)}>Cancel</button>
+          <button className="btn-danger" disabled={remove.isPending} onClick={() => remove.mutate(toDelete.id)}>
+            {remove.isPending ? 'Deleting…' : 'Delete'}
+          </button>
+        </div>
       </Modal>
     </div>
   );

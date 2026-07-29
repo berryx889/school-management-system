@@ -64,7 +64,7 @@ router.post('/login', async (req, res) => {
   if (!schoolId) return res.status(400).json({ error: 'A school code is required to sign in' });
 
   const { rows } = await pool.query(
-    'SELECT * FROM users WHERE username=$1 AND school_id=$2 AND role = ANY($3::user_role[]) AND is_active=true',
+    'SELECT * FROM users WHERE username=$1 AND school_id=$2 AND role = ANY($3::user_role[]) AND is_active=true AND deleted_at IS NULL',
     [username, schoolId, roles]
   );
   const user = rows[0];

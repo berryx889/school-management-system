@@ -41,6 +41,17 @@ export default function StaffDirectory() {
     onSuccess: () => qc.invalidateQueries({ queryKey: ['staff'] }),
   });
 
+  const [toDelete, setToDelete] = useState(null);
+  const remove = useMutation({
+    mutationFn: (id) => api.delete(`/staff/${id}`),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['staff'] });
+      toast('Staff member moved to Trash.', 'success');
+      setToDelete(null);
+    },
+    onError: (err) => toast(apiErrorMessage(err), 'error'),
+  });
+
   return (
     <div>
       <SectionHeader
@@ -107,9 +118,12 @@ export default function StaffDirectory() {
                     <td className="hidden sm:table-cell text-slate-500">{s.department || '—'}</td>
                     <td className="hidden sm:table-cell text-slate-400 text-xs">{s.email || generateStaffEmail(s.full_name, settings?.short_name)}</td>
                     <td><Badge tone={s.is_active ? 'green' : 'slate'}>{s.is_active ? 'Active' : 'Inactive'}</Badge></td>
-                    <td className="text-right">
+                    <td className="text-right space-x-3 whitespace-nowrap">
                       <button className="text-primary-600 font-medium" onClick={() => toggleActive.mutate({ id: s.id, is_active: !s.is_active })}>
                         {s.is_active ? 'Deactivate' : 'Activate'}
+                      </button>
+                      <button className="text-red-500 font-medium" onClick={() => setToDelete(s)}>
+                        Delete
                       </button>
                     </td>
                   </tr>
@@ -154,6 +168,20 @@ export default function StaffDirectory() {
           </div>
           <button className="btn-primary w-full" disabled={create.isPending}>{create.isPending ? 'Saving…' : 'Add staff member'}</button>
         </form>
+      </Modal>
+
+      <Modal open={!!toDelete} onClose={() => setToDelete(null)} title="Delete staff member">
+        <p className="text-sm text-slate-600">
+          Move <b>{toDelete?.full_name}</b> to Trash? Any records they created stay attributed and
+          you can restore them later from the Trash page. To only remove their access without
+          deleting, use <b>Deactivate</b> instead.
+        </p>
+        <div className="mt-6 flex gap-3 justify-end">
+          <button className="btn-secondary" onClick={() => setToDelete(null)}>Cancel</button>
+          <button className="btn-danger" disabled={remove.isPending} onClick={() => remove.mutate(toDelete.id)}>
+            {remove.isPending ? 'Deleting…' : 'Delete'}
+          </button>
+        </div>
       </Modal>
     </div>
   );
