@@ -38,7 +38,7 @@ export default function StudentQrCard() {
   }
 
   const primary = settings?.primary_color || '#0B7A55';
-  const accent = '#D4860A';
+  const accent = settings?.secondary_color || '#D4860A';
   const schoolName = (settings?.name || 'OUR WORLD MODEL SCHOOL').toUpperCase();
 
   return (
