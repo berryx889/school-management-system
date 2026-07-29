@@ -1,16 +1,23 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '../../auth/AuthContext.jsx';
 import { api, apiErrorMessage } from '../../api/client.js';
 import { Skeleton, SectionHeader, EmptyState, Modal, Badge } from '../../components/ui.jsx';
 import { useToast } from '../../components/Toast.jsx';
-import { IconEdit, IconFileText } from '../../components/Icon.jsx';
+import { IconEdit, IconFileText, IconDownload, IconUpload } from '../../components/Icon.jsx';
+import { ASSESSMENT_MODES } from '../../config/assessmentModes.js';
+
+function modeLabel(a) {
+  if (a?.mode) return a.mode;
+  return a?.type === 'class_score' ? 'Class score' : 'Exam';
+}
 
 export default function MarksEntry() {
   const { user } = useAuth();
   const isAdmin = user.role === 'admin';
   const toast = useToast();
   const qc = useQueryClient();
+  const fileRef = useRef(null);
 
   const { data: terms } = useQuery({ queryKey: ['terms'], queryFn: () => api.get('/terms').then((r) => r.data) });
   const currentTerm = terms?.find((t) => t.is_current);
@@ -31,8 +38,11 @@ export default function MarksEntry() {
   const [assessmentId, setAssessmentId] = useState('');
   const assessment = assessments?.find((a) => a.id === Number(assessmentId));
 
-  const [newAssessment, setNewAssessment] = useState({ type: 'class_score', title: '', max_score: 20, weight: 20 });
+  const [newAssessment, setNewAssessment] = useState({ mode: ASSESSMENT_MODES[0].value, title: '', max_score: 20, weight: 20 });
   const [modalOpen, setModalOpen] = useState(false);
+  const [editOpen, setEditOpen] = useState(false);
+  const [editForm, setEditForm] = useState({ title: '', max_score: '' });
+  const [submitOpen, setSubmitOpen] = useState(false);
 
   const createAssessment = useMutation({
     mutationFn: (payload) => api.post('/assessments', payload),
@@ -41,6 +51,26 @@ export default function MarksEntry() {
       setAssessmentId(String(res.data.id));
       setModalOpen(false);
       toast('Assessment created.', 'success');
+    },
+    onError: (err) => toast(apiErrorMessage(err), 'error'),
+  });
+
+  const editAssessment = useMutation({
+    mutationFn: (payload) => api.put(`/assessments/${assessmentId}`, payload),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['assessments', classSubjectId, termId] });
+      setEditOpen(false);
+      toast('Assessment updated.', 'success');
+    },
+    onError: (err) => toast(apiErrorMessage(err), 'error'),
+  });
+
+  const lockAssessment = useMutation({
+    mutationFn: (locked) => api.put(`/assessments/${assessmentId}/lock`, { locked }),
+    onSuccess: (res) => {
+      qc.invalidateQueries({ queryKey: ['assessments', classSubjectId, termId] });
+      setSubmitOpen(false);
+      toast(res.data.locked ? 'Submitted — assessment locked.' : 'Reopened for editing.', 'success');
     },
     onError: (err) => toast(apiErrorMessage(err), 'error'),
   });
@@ -81,9 +111,43 @@ export default function MarksEntry() {
     onError: (err) => toast(apiErrorMessage(err), 'error'),
   });
 
+  async function downloadTemplate() {
+    try {
+      const res = await api.get('/marks/template', { params: { assessment_id: assessmentId }, responseType: 'blob' });
+      const url = URL.createObjectURL(res.data);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `scores_${assessment?.title || 'assessment'}.xlsx`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      toast(apiErrorMessage(err), 'error');
+    }
+  }
+
+  async function handleUpload(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    const fd = new FormData();
+    fd.append('file', file);
+    fd.append('assessment_id', assessmentId);
+    try {
+      const { data } = await api.post('/marks/import', fd, { headers: { 'Content-Type': 'multipart/form-data' } });
+      toast(`Uploaded ${data.updated} score(s)${data.errors.length ? `, ${data.errors.length} skipped` : ''}.`, data.errors.length ? 'warning' : 'success');
+      qc.invalidateQueries({ queryKey: ['marks', assessmentId] });
+    } catch (err) {
+      toast(apiErrorMessage(err), 'error');
+    } finally {
+      e.target.value = '';
+    }
+  }
+
+  const enteredCount = roster?.filter((s) => scores[s.id] != null && scores[s.id] !== '').length ?? 0;
+  const locked = assessment?.locked;
+
   return (
     <div>
-      <SectionHeader title="Marks entry" description="Pick a class-subject, term and assessment, then enter scores" />
+      <SectionHeader title="Marks entry" description="Pick a class-subject, term and assessment, then enter or upload scores" />
 
       <div className="card p-5 mb-5 grid sm:grid-cols-3 gap-3">
         <select className="input" value={classSubjectId} onChange={(e) => { setClassSubjectId(e.target.value); setAssessmentId(''); }}>
@@ -97,7 +161,7 @@ export default function MarksEntry() {
         </select>
         <select className="input" value={assessmentId} onChange={(e) => setAssessmentId(e.target.value)} disabled={!classSubjectId}>
           <option value="">Assessment…</option>
-          {assessments?.map((a) => <option key={a.id} value={a.id}>{a.title} ({a.type === 'class_score' ? 'Class score' : 'Exam'})</option>)}
+          {assessments?.map((a) => <option key={a.id} value={a.id}>{a.title} — {modeLabel(a)}</option>)}
         </select>
       </div>
 
@@ -129,12 +193,36 @@ export default function MarksEntry() {
         </div>
       ) : (
         <div className="card table-card overflow-hidden">
-          <div className="p-4 border-b border-slate-100 flex items-center justify-between flex-wrap gap-2">
+          <div className="p-4 border-b border-slate-100 flex items-start justify-between flex-wrap gap-3">
             <div>
-              <p className="font-semibold text-slate-800">{assessment?.title}</p>
-              <p className="text-xs text-slate-500">Max score {assessment?.max_score} · Weight {assessment?.weight}</p>
+              <p className="font-semibold text-slate-800 flex items-center gap-2">
+                {assessment?.title}
+                <Badge tone="slate">{modeLabel(assessment)}</Badge>
+                {locked && <Badge tone="amber">Submitted · Locked</Badge>}
+              </p>
+              <p className="text-xs text-slate-500 mt-0.5">
+                Max score {assessment?.max_score} · Weight {assessment?.weight} ·
+                {' '}{enteredCount}/{roster?.length ?? 0} students scored
+              </p>
             </div>
-            {assessment?.locked && <Badge tone="amber">Locked</Badge>}
+            <div className="flex flex-wrap gap-2">
+              {!locked && (
+                <button className="btn-ghost text-sm" onClick={() => { setEditForm({ title: assessment.title, max_score: assessment.max_score }); setEditOpen(true); }}>
+                  Edit max score
+                </button>
+              )}
+              <button className="btn-secondary text-sm" onClick={downloadTemplate}>
+                <IconDownload className="h-4 w-4" /> Download template
+              </button>
+              {!locked && (
+                <>
+                  <input ref={fileRef} type="file" accept=".xlsx,.xls" className="hidden" onChange={handleUpload} />
+                  <button className="btn-secondary text-sm" onClick={() => fileRef.current?.click()}>
+                    <IconUpload className="h-4 w-4" /> Upload scores
+                  </button>
+                </>
+              )}
+            </div>
           </div>
           <div className="overflow-x-auto">
             <table>
@@ -153,7 +241,7 @@ export default function MarksEntry() {
                         type="number"
                         min={0}
                         max={assessment?.max_score}
-                        disabled={assessment?.locked}
+                        disabled={locked}
                         className="input py-1.5"
                         value={scores[s.id] ?? ''}
                         onChange={(e) => setScores((sc) => ({ ...sc, [s.id]: e.target.value }))}
@@ -170,13 +258,31 @@ export default function MarksEntry() {
               </tbody>
             </table>
           </div>
-          {!assessment?.locked && (
-            <div className="p-4 border-t border-slate-100">
-              <button className="btn-primary" onClick={() => saveScores.mutate()} disabled={saveScores.isPending}>
-                {saveScores.isPending ? 'Saving…' : 'Save scores'}
-              </button>
-            </div>
-          )}
+          <div className="p-4 border-t border-slate-100 flex flex-wrap items-center gap-3">
+            {!locked ? (
+              <>
+                <button className="btn-primary" onClick={() => saveScores.mutate()} disabled={saveScores.isPending}>
+                  {saveScores.isPending ? 'Saving…' : 'Save scores'}
+                </button>
+                <button
+                  className="btn-danger ml-auto"
+                  onClick={() => setSubmitOpen(true)}
+                  disabled={lockAssessment.isPending}
+                >
+                  {lockAssessment.isPending ? 'Submitting…' : 'Submit Complete'}
+                </button>
+              </>
+            ) : (
+              <>
+                <p className="text-sm text-amber-600">This assessment has been submitted and is locked.</p>
+                {isAdmin && (
+                  <button className="btn-secondary ml-auto" onClick={() => lockAssessment.mutate(false)} disabled={lockAssessment.isPending}>
+                    Reopen for editing
+                  </button>
+                )}
+              </>
+            )}
+          </div>
         </div>
       )}
 
@@ -189,15 +295,15 @@ export default function MarksEntry() {
           }}
         >
           <div>
-            <label className="label">Type</label>
-            <select className="input" value={newAssessment.type} onChange={(e) => setNewAssessment({ ...newAssessment, type: e.target.value })}>
-              <option value="class_score">Class score</option>
-              <option value="exam">Exam</option>
+            <label className="label">Mode of assessment</label>
+            <select className="input" value={newAssessment.mode} onChange={(e) => setNewAssessment({ ...newAssessment, mode: e.target.value })}>
+              {ASSESSMENT_MODES.map((m) => <option key={m.value} value={m.value}>{m.value}</option>)}
             </select>
+            <p className="text-xs text-slate-400 mt-1">{ASSESSMENT_MODES.find((m) => m.value === newAssessment.mode)?.hint}</p>
           </div>
           <div>
             <label className="label">Title</label>
-            <input className="input" required placeholder="e.g. Mid-term test" value={newAssessment.title} onChange={(e) => setNewAssessment({ ...newAssessment, title: e.target.value })} />
+            <input className="input" required placeholder="e.g. Quiz 1, Mid-term test" value={newAssessment.title} onChange={(e) => setNewAssessment({ ...newAssessment, title: e.target.value })} />
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
@@ -211,6 +317,34 @@ export default function MarksEntry() {
           </div>
           <button className="btn-primary w-full" disabled={createAssessment.isPending}>{createAssessment.isPending ? 'Creating…' : 'Create assessment'}</button>
         </form>
+      </Modal>
+
+      <Modal open={editOpen} onClose={() => setEditOpen(false)} title="Edit assessment">
+        <form className="space-y-4" onSubmit={(e) => { e.preventDefault(); editAssessment.mutate(editForm); }}>
+          <div>
+            <label className="label">Title</label>
+            <input className="input" required value={editForm.title} onChange={(e) => setEditForm({ ...editForm, title: e.target.value })} />
+          </div>
+          <div>
+            <label className="label">Max score (over-all score)</label>
+            <input type="number" className="input" required value={editForm.max_score} onChange={(e) => setEditForm({ ...editForm, max_score: e.target.value })} />
+            <p className="text-xs text-slate-400 mt-1">Existing scores above the new max will be rejected on next save.</p>
+          </div>
+          <button className="btn-primary w-full" disabled={editAssessment.isPending}>{editAssessment.isPending ? 'Saving…' : 'Save changes'}</button>
+        </form>
+      </Modal>
+
+      <Modal open={submitOpen} onClose={() => setSubmitOpen(false)} title="Submit Complete">
+        <p className="text-sm text-slate-600">
+          Submit and lock <b>{assessment?.title}</b>? Make sure you’ve saved any scores you typed
+          — once submitted it can’t be edited, and only an admin can reopen it.
+        </p>
+        <div className="mt-6 flex gap-3 justify-end">
+          <button className="btn-secondary" onClick={() => setSubmitOpen(false)}>Cancel</button>
+          <button className="btn-danger" disabled={lockAssessment.isPending} onClick={() => lockAssessment.mutate(true)}>
+            {lockAssessment.isPending ? 'Submitting…' : 'Submit Complete'}
+          </button>
+        </div>
       </Modal>
     </div>
   );
