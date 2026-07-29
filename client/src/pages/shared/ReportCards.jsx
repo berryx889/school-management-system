@@ -5,17 +5,24 @@ import { Skeleton, SectionHeader, EmptyState } from '../../components/ui.jsx';
 import { IconPrinter, IconReceipt } from '../../components/Icon.jsx';
 
 function ReportCardPage({ result, settings }) {
+  const primary = settings?.primary_color || '#6B21A8';
+  const accent = settings?.secondary_color || '#F5B301';
+  const printColor = { WebkitPrintColorAdjust: 'exact', printColorAdjust: 'exact' };
   return (
-    <div className="report-card relative bg-white p-8 w-[210mm] min-h-[297mm] mx-auto mb-6 print:mb-0 print:break-after-page border border-slate-100 print:border-none">
+    <div className="report-card relative bg-white w-[210mm] min-h-[297mm] mx-auto mb-6 print:mb-0 print:break-after-page border border-slate-100 print:border-none overflow-hidden">
+      {/* Gold brand ribbon */}
+      <div style={{ background: accent, height: '8px', ...printColor }} />
+      <div className="p-8">
       {settings?.report_card_watermark_url && (
         <img src={settings.report_card_watermark_url} alt="" className="absolute inset-0 m-auto max-h-[60%] opacity-10 pointer-events-none" />
       )}
-      <div className="text-center border-b-2 pb-4 mb-4" style={{ borderColor: settings?.primary_color || '#059669' }}>
+      <div className="text-center border-b-2 pb-4 mb-4" style={{ borderColor: primary }}>
         {settings?.logo_url && <img src={settings.logo_url} alt="" className="h-14 mx-auto mb-2" />}
         <h1 className="text-xl font-bold text-slate-900">{settings?.name}</h1>
         <p className="text-xs text-slate-500">{settings?.address} · {settings?.phone}</p>
         {settings?.motto && <p className="text-xs italic text-slate-400 mt-1">"{settings.motto}"</p>}
-        <p className="font-semibold text-sm mt-2">TERMINAL REPORT</p>
+        <p className="inline-block font-semibold text-sm mt-3 px-4 py-1 rounded-full text-white tracking-wide"
+          style={{ background: primary, ...printColor }}>TERMINAL REPORT</p>
       </div>
 
       <div className="grid grid-cols-2 gap-2 text-sm mb-4">
@@ -27,7 +34,7 @@ function ReportCardPage({ result, settings }) {
 
       <table className="w-full text-xs border-collapse mb-4">
         <thead>
-          <tr className="bg-slate-50">
+          <tr className="text-white" style={{ background: primary, ...printColor }}>
             <th className="border border-slate-200 p-1.5 text-left">Subject</th>
             <th className="border border-slate-200 p-1.5">Class score</th>
             <th className="border border-slate-200 p-1.5">Exam score</th>
@@ -66,6 +73,7 @@ function ReportCardPage({ result, settings }) {
         <p>Class teacher's signature: __________________</p>
         {settings?.school_seal_url && <img src={settings.school_seal_url} alt="School seal" className="h-12" />}
         <p>Next term begins: __________________</p>
+      </div>
       </div>
     </div>
   );
