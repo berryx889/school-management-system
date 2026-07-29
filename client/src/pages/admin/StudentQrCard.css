@@ -1,0 +1,187 @@
+/* Student ID lanyard tag — echoes the landing page's warm palette (cream ground, emerald
+   primary, gold accent, 8-point star). Sized as a real CR80 portrait badge so it prints
+   at wearable size. */
+.id-tag-wrap {
+  display: flex;
+  justify-content: center;
+  padding: 32px 16px;
+}
+
+.id-tag {
+  --tag-primary: #0B7A55;
+  --tag-accent: #D4860A;
+  --tag-bg: #FBF6EF;
+  --tag-bg-warm: #F5ECDD;
+  --tag-text: #2D2A26;
+  --tag-muted: #6B6560;
+  --tag-border: #EBE5DC;
+
+  position: relative;
+  width: 2.15in;
+  height: 3.38in;
+  border-radius: 20px;
+  background: var(--tag-bg);
+  color: var(--tag-text);
+  border: 1px solid var(--tag-border);
+  box-shadow: 0 20px 50px rgba(139, 109, 71, 0.22);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  font-family: 'Avenir Next', 'Avenir', 'Trebuchet MS', system-ui, sans-serif;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
+/* Lanyard punch slot */
+.id-tag__slot {
+  position: absolute;
+  top: 11px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 46px;
+  height: 9px;
+  border-radius: 999px;
+  background: #fff;
+  border: 1.5px solid #D9CFBF;
+  z-index: 6;
+}
+
+/* Header band */
+.id-tag__header {
+  padding: 30px 12px 16px;
+  text-align: center;
+  color: #fff;
+  position: relative;
+  overflow: hidden;
+}
+.id-tag__header::after {
+  /* soft gold glow bottom-right, landing-style */
+  content: '';
+  position: absolute;
+  width: 120px;
+  height: 120px;
+  right: -40px;
+  bottom: -60px;
+  background: var(--tag-accent);
+  opacity: 0.28;
+  border-radius: 50%;
+  filter: blur(6px);
+}
+.id-tag__crest {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  position: relative;
+  z-index: 2;
+}
+.id-tag__logo {
+  height: 22px;
+  width: 22px;
+  object-fit: contain;
+  border-radius: 5px;
+  background: rgba(255, 255, 255, 0.9);
+  padding: 1px;
+}
+.id-tag__school {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  line-height: 1.2;
+  text-transform: uppercase;
+}
+.id-tag__motto {
+  margin-top: 5px;
+  font-size: 8px;
+  font-style: italic;
+  opacity: 0.9;
+  position: relative;
+  z-index: 2;
+}
+
+/* Body */
+.id-tag__body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  padding: 12px 14px 6px;
+  text-align: center;
+}
+.id-tag__photo {
+  height: 58px;
+  width: 58px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #fff;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.12);
+  margin-bottom: 6px;
+}
+.id-tag__name {
+  font-size: 15px;
+  font-weight: 800;
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+}
+.id-tag__meta {
+  font-size: 9.5px;
+  color: var(--tag-muted);
+  font-weight: 600;
+}
+
+/* QR — the hero, framed on white */
+.id-tag__qr {
+  margin-top: 9px;
+  padding: 7px;
+  background: #fff;
+  border-radius: 12px;
+  border: 1px solid var(--tag-border);
+  box-shadow: 0 4px 14px rgba(139, 109, 71, 0.12);
+}
+.id-tag__qr img {
+  display: block;
+  height: 108px;
+  width: 108px;
+}
+.id-tag__scan {
+  margin-top: 6px;
+  font-size: 7.5px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--tag-muted);
+  font-weight: 700;
+}
+
+/* Footer strip */
+.id-tag__footer {
+  background: var(--tag-bg-warm);
+  border-top: 1px solid var(--tag-border);
+  padding: 8px 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 8.5px;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+.id-tag__footer .id-tag__id {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Decorative star (landing motif) */
+.id-tag__star {
+  position: absolute;
+  z-index: 1;
+  pointer-events: none;
+}
+.id-tag__star--tl { top: 34px; left: 12px; width: 26px; height: 26px; opacity: 0.10; }
+.id-tag__star--accent { top: 26px; right: 14px; width: 14px; height: 14px; opacity: 0.9; }
+
+@media print {
+  @page { margin: 10mm; }
+  .id-tag-wrap { padding: 0; }
+  .id-tag { box-shadow: none; }
+}

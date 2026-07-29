@@ -4,6 +4,16 @@ import { api } from '../../api/client.js';
 import { useSettings } from '../../hooks/useSettings.js';
 import { Skeleton } from '../../components/ui.jsx';
 import { IconPrinter } from '../../components/Icon.jsx';
+import './StudentQrCard.css';
+
+// 8-point sparkle from the landing hero.
+function Star({ className, color }) {
+  return (
+    <svg className={className} viewBox="0 0 48 48" fill={color} aria-hidden="true">
+      <path d="M24 0 L28 18 L48 14 L32 24 L48 34 L28 30 L24 48 L20 30 L0 34 L16 24 L0 14 L20 18Z" />
+    </svg>
+  );
+}
 
 export default function StudentQrCard() {
   const { id } = useParams();
@@ -13,43 +23,61 @@ export default function StudentQrCard() {
   });
   const { data: settings } = useSettings();
 
-  if (isLoading) return (
-    <div className="space-y-6">
-      <Skeleton className="h-8 w-48" />
-      <div className="flex justify-center">
-        <div className="w-72 rounded-2xl border-2 border-slate-200 overflow-hidden bg-white p-4 space-y-3 flex flex-col items-center">
-          <Skeleton className="h-5 w-full" />
-          <Skeleton className="h-20 w-20 rounded-full" />
-          <Skeleton className="h-4 w-32" />
-          <Skeleton className="h-3 w-24" />
-          <Skeleton className="h-28 w-28" />
+  if (isLoading) {
+    return (
+      <div className="id-tag-wrap">
+        <div className="id-tag" style={{ boxShadow: 'none' }}>
+          <div style={{ padding: 24 }} className="space-y-3 flex flex-col items-center">
+            <Skeleton className="h-5 w-32" />
+            <Skeleton className="h-4 w-24" />
+            <Skeleton className="h-28 w-28 rounded-xl" />
+          </div>
         </div>
       </div>
-    </div>
-  );
+    );
+  }
+
+  const primary = settings?.primary_color || '#0B7A55';
+  const accent = '#D4860A';
+  const schoolName = (settings?.name || 'OUR WORLD MODEL SCHOOL').toUpperCase();
 
   return (
     <div>
       <div className="no-print flex items-center justify-between mb-5">
-        <h1 className="text-xl font-bold text-slate-900">Student ID card</h1>
+        <div>
+          <h1 className="text-xl font-bold text-slate-900">Student ID tag</h1>
+          <p className="text-sm text-slate-500">Print and wear on a lanyard. The QR scans at the gate.</p>
+        </div>
         <button className="btn-primary" onClick={() => window.print()}><IconPrinter className="h-4 w-4" /> Print</button>
       </div>
 
-      <div className="flex justify-center">
-        <div className="w-72 rounded-2xl border-2 border-primary-200 overflow-hidden bg-white shadow-card">
-          <div className="bg-primary-500 text-white text-center py-2 px-3 text-xs font-bold tracking-wide flex items-center justify-center gap-1.5">
-            {settings?.logo_url && <img src={settings.logo_url} alt="" className="h-4 w-4 rounded object-contain shrink-0" />}
-            <span className="truncate">{(settings?.name || 'Bright Future Basic School').toUpperCase()}</span>
+      <div className="id-tag-wrap">
+        <div className="id-tag" style={{ '--tag-primary': primary, '--tag-accent': accent }}>
+          <div className="id-tag__slot" />
+          <Star className="id-tag__star id-tag__star--tl" color={primary} />
+          <Star className="id-tag__star id-tag__star--accent" color={accent} />
+
+          <div className="id-tag__header" style={{ background: primary }}>
+            <div className="id-tag__crest">
+              {settings?.logo_url && <img src={settings.logo_url} alt="" className="id-tag__logo" />}
+              <span className="id-tag__school">{schoolName}</span>
+            </div>
+            {settings?.motto && <p className="id-tag__motto">{settings.motto}</p>}
           </div>
-          <div className="p-4 flex flex-col items-center">
-            {data.photo_url ? (
-              <img src={data.photo_url} alt="" className="h-20 w-20 rounded-full object-cover mb-2" />
-            ) : (
-              <div className="h-20 w-20 rounded-full bg-primary-100 mb-2" />
-            )}
-            <p className="font-bold text-slate-900">{data.full_name}</p>
-            <p className="text-xs text-slate-500 mb-1">{data.class_name || 'Unassigned'} · {data.student_code}</p>
-            <img src={data.qr_data_url} alt="QR code" className="h-28 w-28 mt-2" />
+
+          <div className="id-tag__body">
+            {data.photo_url && <img src={data.photo_url} alt="" className="id-tag__photo" />}
+            <p className="id-tag__name">{data.full_name}</p>
+            <p className="id-tag__meta">{data.class_name || 'Unassigned'}</p>
+            <div className="id-tag__qr">
+              <img src={data.qr_data_url} alt={`QR code for ${data.full_name}`} />
+            </div>
+            <p className="id-tag__scan">Scan at gate</p>
+          </div>
+
+          <div className="id-tag__footer" style={{ color: primary }}>
+            <span>Student ID</span>
+            <span className="id-tag__id">{data.student_code}</span>
           </div>
         </div>
       </div>
