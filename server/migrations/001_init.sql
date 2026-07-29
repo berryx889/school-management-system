@@ -10,7 +10,7 @@ CREATE TABLE school_settings (
   motto TEXT,
   current_academic_year TEXT NOT NULL DEFAULT '2025/2026',
   current_term TEXT NOT NULL DEFAULT 'Term 1',
-  primary_color TEXT NOT NULL DEFAULT '#5B4FE9',
+  primary_color TEXT NOT NULL DEFAULT '#6B21A8',
   class_score_weight INT NOT NULL DEFAULT 50,
   exam_score_weight INT NOT NULL DEFAULT 50,
   late_threshold TIME NOT NULL DEFAULT '07:45',

@@ -4,14 +4,14 @@
 }
 
 .landing-page {
-  --primary: #0B7A55;
-  --primary-hover: #096B4A;
-  --primary-soft: #E3F5ED;
-  --primary-pale: #F0F9F4;
-  --accent: #D4860A;
-  --accent-hover: #B8740A;
-  --accent-soft: #FFF3E0;
-  --accent-pale: #FFF8EE;
+  --primary: #6B21A8;
+  --primary-hover: #5c1c90;
+  --primary-soft: #EFE3F9;
+  --primary-pale: #F7F2FC;
+  --accent: #F5B301;
+  --accent-hover: #D99406;
+  --accent-soft: #FEF0C7;
+  --accent-pale: #FFFAEB;
   --secondary: #1E4D8C;
   --secondary-soft: #E8EFF8;
   --bg: #FBF6EF;

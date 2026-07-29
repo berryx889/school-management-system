@@ -4,27 +4,29 @@
 
 
 @theme {
-  /* ── Primary: Deep Emerald ── */
-  --color-primary-50: #ecfdf5;
-  --color-primary-100: #d1fae5;
-  --color-primary-200: #a7f3d0;
-  --color-primary-300: #6ee7b7;
-  --color-primary-400: #34d399;
-  --color-primary-500: #059669;
-  --color-primary-600: #047857;
-  --color-primary-700: #065f46;
-  --color-primary-800: #064e3b;
-  --color-primary-900: #022c22;
+  /* ── Primary: Royal Purple (school brand) ── */
+  --color-primary-50: #f7f2fc;
+  --color-primary-100: #efe3f9;
+  --color-primary-200: #ddc6f0;
+  --color-primary-300: #c39fe4;
+  --color-primary-400: #a56fd4;
+  --color-primary-500: #6B21A8;
+  --color-primary-600: #5c1c90;
+  --color-primary-700: #4a1774;
+  --color-primary-800: #3a1259;
+  --color-primary-900: #260c3c;
 
-  /* ── Accent: Golden Yellow ── */
-  --color-accent-50: #fffbeb;
-  --color-accent-100: #fef3c7;
-  --color-accent-200: #fde68a;
-  --color-accent-300: #fcd34d;
-  --color-accent-400: #fbbf24;
-  --color-accent-500: #f59e0b;
-  --color-accent-600: #d97706;
-  --color-accent-700: #b45309;
+  /* ── Accent: School Gold ── */
+  --color-accent-50: #fffaeb;
+  --color-accent-100: #fef0c7;
+  --color-accent-200: #fde08a;
+  --color-accent-300: #fccb4d;
+  --color-accent-400: #f9b724;
+  --color-accent-500: #F5B301;
+  --color-accent-600: #d99406;
+  --color-accent-700: #b47009;
+  --color-accent-800: #92580e;
+  --color-accent-900: #78490f;
 
   /* ── Surfaces (layered, warm cream) ── */
   --color-surface: #FBF6EF;

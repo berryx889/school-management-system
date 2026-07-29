@@ -82,7 +82,7 @@ export default function SidebarLayout({ nav, brand: brandProp = 'Bright Future B
   const navLinkClasses = (isActive) =>
     `flex items-center gap-3 rounded-xl px-3 py-2 text-[13px] font-medium transition-all duration-150
     ${isActive
-      ? 'bg-primary-50 text-primary-700'
+      ? 'bg-primary-50 text-primary-700 shadow-[inset_3px_0_0_var(--color-accent-500)]'
       : 'text-slate-600 hover:bg-primary-50/50 hover:text-slate-800'}`;
 
   return (
@@ -102,9 +102,9 @@ export default function SidebarLayout({ nav, brand: brandProp = 'Bright Future B
         {/* Brand */}
         <div className="h-16 flex items-center gap-3 px-5 shrink-0">
           {settings?.logo_url ? (
-            <img src={settings.logo_url} alt="" className="h-9 w-9 rounded-xl object-contain shrink-0" />
+            <img src={settings.logo_url} alt="" className="h-9 w-9 rounded-xl object-contain shrink-0 ring-2 ring-accent-400" />
           ) : (
-            <div className="h-9 w-9 rounded-xl bg-primary-600 text-white flex items-center justify-center font-bold text-sm shrink-0">
+            <div className="h-9 w-9 rounded-xl bg-primary-600 text-white flex items-center justify-center font-bold text-sm shrink-0 ring-2 ring-accent-400">
               {brand[0]}
             </div>
           )}

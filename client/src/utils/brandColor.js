@@ -10,7 +10,8 @@
 // shows up on primary buttons.
 const LIGHTNESS_STOPS = { 50: 96.3, 100: 92.7, 200: 85.5, 300: 78.2, 400: 70.8, 600: 53.3, 700: 42.4, 800: 31.8, 900: 21.2 };
 
-const DEFAULT_PRIMARY = '#059669';
+const DEFAULT_PRIMARY = '#6B21A8';
+const DEFAULT_ACCENT = '#F5B301';
 
 function hexToHsl(hex) {
   const m = hex.trim().match(/^#?([0-9a-f]{6})$/i);
@@ -60,6 +61,16 @@ export function applyBrandColor(hex) {
   const root = document.documentElement.style;
   for (const [shade, color] of Object.entries(shades)) {
     root.setProperty(`--color-primary-${shade}`, color);
+  }
+}
+
+// Same ramp treatment for the gold accent, driven by the school's secondary_color so
+// every `bg-accent-*` / `text-accent-*` across the UI follows the school's second colour.
+export function applyAccentColor(hex) {
+  const shades = generatePrimaryShades(hex || DEFAULT_ACCENT) || generatePrimaryShades(DEFAULT_ACCENT);
+  const root = document.documentElement.style;
+  for (const [shade, color] of Object.entries(shades)) {
+    root.setProperty(`--color-accent-${shade}`, color);
   }
 }
 

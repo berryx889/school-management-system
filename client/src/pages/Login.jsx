@@ -45,11 +45,11 @@ function readLastUser() {
 }
 
 function BrandPanel({ branding }) {
-  const name = branding?.name || 'Bright Future Basic School';
+  const name = branding?.name || 'OUR WORLD MODEL SCHOOL';
 
   return (
     <div className="relative hidden lg:flex min-h-0 flex-col justify-between overflow-hidden rounded-2xl p-10 xl:p-14 text-white"
-      style={{ background: '#0B7A55' }}
+      style={{ background: '#6B21A8' }}
     >
       <GrainGradient
         speed={0.8}
@@ -62,10 +62,10 @@ function BrandPanel({ branding }) {
         noise={0.2}
         shape="corners"
         frame={2854.5}
-        colors={['#FFFFFF', '#D4860A', '#0B7A55', '#FFFFFF']}
+        colors={['#FFFFFF', '#F5B301', '#6B21A8', '#4A1774']}
         colorBack="#00000000"
         className="absolute inset-0"
-        style={{ background: '#0B7A55' }}
+        style={{ background: '#6B21A8' }}
       />
 
       <div className="relative z-10 flex h-full flex-col justify-between">
@@ -83,7 +83,7 @@ function BrandPanel({ branding }) {
 
           <h2 className="max-w-[480px] text-4xl xl:text-5xl font-bold tracking-tight leading-[1.08] text-white">
             Everything your school needs,{' '}
-            <span style={{ color: '#FCD34D' }}>beautifully organized.</span>
+            <span style={{ color: '#F5B301' }}>beautifully organized.</span>
           </h2>
 
           <p className="mt-6 max-w-[400px] text-base text-white/70 leading-relaxed">
@@ -117,14 +117,14 @@ function PortalPicker({ onChoose, branding }) {
         {branding?.logo_url ? (
           <img src={branding.logo_url} alt="" className="h-8 w-8 rounded-lg object-contain bg-white" />
         ) : (
-          <div className="h-8 w-8 rounded-lg flex items-center justify-center text-sm font-bold text-white" style={{ background: '#0B7A55' }}>
+          <div className="h-8 w-8 rounded-lg flex items-center justify-center text-sm font-bold text-white" style={{ background: '#6B21A8' }}>
             {name[0]}
           </div>
         )}
         <span className="font-semibold text-slate-800 text-sm">{name}</span>
       </div>
 
-      <p className="text-sm font-medium mb-2" style={{ color: '#0B7A55' }}>
+      <p className="text-sm font-medium mb-2" style={{ color: '#6B21A8' }}>
         {firstName ? `Welcome back, ${firstName}` : 'Welcome'}
       </p>
       <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight mb-2">
@@ -139,11 +139,11 @@ function PortalPicker({ onChoose, branding }) {
             onClick={() => onChoose(key)}
             className="w-full flex items-center gap-4 rounded-2xl p-5 text-left transition group"
             style={{ border: '1.5px solid #EBE5DC', background: 'white' }}
-            onMouseEnter={(e) => { e.currentTarget.style.borderColor = '#0B7A55'; e.currentTarget.style.background = '#F0F9F4'; }}
+            onMouseEnter={(e) => { e.currentTarget.style.borderColor = '#6B21A8'; e.currentTarget.style.background = '#F7F2FC'; }}
             onMouseLeave={(e) => { e.currentTarget.style.borderColor = '#EBE5DC'; e.currentTarget.style.background = 'white'; }}
           >
             <span className="h-12 w-12 rounded-xl flex items-center justify-center shrink-0"
-              style={{ background: '#E3F5ED', color: '#0B7A55' }}
+              style={{ background: '#EFE3F9', color: '#6B21A8' }}
             >
               <p.icon className="h-5 w-5" />
             </span>
@@ -215,13 +215,13 @@ function LoginForm({ portal, portalKey, onBack, onForgot, loading, setLoading, t
 
   return (
     <div className="animate-fade-in-up">
-      <button onClick={onBack} className="text-sm font-medium mb-6 flex items-center gap-1" style={{ color: '#0B7A55' }}>
+      <button onClick={onBack} className="text-sm font-medium mb-6 flex items-center gap-1" style={{ color: '#6B21A8' }}>
         <IconArrowLeft className="h-4 w-4" /> Change portal
       </button>
 
       <div className="flex items-center gap-3 mb-6">
         <span className="h-10 w-10 rounded-xl flex items-center justify-center"
-          style={{ background: '#E3F5ED', color: '#0B7A55' }}
+          style={{ background: '#EFE3F9', color: '#6B21A8' }}
         >
           <portal.icon className="h-5 w-5" />
         </span>
@@ -275,7 +275,7 @@ function LoginForm({ portal, portalKey, onBack, onForgot, loading, setLoading, t
             Forgot password?
           </button>
           {portalKey === 'family' && (
-            <button type="button" className="text-sm w-full text-center font-medium transition-colors" style={{ color: '#0B7A55' }} onClick={() => setOtpMode(true)}>
+            <button type="button" className="text-sm w-full text-center font-medium transition-colors" style={{ color: '#6B21A8' }} onClick={() => setOtpMode(true)}>
               Parent? Sign in with SMS code instead
             </button>
           )}
@@ -328,7 +328,7 @@ function ForgotPassword({ onBack, loading, setLoading, toast }) {
 
   return (
     <div className="animate-fade-in-up">
-      <button onClick={onBack} className="text-sm font-medium mb-6 flex items-center gap-1" style={{ color: '#0B7A55' }}>
+      <button onClick={onBack} className="text-sm font-medium mb-6 flex items-center gap-1" style={{ color: '#6B21A8' }}>
         <IconArrowLeft className="h-4 w-4" /> Back to sign in
       </button>
 
