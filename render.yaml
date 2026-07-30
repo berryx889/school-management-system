@@ -27,3 +27,5 @@ services:
         sync: false
       - key: ARKESEL_API_KEY
         sync: false
+      - key: ARKESEL_SENDER_ID
+        sync: false
