@@ -57,6 +57,19 @@ export default function RemarkSheet() {
     onError: (err) => toast(apiErrorMessage(err), 'error'),
   });
 
+  // WAEC-style bulk: stamp one template remark onto every student in the roster.
+  function applyTemplateToAll(text) {
+    if (!text) return;
+    setRemarks(Object.fromEntries((roster ?? []).map((s) => [s.id, text])));
+  }
+
+  function refresh() {
+    qc.invalidateQueries({ queryKey: ['results', 'remarks', classId, termId] });
+    qc.invalidateQueries({ queryKey: ['students', 'class', classId] });
+  }
+
+  const remarkedCount = roster?.filter((s) => (remarks[s.id] ?? '').trim() !== '').length ?? 0;
+
   return (
     <div>
       <SectionHeader title="Remark sheet" description="Pick a term and class, then enter each student's class teacher remark" />
@@ -84,6 +97,24 @@ export default function RemarkSheet() {
         </div>
       ) : (
         <div className="card overflow-hidden">
+          <div className="p-4 border-b border-slate-100 flex items-center justify-between flex-wrap gap-3">
+            <p className="text-sm text-slate-500">
+              {remarkedCount}/{roster?.length ?? 0} students remarked
+            </p>
+            <div className="flex flex-wrap items-center gap-2">
+              {templates?.length > 0 && (
+                <select
+                  className="input !py-1.5 !w-auto text-sm"
+                  value=""
+                  onChange={(e) => { applyTemplateToAll(e.target.value); e.target.value = ''; }}
+                >
+                  <option value="">Apply template to all…</option>
+                  {templates.map((t) => <option key={t.id} value={t.remark_text}>{t.remark_type}: {t.remark_text}</option>)}
+                </select>
+              )}
+              <button className="btn-secondary text-sm" type="button" onClick={refresh}>Refresh</button>
+            </div>
+          </div>
           <div className="divide-y divide-slate-50">
             {roster?.map((s) => (
               <div key={s.id} className="p-4">
