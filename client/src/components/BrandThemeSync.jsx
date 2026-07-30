@@ -19,5 +19,9 @@ export default function BrandThemeSync() {
     applyFavicon(data?.favicon_url);
   }, [data?.favicon_url]);
 
+  useEffect(() => {
+    if (data?.name) document.title = data.name;
+  }, [data?.name]);
+
   return null;
 }

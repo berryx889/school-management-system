@@ -25,7 +25,7 @@ export default function MobileLayout({ tabs }) {
               {(settings?.name || 'B')[0]}
             </div>
           )}
-          <span className="font-bold text-slate-900 text-sm truncate">{settings?.name || 'Bright Future Basic School'}</span>
+          <span className="font-bold text-slate-900 text-sm truncate">{settings?.name || 'OUR WORLD MODEL SCHOOL'}</span>
         </div>
         <div className="flex items-center gap-2">
           <NotificationBell />

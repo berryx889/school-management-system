@@ -65,7 +65,7 @@ function Breadcrumbs({ nav }) {
   );
 }
 
-export default function SidebarLayout({ nav, brand: brandProp = 'Bright Future Basic School' }) {
+export default function SidebarLayout({ nav, brand: brandProp = 'OUR WORLD MODEL SCHOOL' }) {
   const { user, logout } = useAuth();
   const { data: settings } = useSettings();
   const { data: me } = useQuery({ queryKey: ['account', 'me'], queryFn: () => api.get('/account/me').then((r) => r.data) });

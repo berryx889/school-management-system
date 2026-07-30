@@ -392,6 +392,10 @@ export default function Login() {
     applyFavicon(branding?.favicon_url);
   }, [branding?.favicon_url]);
 
+  useEffect(() => {
+    if (branding?.name) document.title = branding.name;
+  }, [branding?.name]);
+
   const portal = portalKey ? PORTALS[portalKey] : null;
 
   function choosePortal(key) {
