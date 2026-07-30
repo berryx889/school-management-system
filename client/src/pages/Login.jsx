@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { GrainGradient } from '@paper-design/shaders-react';
 import { useAuth } from '../auth/AuthContext.jsx';
 import { api, apiErrorMessage } from '../api/client.js';
@@ -113,6 +113,9 @@ function PortalPicker({ onChoose, branding }) {
 
   return (
     <div className="animate-fade-in-up">
+      <Link to="/" className="inline-flex items-center gap-1 text-sm font-medium mb-8" style={{ color: '#6B21A8' }}>
+        <IconArrowLeft className="h-4 w-4" /> Back to home
+      </Link>
       <div className="flex items-center gap-2.5 mb-10 lg:hidden">
         {branding?.logo_url ? (
           <img src={branding.logo_url} alt="" className="h-8 w-8 rounded-lg object-contain bg-white" />
