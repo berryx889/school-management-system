@@ -34,6 +34,20 @@ router.post('/structures', requireAuth, requireRole('admin', 'accountant'), asyn
   res.status(201).json(rows[0]);
 });
 
+router.put('/structures/:id', requireAuth, requireRole('admin', 'accountant'), async (req, res) => {
+  const { item_name, amount } = req.body;
+  if (!item_name || !Number.isFinite(Number(amount)) || Number(amount) < 0) {
+    return res.status(400).json({ error: 'item_name and a non-negative amount are required' });
+  }
+  const { rows } = await pool.query(
+    `UPDATE fee_structures SET item_name=$1, amount=$2
+     WHERE id=$3 AND deleted_at IS NULL RETURNING *`,
+    [item_name, Number(amount), req.params.id]
+  );
+  if (!rows.length) return res.status(404).json({ error: 'Fee item not found' });
+  res.json(rows[0]);
+});
+
 router.delete('/structures/:id', requireAuth, requireRole('admin', 'accountant'), async (req, res) => {
   await pool.query('UPDATE fee_structures SET deleted_at=now() WHERE id=$1', [req.params.id]);
   res.status(204).end();

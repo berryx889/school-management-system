@@ -22,6 +22,36 @@ router.get('/:id', requireAuth, async (req, res) => {
   res.json(rows[0]);
 });
 
+router.get('/:id/insights', requireAuth, async (req, res) => {
+  const classId = req.params.id;
+  const [attendance, scores] = await Promise.all([
+    pool.query(
+      `SELECT COUNT(*) FILTER (WHERE a.status IN ('present','late'))::int AS present,
+              COUNT(a.id)::int AS marked
+       FROM students s LEFT JOIN attendance a ON a.student_id=s.id
+         AND a.date >= CURRENT_DATE - INTERVAL '30 days'
+       WHERE s.class_id=$1 AND s.status='active'`,
+      [classId]
+    ),
+    pool.query(
+      `SELECT ROUND(AVG((m.score / NULLIF(a.max_score,0)) * 100),1) AS average_score,
+              COUNT(m.id)::int AS marks_count
+       FROM marks m JOIN assessments a ON a.id=m.assessment_id
+       JOIN class_subjects cs ON cs.id=a.class_subject_id
+       WHERE cs.class_id=$1 AND a.deleted_at IS NULL`,
+      [classId]
+    ),
+  ]);
+  const marked = Number(attendance.rows[0]?.marked || 0);
+  const present = Number(attendance.rows[0]?.present || 0);
+  res.json({
+    attendance_rate: marked ? Math.round((present / marked) * 1000) / 10 : null,
+    attendance_records: marked,
+    average_score: scores.rows[0]?.average_score == null ? null : Number(scores.rows[0].average_score),
+    marks_count: Number(scores.rows[0]?.marks_count || 0),
+  });
+});
+
 router.post('/', requireAuth, requireRole('admin'), async (req, res) => {
   const { name, level, class_teacher_id, section } = req.body;
   if (!name || !level) return res.status(400).json({ error: 'name and level are required' });

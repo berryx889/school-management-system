@@ -2,8 +2,8 @@ import { useQuery } from '@tanstack/react-query';
 import { Link, useParams } from 'react-router-dom';
 import { api } from '../../api/client.js';
 import { useSettings } from '../../hooks/useSettings.js';
-import { Skeleton, EmptyState } from '../../components/ui.jsx';
-import { IconBuilding, IconPrinter, IconArrowLeft } from '../../components/Icon.jsx';
+import { Skeleton, EmptyState, StatCard } from '../../components/ui.jsx';
+import { IconBuilding, IconPrinter, IconArrowLeft, IconCalendar, IconBarChart, IconUsers } from '../../components/Icon.jsx';
 
 export default function ClassDetail() {
   const { id } = useParams();
@@ -15,6 +15,11 @@ export default function ClassDetail() {
   const { data: roster, isLoading } = useQuery({
     queryKey: ['class-roster', id],
     queryFn: () => api.get('/students', { params: { class_id: id, limit: 300 } }).then((r) => r.data.data),
+    enabled: Boolean(id),
+  });
+  const { data: insights, isLoading: insightsLoading } = useQuery({
+    queryKey: ['class-insights', id],
+    queryFn: () => api.get(`/classes/${id}/insights`).then((r) => r.data),
     enabled: Boolean(id),
   });
 
@@ -43,6 +48,12 @@ export default function ClassDetail() {
         <button className="btn-primary" onClick={() => window.print()} disabled={!roster?.length}>
           <IconPrinter className="h-4 w-4" /> Print class list
         </button>
+      </div>
+
+      <div className="no-print grid sm:grid-cols-3 gap-4 mb-5">
+        <StatCard label="Students" value={roster?.length ?? '—'} icon={IconUsers} loading={isLoading} />
+        <StatCard label="Attendance · last 30 days" value={insights?.attendance_rate == null ? 'No records' : `${insights.attendance_rate}%`} icon={IconCalendar} loading={insightsLoading} />
+        <StatCard label="Average score" value={insights?.average_score == null ? 'No marks' : `${insights.average_score}%`} icon={IconBarChart} loading={insightsLoading} />
       </div>
 
       {/* Print-only letterhead */}

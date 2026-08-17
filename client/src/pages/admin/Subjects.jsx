@@ -7,6 +7,7 @@ import { IconBook } from '../../components/Icon.jsx';
 
 export default function Subjects() {
   const [modalOpen, setModalOpen] = useState(false);
+  const [editing, setEditing] = useState(null);
   const [form, setForm] = useState({ name: '', code: '', type: 'core' });
   const [toDelete, setToDelete] = useState(null);
   const toast = useToast();
@@ -15,11 +16,12 @@ export default function Subjects() {
   const { data, isLoading } = useQuery({ queryKey: ['subjects'], queryFn: () => api.get('/subjects').then((r) => r.data) });
 
   const create = useMutation({
-    mutationFn: (payload) => api.post('/subjects', payload),
+    mutationFn: (payload) => editing ? api.put(`/subjects/${editing.id}`, payload) : api.post('/subjects', payload),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['subjects'] });
-      toast('Subject added.', 'success');
+      toast(editing ? 'Subject updated.' : 'Subject added.', 'success');
       setModalOpen(false);
+      setEditing(null);
       setForm({ name: '', code: '', type: 'core' });
     },
     onError: (err) => toast(apiErrorMessage(err), 'error'),
@@ -59,6 +61,7 @@ export default function Subjects() {
                 <div className="flex items-center gap-2">
                   <Badge tone={s.type === 'elective' ? 'amber' : 'slate'}>{s.type}</Badge>
                   <Badge tone="primary">{s.code}</Badge>
+                  <button className="text-primary-600 text-xs font-semibold" onClick={() => { setEditing(s); setForm({ name: s.name, code: s.code, type: s.type }); setModalOpen(true); }}>Edit</button>
                   <button
                     className="text-slate-300 hover:text-red-600 text-xs transition-colors"
                     onClick={() => setToDelete(s)}
@@ -74,7 +77,7 @@ export default function Subjects() {
         )}
       </div>
 
-      <Modal open={modalOpen} onClose={() => setModalOpen(false)} title="Add subject">
+      <Modal open={modalOpen} onClose={() => { setModalOpen(false); setEditing(null); }} title={editing ? 'Edit subject' : 'Add subject'}>
         <form className="space-y-4" onSubmit={(e) => { e.preventDefault(); create.mutate(form); }}>
           <div>
             <label className="label">Subject name</label>
@@ -91,7 +94,7 @@ export default function Subjects() {
               <option value="elective">Elective</option>
             </select>
           </div>
-          <button className="btn-primary w-full" disabled={create.isPending}>{create.isPending ? 'Saving…' : 'Add subject'}</button>
+          <button className="btn-primary w-full" disabled={create.isPending}>{create.isPending ? 'Saving…' : editing ? 'Save changes' : 'Add subject'}</button>
         </form>
       </Modal>
 

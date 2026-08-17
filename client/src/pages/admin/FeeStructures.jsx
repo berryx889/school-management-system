@@ -24,12 +24,15 @@ export default function FeeStructures() {
   });
 
   const [form, setForm] = useState({ item_name: '', amount: '' });
+  const [editing, setEditing] = useState(null);
 
   const create = useMutation({
-    mutationFn: (payload) => api.post('/fees/structures', payload),
+    mutationFn: (payload) => editing ? api.put(`/fees/structures/${editing.id}`, payload) : api.post('/fees/structures', payload),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['fee-structures'] });
       setForm({ item_name: '', amount: '' });
+      setEditing(null);
+      toast(editing ? 'Fee item updated.' : 'Fee item added.', 'success');
     },
     onError: (err) => toast(apiErrorMessage(err), 'error'),
   });
@@ -83,6 +86,7 @@ export default function FeeStructures() {
                 <span className="text-slate-700">{s.item_name}</span>
                 <div className="flex items-center gap-3">
                   <span className="font-semibold text-slate-800">GHS {Number(s.amount).toLocaleString()}</span>
+                  <button className="text-primary-600 text-xs font-semibold" onClick={() => { setEditing(s); setForm({ item_name: s.item_name, amount: s.amount }); }}>Edit</button>
                   <button className="text-red-500 text-xs" onClick={() => remove.mutate(s.id)}>Remove</button>
                 </div>
               </li>
@@ -102,7 +106,8 @@ export default function FeeStructures() {
         >
           <input className="input" placeholder="Item name (e.g. Tuition)" required value={form.item_name} onChange={(e) => setForm({ ...form, item_name: e.target.value })} />
           <input className="input max-w-[140px]" type="number" placeholder="Amount" required value={form.amount} onChange={(e) => setForm({ ...form, amount: e.target.value })} />
-          <button className="btn-secondary shrink-0" disabled={create.isPending}>+ Add</button>
+          {editing && <button type="button" className="btn-secondary shrink-0" onClick={() => { setEditing(null); setForm({ item_name: '', amount: '' }); }}>Cancel</button>}
+          <button className="btn-secondary shrink-0" disabled={create.isPending}>{editing ? 'Save' : '+ Add'}</button>
         </form>
       </div>
 

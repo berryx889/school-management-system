@@ -5,6 +5,7 @@ import { requireAuth, requireRole } from '../middleware/auth.js';
 import { sendSms } from '../services/sms.js';
 import { initializeTransaction, verifyTransaction, verifyWebhookSignature, paystackConfigured } from '../services/paystack.js';
 import { auditFromReq } from '../utils/audit.js';
+import { getInvoiceBalance } from '../utils/finance.js';
 
 const router = Router();
 
@@ -65,9 +66,20 @@ router.post('/manual', requireAuth, requireRole('admin', 'accountant'), async (r
   if (!invoice_id || !amount || !method) {
     return res.status(400).json({ error: 'invoice_id, amount, method are required' });
   }
+  const numericAmount = Number(amount);
+  if (!Number.isFinite(numericAmount) || numericAmount <= 0) {
+    return res.status(400).json({ error: 'amount must be greater than zero' });
+  }
+  const invoiceResult = await pool.query('SELECT * FROM fee_invoices WHERE id=$1', [invoice_id]);
+  if (!invoiceResult.rows.length) return res.status(404).json({ error: 'Invoice not found' });
+  const settingsResult = await pool.query('SELECT * FROM school_settings LIMIT 1');
+  const before = await getInvoiceBalance(invoiceResult.rows[0], settingsResult.rows[0] || {});
+  if (numericAmount > before.balance + 0.001) {
+    return res.status(400).json({ error: `Payment exceeds the outstanding balance of GHS ${before.balance.toFixed(2)}` });
+  }
   const payment = await recordSuccessfulPayment({
     invoiceId: invoice_id,
-    amount,
+    amount: numericAmount,
     method,
     recordedBy: req.user.id,
   });
@@ -78,7 +90,8 @@ router.post('/manual', requireAuth, requireRole('admin', 'accountant'), async (r
     summary: `Recorded ${method} payment of ${amount} on invoice #${invoice_id}`,
     metadata: { invoice_id, amount, method },
   });
-  res.status(201).json(payment);
+  const after = await getInvoiceBalance(invoiceResult.rows[0], settingsResult.rows[0] || {});
+  res.status(201).json({ ...payment, invoice_balance: after.balance, paid_total: after.paid });
 });
 
 router.post('/initiate', requireAuth, requireRole('parent'), async (req, res) => {

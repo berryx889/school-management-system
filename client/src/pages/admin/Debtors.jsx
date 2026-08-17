@@ -156,10 +156,14 @@ export default function Debtors() {
 
   const recordPayment = useMutation({
     mutationFn: () => api.post('/payments/manual', { invoice_id: payModal.invoice_id, amount: Number(payForm.amount), method: payForm.method }),
-    onSuccess: (res) => {
-      toast('Payment recorded.', 'success');
+    onSuccess: async (res) => {
+      toast(`Payment recorded. New balance: GHS ${Number(res.data.invoice_balance).toFixed(2)}.`, 'success');
       qc.invalidateQueries({ queryKey: ['debtors'] });
       qc.invalidateQueries({ queryKey: ['student-invoices'] });
+      await Promise.all([
+        qc.refetchQueries({ queryKey: ['debtors'], type: 'active' }),
+        qc.refetchQueries({ queryKey: ['student-invoices'], type: 'active' }),
+      ]);
       setPayModal(null);
       navigate(`/${user.role}/receipts/${res.data.id}`);
     },
@@ -267,7 +271,8 @@ export default function Debtors() {
         <form className="space-y-4" onSubmit={(e) => { e.preventDefault(); recordPayment.mutate(); }}>
           <div>
             <label className="label">Amount (GHS)</label>
-            <input type="number" step="0.01" className="input" required value={payForm.amount} onChange={(e) => setPayForm({ ...payForm, amount: e.target.value })} />
+            <input type="number" step="0.01" min="0.01" max={payModal?.balance} className="input" required value={payForm.amount} onChange={(e) => setPayForm({ ...payForm, amount: e.target.value })} />
+            <p className="text-xs text-slate-400 mt-1">Outstanding balance: GHS {Number(payModal?.balance || 0).toFixed(2)}</p>
           </div>
           <div>
             <label className="label">Method</label>

@@ -12,6 +12,7 @@ const EMPTY_FORM = { role: 'teacher', full_name: '', username: '', password: '',
 
 export default function StaffDirectory() {
   const [modalOpen, setModalOpen] = useState(false);
+  const [editing, setEditing] = useState(null);
   const [form, setForm] = useState(EMPTY_FORM);
   const [roleFilter, setRoleFilter] = useState('');
   const [search, setSearch] = useState('');
@@ -26,11 +27,12 @@ export default function StaffDirectory() {
   });
 
   const create = useMutation({
-    mutationFn: (payload) => api.post('/staff', payload),
+    mutationFn: (payload) => editing ? api.put(`/staff/${editing.id}`, payload) : api.post('/staff', payload),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['staff'] });
-      toast('Staff member added.', 'success');
+      toast(editing ? 'Staff member updated.' : 'Staff member added.', 'success');
       setModalOpen(false);
+      setEditing(null);
       setForm(EMPTY_FORM);
     },
     onError: (err) => toast(apiErrorMessage(err), 'error'),
@@ -57,7 +59,7 @@ export default function StaffDirectory() {
       <SectionHeader
         title="Staff directory"
         description="All staff across admin, teaching, kitchen and finance roles"
-        action={<button className="btn-primary" onClick={() => setModalOpen(true)}>+ Add staff</button>}
+        action={<button className="btn-primary" onClick={() => { setEditing(null); setForm(EMPTY_FORM); setModalOpen(true); }}>+ Add staff</button>}
       />
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-5">
@@ -119,6 +121,7 @@ export default function StaffDirectory() {
                     <td className="hidden sm:table-cell text-slate-400 text-xs">{s.email || generateStaffEmail(s.full_name, settings?.short_name)}</td>
                     <td><Badge tone={s.is_active ? 'green' : 'slate'}>{s.is_active ? 'Active' : 'Inactive'}</Badge></td>
                     <td className="text-right space-x-3 whitespace-nowrap">
+                      <button className="text-primary-600 font-medium" onClick={() => { setEditing(s); setForm({ role: s.role, full_name: s.full_name || '', username: s.username || '', password: '', phone: s.phone || '', email: s.email || '', department: s.department || '' }); setModalOpen(true); }}>Edit</button>
                       <button className="text-primary-600 font-medium" onClick={() => toggleActive.mutate({ id: s.id, is_active: !s.is_active })}>
                         {s.is_active ? 'Deactivate' : 'Activate'}
                       </button>
@@ -134,11 +137,11 @@ export default function StaffDirectory() {
         )}
       </div>
 
-      <Modal open={modalOpen} onClose={() => setModalOpen(false)} title="Add staff member">
+      <Modal open={modalOpen} onClose={() => { setModalOpen(false); setEditing(null); }} title={editing ? 'Edit staff member' : 'Add staff member'}>
         <form className="space-y-4" onSubmit={(e) => { e.preventDefault(); create.mutate(form); }}>
           <div>
             <label className="label">Role</label>
-            <select className="input" value={form.role} onChange={(e) => setForm({ ...form, role: e.target.value })}>
+            <select className="input" disabled={Boolean(editing)} value={form.role} onChange={(e) => setForm({ ...form, role: e.target.value })}>
               {STAFF_ROLES.map((r) => <option key={r} value={r}>{r}</option>)}
             </select>
           </div>
@@ -152,12 +155,12 @@ export default function StaffDirectory() {
           </div>
           <div>
             <label className="label">Username</label>
-            <input className="input" required value={form.username} onChange={(e) => setForm({ ...form, username: e.target.value })} />
+            <input className="input" required disabled={Boolean(editing)} value={form.username} onChange={(e) => setForm({ ...form, username: e.target.value })} />
           </div>
-          <div>
+          {!editing && <div>
             <label className="label">Temporary password</label>
             <input className="input" required value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} />
-          </div>
+          </div>}
           <div>
             <label className="label">Phone</label>
             <input className="input" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
@@ -166,7 +169,7 @@ export default function StaffDirectory() {
             <label className="label">Email</label>
             <input className="input" type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
           </div>
-          <button className="btn-primary w-full" disabled={create.isPending}>{create.isPending ? 'Saving…' : 'Add staff member'}</button>
+          <button className="btn-primary w-full" disabled={create.isPending}>{create.isPending ? 'Saving…' : editing ? 'Save changes' : 'Add staff member'}</button>
         </form>
       </Modal>
 

@@ -207,14 +207,21 @@ router.post('/', requireAuth, requireRole('admin'), async (req, res) => {
 });
 
 router.put('/:id', requireAuth, requireRole('admin'), async (req, res) => {
-  const { full_name, dob, gender, class_id, status, photo_url } = req.body;
-  const student = await pool.query('SELECT user_id FROM students WHERE id=$1', [req.params.id]);
+  const { full_name, dob, gender, class_id, status, photo_url, parent_name, parent_phone } = req.body;
+  const student = await pool.query('SELECT user_id, parent_id FROM students WHERE id=$1', [req.params.id]);
   if (!student.rows.length) return res.status(404).json({ error: 'Not found' });
 
   if (full_name || photo_url) {
     await pool.query(
       'UPDATE users SET full_name=COALESCE($1,full_name), photo_url=COALESCE($2,photo_url) WHERE id=$3',
       [full_name, photo_url, student.rows[0].user_id]
+    );
+  }
+  if (student.rows[0].parent_id && (parent_name || parent_phone)) {
+    const normalizedParentPhone = parent_phone ? normalizePhone(parent_phone) : null;
+    await pool.query(
+      'UPDATE users SET full_name=COALESCE($1,full_name), phone=COALESCE($2,phone), username=COALESCE($2,username) WHERE id=$3',
+      [parent_name, normalizedParentPhone, student.rows[0].parent_id]
     );
   }
   const { rows } = await pool.query(

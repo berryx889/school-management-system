@@ -8,6 +8,7 @@ import { IconBuilding } from '../../components/Icon.jsx';
 
 export default function Classes() {
   const [modalOpen, setModalOpen] = useState(false);
+  const [editing, setEditing] = useState(null);
   const [form, setForm] = useState({ name: '', level: '', class_teacher_id: '', section: '' });
   const [toDelete, setToDelete] = useState(null);
   const toast = useToast();
@@ -18,11 +19,12 @@ export default function Classes() {
   const { data: teachers } = useQuery({ queryKey: ['teachers'], queryFn: () => api.get('/teachers').then((r) => (Array.isArray(r.data?.data) ? r.data.data : [])) });
 
   const create = useMutation({
-    mutationFn: (payload) => api.post('/classes', payload),
+    mutationFn: (payload) => editing ? api.put(`/classes/${editing.id}`, payload) : api.post('/classes', payload),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['classes'] });
-      toast('Class created.', 'success');
+      toast(editing ? 'Class updated.' : 'Class created.', 'success');
       setModalOpen(false);
+      setEditing(null);
       setForm({ name: '', level: '', class_teacher_id: '', section: '' });
     },
     onError: (err) => toast(apiErrorMessage(err), 'error'),
@@ -72,6 +74,17 @@ export default function Classes() {
               >
                 Delete
               </button>
+              <button
+                className="absolute top-3 right-16 text-primary-600 hover:text-primary-800 text-xs font-semibold"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setEditing(c);
+                  setForm({ name: c.name || '', level: c.level || '', class_teacher_id: c.class_teacher_id || '', section: c.section || '' });
+                  setModalOpen(true);
+                }}
+              >
+                Edit
+              </button>
               <p className="font-bold text-slate-900 flex items-center gap-2">
                 {c.name}
                 {c.section && (
@@ -90,7 +103,7 @@ export default function Classes() {
         </div>
       )}
 
-      <Modal open={modalOpen} onClose={() => setModalOpen(false)} title="Add class">
+      <Modal open={modalOpen} onClose={() => { setModalOpen(false); setEditing(null); }} title={editing ? 'Edit class' : 'Add class'}>
         <form className="space-y-4" onSubmit={(e) => { e.preventDefault(); create.mutate(form); }}>
           <div>
             <label className="label">Class name</label>
@@ -115,7 +128,7 @@ export default function Classes() {
               {teachers?.map((t) => <option key={t.id} value={t.id}>{t.full_name}</option>)}
             </select>
           </div>
-          <button className="btn-primary w-full" disabled={create.isPending}>{create.isPending ? 'Saving…' : 'Add class'}</button>
+          <button className="btn-primary w-full" disabled={create.isPending}>{create.isPending ? 'Saving…' : editing ? 'Save changes' : 'Add class'}</button>
         </form>
       </Modal>
 

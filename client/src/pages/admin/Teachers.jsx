@@ -7,6 +7,7 @@ import { IconUser } from '../../components/Icon.jsx';
 
 export default function Teachers() {
   const [modalOpen, setModalOpen] = useState(false);
+  const [editing, setEditing] = useState(null);
   const [form, setForm] = useState({ full_name: '', username: '', password: '', phone: '', email: '', department: '' });
   const toast = useToast();
   const qc = useQueryClient();
@@ -14,11 +15,12 @@ export default function Teachers() {
   const { data, isLoading } = useQuery({ queryKey: ['teachers'], queryFn: () => api.get('/teachers').then((r) => r.data) });
 
   const create = useMutation({
-    mutationFn: (payload) => api.post('/teachers', payload),
+    mutationFn: (payload) => editing ? api.put(`/teachers/${editing.id}`, payload) : api.post('/teachers', payload),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['teachers'] });
-      toast('Teacher added.', 'success');
+      toast(editing ? 'Teacher updated.' : 'Teacher added.', 'success');
       setModalOpen(false);
+      setEditing(null);
       setForm({ full_name: '', username: '', password: '', phone: '', email: '', department: '' });
     },
     onError: (err) => toast(apiErrorMessage(err), 'error'),
@@ -52,7 +54,7 @@ export default function Teachers() {
       <SectionHeader
         title="Teachers"
         description={`${data?.total ?? 0} total`}
-        action={<button className="btn-primary" onClick={() => setModalOpen(true)}>+ Add teacher</button>}
+        action={<button className="btn-primary" onClick={() => { setEditing(null); setForm({ full_name: '', username: '', password: '', phone: '', email: '', department: '' }); setModalOpen(true); }}>+ Add teacher</button>}
       />
 
       <div className="card table-card overflow-hidden">
@@ -99,6 +101,10 @@ export default function Teachers() {
                     </td>
                     <td className="text-right space-x-3 whitespace-nowrap">
                       <button
+                        className="text-primary-600 font-medium"
+                        onClick={() => { setEditing(t); setForm({ full_name: t.full_name || '', username: t.username || '', password: '', phone: t.phone || '', email: t.email || '', department: t.department || '' }); setModalOpen(true); }}
+                      >Edit</button>
+                      <button
                         className="text-slate-500 font-medium"
                         disabled={resetPassword.isPending}
                         onClick={() => resetPassword.mutate(t.id)}
@@ -126,7 +132,7 @@ export default function Teachers() {
         )}
       </div>
 
-      <Modal open={modalOpen} onClose={() => setModalOpen(false)} title="Add teacher">
+      <Modal open={modalOpen} onClose={() => { setModalOpen(false); setEditing(null); }} title={editing ? 'Edit teacher' : 'Add teacher'}>
         <form className="space-y-4" onSubmit={(e) => { e.preventDefault(); create.mutate(form); }}>
           <div>
             <label className="label">Full name</label>
@@ -134,12 +140,12 @@ export default function Teachers() {
           </div>
           <div>
             <label className="label">Username</label>
-            <input className="input" required value={form.username} onChange={(e) => setForm({ ...form, username: e.target.value })} />
+            <input className="input" required disabled={Boolean(editing)} value={form.username} onChange={(e) => setForm({ ...form, username: e.target.value })} />
           </div>
-          <div>
+          {!editing && <div>
             <label className="label">Temporary password</label>
             <input className="input" required value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} />
-          </div>
+          </div>}
           <div>
             <label className="label">Department</label>
             <input className="input" placeholder="e.g. Teaching" value={form.department} onChange={(e) => setForm({ ...form, department: e.target.value })} />
@@ -152,7 +158,7 @@ export default function Teachers() {
             <label className="label">Email</label>
             <input className="input" type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
           </div>
-          <button className="btn-primary w-full" disabled={create.isPending}>{create.isPending ? 'Saving…' : 'Add teacher'}</button>
+          <button className="btn-primary w-full" disabled={create.isPending}>{create.isPending ? 'Saving…' : editing ? 'Save changes' : 'Add teacher'}</button>
         </form>
       </Modal>
 

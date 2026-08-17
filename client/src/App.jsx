@@ -107,6 +107,7 @@ const ADMIN_NAV = [
 
 const TEACHER_NAV = [
   { to: '/teacher', end: true, icon: IconHome, label: 'Dashboard' },
+  { to: '/teacher/gate-scanner', icon: IconCamera, label: 'Gate scanner' },
   { to: '/teacher/attendance', icon: IconCalendar, label: 'Attendance' },
   { to: '/teacher/marks', icon: IconEdit, label: 'Marks entry' },
   { to: '/teacher/remarks', icon: IconFileText, label: 'Remarks' },
@@ -187,6 +188,7 @@ export default function App() {
 
       <Route path="/teacher" element={<ProtectedRoute roles={['teacher']}><SidebarLayout nav={TEACHER_NAV} /></ProtectedRoute>}>
         <Route index element={<TeacherDashboard />} />
+        <Route path="gate-scanner" element={<GateScanner />} />
         <Route path="attendance" element={<AttendanceMark />} />
         <Route path="marks" element={<MarksEntry />} />
         <Route path="remarks" element={<RemarkSheet />} />
