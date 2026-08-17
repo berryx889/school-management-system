@@ -8,7 +8,7 @@ const router = Router();
 // A user may act on a class-subject if they are admin, its assigned teacher, or a staff member
 // an admin has additionally granted marks_entry for that class+subject.
 async function canAccessClassSubject(user, classSubjectId) {
-  if (user.role === 'admin') return true;
+  if (['super_admin', 'admin'].includes(user.role)) return true;
   const { rows } = await pool.query('SELECT class_id, subject_id, teacher_id FROM class_subjects WHERE id=$1', [classSubjectId]);
   if (!rows.length) return false;
   if (rows[0].teacher_id === user.id) return true;
@@ -90,7 +90,7 @@ router.put('/:id/lock', requireAuth, requireRole('admin', 'teacher'), async (req
   const locked = Boolean(req.body.locked);
   const a = await pool.query('SELECT class_subject_id FROM assessments WHERE id=$1 AND deleted_at IS NULL', [req.params.id]);
   if (!a.rows.length) return res.status(404).json({ error: 'Not found' });
-  if (!locked && req.user.role !== 'admin') {
+  if (!locked && !['super_admin', 'admin'].includes(req.user.role)) {
     return res.status(403).json({ error: 'Only an admin can reopen a submitted assessment' });
   }
   if (!(await canAccessClassSubject(req.user, a.rows[0].class_subject_id))) {

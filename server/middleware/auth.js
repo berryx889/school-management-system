@@ -29,10 +29,13 @@ export function requireAuth(req, res, next) {
 
 export function requireRole(...roles) {
   return (req, res, next) => {
-    if (!req.user || !roles.includes(req.user.role)) {
+    const allowed = req.user && (
+      roles.includes(req.user.role) ||
+      (req.user.role === 'super_admin' && roles.includes('admin'))
+    );
+    if (!allowed) {
       return res.status(403).json({ error: 'Forbidden' });
     }
     next();
   };
 }
-

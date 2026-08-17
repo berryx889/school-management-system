@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Html5Qrcode } from 'html5-qrcode';
 import { api, apiErrorMessage } from '../../api/client.js';
 import { SectionHeader, Avatar } from '../../components/ui.jsx';
@@ -13,6 +13,21 @@ export default function GateScanner() {
   const scannerRef = useRef(null);
   const busyRef = useRef(false);
   const toast = useToast();
+
+  const onScan = useCallback(async (qrToken) => {
+    if (busyRef.current) return;
+    busyRef.current = true;
+    try {
+      const { data } = await api.post('/attendance/scan', { qr_token: qrToken });
+      setResult(data);
+      if (data.duplicate) toast('Already checked in today', 'warning');
+    } catch (err) {
+      setResult({ error: apiErrorMessage(err) });
+      toast(apiErrorMessage(err), 'error');
+    } finally {
+      setTimeout(() => { busyRef.current = false; }, 1500);
+    }
+  }, [toast]);
 
   useEffect(() => {
     const scanner = new Html5Qrcode(SCANNER_ID);
@@ -33,22 +48,7 @@ export default function GateScanner() {
         scannerRef.current.stop().catch(() => {});
       }
     };
-  }, []);
-
-  async function onScan(qrToken) {
-    if (busyRef.current) return;
-    busyRef.current = true;
-    try {
-      const { data } = await api.post('/attendance/scan', { qr_token: qrToken });
-      setResult(data);
-      if (data.duplicate) toast('Already checked in today', 'warning');
-    } catch (err) {
-      setResult({ error: apiErrorMessage(err) });
-      toast(apiErrorMessage(err), 'error');
-    } finally {
-      setTimeout(() => { busyRef.current = false; }, 1500);
-    }
-  }
+  }, [onScan]);
 
   const flashColor = result?.error
     ? 'border-red-300 bg-red-50'

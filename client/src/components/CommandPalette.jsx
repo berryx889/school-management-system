@@ -59,7 +59,7 @@ export default function CommandPalette({ nav = [] }) {
   }, [query]);
 
   useEffect(() => {
-    if (open) setOpen(false);
+    setOpen(false);
   }, [location.pathname]);
 
   function go(item) {

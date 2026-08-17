@@ -18,7 +18,7 @@ function reqMeta(req) {
 const router = Router();
 
 const PORTAL_ROLES = {
-  staff: ['admin', 'teacher', 'kitchen', 'accountant'],
+  staff: ['super_admin', 'admin', 'teacher', 'kitchen', 'accountant'],
   family: ['student', 'parent'],
 };
 

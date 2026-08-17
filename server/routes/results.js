@@ -195,7 +195,7 @@ router.get('/student/:id', requireAuth, async (req, res) => {
   );
   const released = release.rows[0]?.released || false;
 
-  if (!released && !['admin', 'teacher'].includes(req.user.role)) {
+  if (!released && !['super_admin', 'admin', 'teacher'].includes(req.user.role)) {
     return res.json({ released: false, message: 'Results not yet released.' });
   }
 
@@ -258,7 +258,7 @@ router.get('/release', requireAuth, async (req, res) => {
 // additionally granted them a remarks_entry permission for that class — additive, same
 // pattern as the marks_entry check in marks.js. Admin always bypasses.
 async function canEditRemarksForClass(user, classId) {
-  if (user.role === 'admin') return true;
+  if (['super_admin', 'admin'].includes(user.role)) return true;
   const classRes = await pool.query('SELECT class_teacher_id FROM classes WHERE id=$1', [classId]);
   if (!classRes.rows.length) return false;
   if (classRes.rows[0].class_teacher_id === user.id) return true;

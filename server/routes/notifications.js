@@ -3,7 +3,7 @@ import { pool } from '../db/pool.js';
 import { requireAuth, requireRole } from '../middleware/auth.js';
 
 const router = Router();
-const STAFF_ROLES = ['admin', 'teacher', 'kitchen', 'accountant'];
+const STAFF_ROLES = ['super_admin', 'admin', 'teacher', 'kitchen', 'accountant'];
 
 router.get('/', requireAuth, async (req, res) => {
   const { rows } = await pool.query(

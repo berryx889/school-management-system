@@ -8,7 +8,7 @@ export default function ProtectedRoute({ roles, children }) {
   const { user } = useAuth();
   useIdleLogout(); // auto sign-out after inactivity (no-op until logged in)
   if (!user) return <Navigate to="/login" replace />;
-  if (roles && !roles.includes(user.role)) return <Navigate to={`/${user.role}`} replace />;
+  if (roles && !roles.includes(user.role)) return <Navigate to={user.role === 'super_admin' ? '/super-admin' : `/${user.role}`} replace />;
   if (user.must_change_password) return <ForcedPasswordGate />;
   return (
     <>

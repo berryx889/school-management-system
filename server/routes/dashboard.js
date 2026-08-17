@@ -86,6 +86,28 @@ router.get('/admin', requireAuth, requireRole('admin'), async (_req, res) => {
   });
 });
 
+router.get('/super-admin', requireAuth, requireRole('super_admin'), async (_req, res) => {
+  const [staff, inactiveStaff, auditToday, failedLogins, activeClasses, integrations] = await Promise.all([
+    pool.query("SELECT COUNT(*) FROM users WHERE role = ANY($1::user_role[]) AND deleted_at IS NULL", [['super_admin', 'admin', 'teacher', 'kitchen', 'accountant']]),
+    pool.query("SELECT COUNT(*) FROM users WHERE role = ANY($1::user_role[]) AND is_active=false AND deleted_at IS NULL", [['super_admin', 'admin', 'teacher', 'kitchen', 'accountant']]),
+    pool.query("SELECT COUNT(*) FROM audit_logs WHERE created_at >= CURRENT_DATE"),
+    pool.query("SELECT COUNT(*) FROM audit_logs WHERE action='auth.login_failed' AND created_at >= now() - INTERVAL '24 hours'"),
+    pool.query("SELECT COUNT(*) FROM classes WHERE deleted_at IS NULL"),
+    pool.query(`SELECT
+      EXISTS (SELECT 1 FROM payments WHERE method='card' AND status='success') AS paystack_used,
+      EXISTS (SELECT 1 FROM sms_log WHERE status='sent') AS sms_used`),
+  ]);
+  res.json({
+    total_staff: Number(staff.rows[0].count),
+    inactive_staff: Number(inactiveStaff.rows[0].count),
+    audit_events_today: Number(auditToday.rows[0].count),
+    failed_logins_24h: Number(failedLogins.rows[0].count),
+    active_classes: Number(activeClasses.rows[0].count),
+    paystack_used: Boolean(integrations.rows[0].paystack_used),
+    sms_used: Boolean(integrations.rows[0].sms_used),
+  });
+});
+
 router.get('/kitchen', requireAuth, requireRole('admin', 'kitchen'), async (_req, res) => {
   const date = todayStr();
 

@@ -17,11 +17,11 @@ after(async () => {
   await pool.end();
 });
 
-test('GET /staff includes admin/teacher/kitchen/accountant, excludes student/parent', async () => {
+test('GET /staff includes super-admin/teacher/kitchen/accountant, excludes student/parent', async () => {
   const res = await request(ctx.baseUrl, '/staff?limit=500', { token: adminToken });
   assert.equal(res.status, 200);
   const roles = new Set(res.data.data.map((u) => u.role));
-  assert.ok(roles.has('admin'));
+  assert.ok(roles.has('super_admin'));
   assert.ok(roles.has('teacher'));
   assert.ok(!roles.has('student'));
   assert.ok(!roles.has('parent'));

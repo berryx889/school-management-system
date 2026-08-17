@@ -41,7 +41,7 @@ export default function MobileLayout({ tabs }) {
         </ErrorBoundary>
       </main>
 
-      <nav className="fixed bottom-0 inset-x-0 bg-white/90 backdrop-blur-md border-t no-print z-30" style={{ borderColor: '#EBE5DC' }} style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
+      <nav className="fixed bottom-0 inset-x-0 bg-white/90 backdrop-blur-md border-t no-print z-30" style={{ borderColor: '#EBE5DC', paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
         <div className="max-w-lg mx-auto grid" style={{ gridTemplateColumns: `repeat(${tabs.length}, 1fr)` }}>
           {tabs.map((tab) => (
             <NavLink

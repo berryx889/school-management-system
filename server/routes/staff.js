@@ -4,7 +4,7 @@ import { pool } from '../db/pool.js';
 import { requireAuth, requireRole } from '../middleware/auth.js';
 
 const router = Router();
-const STAFF_ROLES = ['admin', 'teacher', 'kitchen', 'accountant'];
+const STAFF_ROLES = ['super_admin', 'admin', 'teacher', 'kitchen', 'accountant'];
 
 router.get('/', requireAuth, requireRole('admin'), async (req, res) => {
   const { page = 1, limit = 50, search, role, department, is_active } = req.query;
@@ -52,6 +52,9 @@ router.post('/', requireAuth, requireRole('admin'), async (req, res) => {
   if (!role || !STAFF_ROLES.includes(role)) {
     return res.status(400).json({ error: `role must be one of ${STAFF_ROLES.join(', ')}` });
   }
+  if (role === 'super_admin' && req.user.role !== 'super_admin') {
+    return res.status(403).json({ error: 'Only a Super Admin can create another Super Admin' });
+  }
   if (!full_name || !username || !password) {
     return res.status(400).json({ error: 'full_name, username and password are required' });
   }
@@ -71,6 +74,10 @@ router.post('/', requireAuth, requireRole('admin'), async (req, res) => {
 });
 
 router.put('/:id', requireAuth, requireRole('admin'), async (req, res) => {
+  const target = await pool.query('SELECT role FROM users WHERE id=$1', [req.params.id]);
+  if (target.rows[0]?.role === 'super_admin' && req.user.role !== 'super_admin') {
+    return res.status(403).json({ error: 'Only a Super Admin can edit a Super Admin account' });
+  }
   const { full_name, phone, email, department, is_active } = req.body;
   const { rows } = await pool.query(
     `UPDATE users SET full_name=COALESCE($1,full_name), phone=COALESCE($2,phone),
@@ -89,6 +96,10 @@ router.put('/:id', requireAuth, requireRole('admin'), async (req, res) => {
 router.delete('/:id', requireAuth, requireRole('admin'), async (req, res) => {
   if (Number(req.params.id) === req.user.id) {
     return res.status(400).json({ error: 'You can’t delete your own account.' });
+  }
+  const target = await pool.query('SELECT role FROM users WHERE id=$1', [req.params.id]);
+  if (target.rows[0]?.role === 'super_admin' && req.user.role !== 'super_admin') {
+    return res.status(403).json({ error: 'Only a Super Admin can delete a Super Admin account' });
   }
   const { rows } = await pool.query(
     'UPDATE users SET deleted_at=now() WHERE id=$1 AND role = ANY($2::user_role[]) AND deleted_at IS NULL RETURNING id',

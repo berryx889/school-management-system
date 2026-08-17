@@ -38,7 +38,7 @@ router.get('/', requireAuth, requireRole('admin'), async (_req, res) => {
   result.staff = (await pool.query(
     `SELECT id, full_name AS label, deleted_at FROM users
      WHERE role = ANY($1::user_role[]) AND role <> 'teacher' AND deleted_at IS NOT NULL ORDER BY deleted_at DESC`,
-    [['admin', 'kitchen', 'accountant']]
+    [['super_admin', 'admin', 'kitchen', 'accountant']]
   )).rows;
 
   res.json(result);

@@ -12,7 +12,7 @@ async function assertParticipant(req, studentId) {
     const cls = await pool.query('SELECT class_teacher_id FROM classes WHERE id=$1', [student.rows[0].class_id]);
     return cls.rows[0]?.class_teacher_id === req.user.id;
   }
-  return req.user.role === 'admin';
+  return ['super_admin', 'admin'].includes(req.user.role);
 }
 
 router.get('/', requireAuth, async (req, res) => {

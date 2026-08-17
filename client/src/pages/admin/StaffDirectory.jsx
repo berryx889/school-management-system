@@ -6,8 +6,9 @@ import { generateStaffEmail } from '../../utils/staffEmail.js';
 import { Skeleton, SectionHeader, EmptyState, Modal, Avatar, Badge, StatCard } from '../../components/ui.jsx';
 import { useToast } from '../../components/Toast.jsx';
 import { IconUsers, IconCheckCircle, IconAlertTriangle } from '../../components/Icon.jsx';
+import { useAuth } from '../../auth/AuthContext.jsx';
 
-const STAFF_ROLES = ['admin', 'teacher', 'kitchen', 'accountant'];
+const STAFF_ROLES = ['super_admin', 'admin', 'teacher', 'kitchen', 'accountant'];
 const EMPTY_FORM = { role: 'teacher', full_name: '', username: '', password: '', phone: '', email: '', department: '' };
 
 export default function StaffDirectory() {
@@ -19,6 +20,8 @@ export default function StaffDirectory() {
   const toast = useToast();
   const qc = useQueryClient();
   const { data: settings } = useSettings();
+  const { user } = useAuth();
+  const selectableRoles = user?.role === 'super_admin' ? STAFF_ROLES : STAFF_ROLES.filter((role) => role !== 'super_admin');
 
   const { data: summary } = useQuery({ queryKey: ['staff', 'summary'], queryFn: () => api.get('/staff/summary').then((r) => r.data) });
   const { data, isLoading } = useQuery({
@@ -73,7 +76,7 @@ export default function StaffDirectory() {
         <input className="input flex-1 min-w-[200px]" placeholder="Search by name or username…" value={search} onChange={(e) => setSearch(e.target.value)} />
         <select className="input" value={roleFilter} onChange={(e) => setRoleFilter(e.target.value)}>
           <option value="">All roles</option>
-          {STAFF_ROLES.map((r) => <option key={r} value={r}>{r}</option>)}
+          {STAFF_ROLES.map((r) => <option key={r} value={r}>{r.replaceAll('_', ' ')}</option>)}
         </select>
       </div>
 
@@ -142,7 +145,7 @@ export default function StaffDirectory() {
           <div>
             <label className="label">Role</label>
             <select className="input" disabled={Boolean(editing)} value={form.role} onChange={(e) => setForm({ ...form, role: e.target.value })}>
-              {STAFF_ROLES.map((r) => <option key={r} value={r}>{r}</option>)}
+              {selectableRoles.map((r) => <option key={r} value={r}>{r.replaceAll('_', ' ')}</option>)}
             </select>
           </div>
           <div>

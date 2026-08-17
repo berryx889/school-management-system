@@ -58,7 +58,7 @@ export default function Announcements() {
           <textarea className="input" rows={3} placeholder="Message" required value={form.body} onChange={(e) => setForm({ ...form, body: e.target.value })} />
           <div className="flex flex-wrap gap-3 items-center">
             <select className="input max-w-xs" value={form.audience} onChange={(e) => setForm({ ...form, audience: e.target.value })}>
-              {AUDIENCES.filter((a) => user.role === 'admin' || a.id !== 'teachers').map((a) => <option key={a.id} value={a.id}>{a.label}</option>)}
+              {AUDIENCES.filter((a) => ['super_admin', 'admin'].includes(user.role) || a.id !== 'teachers').map((a) => <option key={a.id} value={a.id}>{a.label}</option>)}
             </select>
             {form.audience === 'class' && (
               <select className="input max-w-xs" value={form.class_id} onChange={(e) => setForm({ ...form, class_id: e.target.value })} required>
@@ -99,7 +99,7 @@ export default function Announcements() {
                 </div>
                 <div className="flex flex-col items-end gap-2 shrink-0">
                   <Badge tone={STATUS_TONE[a.status]}>{a.status.replace('_', ' ')}</Badge>
-                  {user.role === 'admin' && a.status === 'pending_approval' && (
+                  {['super_admin', 'admin'].includes(user.role) && a.status === 'pending_approval' && (
                     <button className="btn-secondary text-xs" onClick={() => approve.mutate(a.id)} disabled={approve.isPending}>
                       Approve & send SMS
                     </button>

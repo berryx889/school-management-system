@@ -37,6 +37,7 @@ import Expenses from './pages/admin/Expenses.jsx';
 import AuditLog from './pages/admin/AuditLog.jsx';
 import Trash from './pages/admin/Trash.jsx';
 import AdminNotifications from './pages/admin/Notifications.jsx';
+import SuperAdminDashboard from './pages/superadmin/Dashboard.jsx';
 
 import TeacherDashboard from './pages/teacher/Dashboard.jsx';
 import AttendanceMark from './pages/teacher/AttendanceMark.jsx';
@@ -104,6 +105,10 @@ const ADMIN_NAV = [
   { to: '/admin/trash', icon: IconTrash, label: 'Trash' },
   { to: '/admin/settings', icon: IconSettings, label: 'Settings' },
 ];
+const SUPER_ADMIN_NAV = [
+  { ...ADMIN_NAV[0], to: '/super-admin', label: 'Command center', icon: IconShield },
+  ...ADMIN_NAV.slice(1),
+];
 
 const TEACHER_NAV = [
   { to: '/teacher', end: true, icon: IconHome, label: 'Dashboard' },
@@ -143,7 +148,12 @@ const PARENT_TABS = [
 function RoleRedirect() {
   const { user } = useAuth();
   if (!user) return <Landing />;
-  return <Navigate to={`/${user.role}`} replace />;
+  return <Navigate to={user.role === 'super_admin' ? '/super-admin' : `/${user.role}`} replace />;
+}
+
+function AdminLayout() {
+  const { user } = useAuth();
+  return <SidebarLayout nav={user?.role === 'super_admin' ? SUPER_ADMIN_NAV : ADMIN_NAV} />;
 }
 
 export default function App() {
@@ -152,7 +162,11 @@ export default function App() {
       <Route path="/login" element={<Login />} />
       <Route path="/" element={<RoleRedirect />} />
 
-      <Route path="/admin" element={<ProtectedRoute roles={['admin']}><SidebarLayout nav={ADMIN_NAV} /></ProtectedRoute>}>
+      <Route path="/super-admin" element={<ProtectedRoute roles={['super_admin']}><SidebarLayout nav={SUPER_ADMIN_NAV} /></ProtectedRoute>}>
+        <Route index element={<SuperAdminDashboard />} />
+      </Route>
+
+      <Route path="/admin" element={<ProtectedRoute roles={['super_admin', 'admin']}><AdminLayout /></ProtectedRoute>}>
         <Route index element={<AdminDashboard />} />
         <Route path="students" element={<Students />} />
         <Route path="students/promote" element={<PromoteStudents />} />
@@ -197,7 +211,7 @@ export default function App() {
         <Route path="announcements" element={<Announcements />} />
       </Route>
 
-      <Route path="/kitchen" element={<ProtectedRoute roles={['admin', 'kitchen']}><SidebarLayout nav={KITCHEN_NAV} /></ProtectedRoute>}>
+      <Route path="/kitchen" element={<ProtectedRoute roles={['super_admin', 'admin', 'kitchen']}><SidebarLayout nav={KITCHEN_NAV} /></ProtectedRoute>}>
         <Route index element={<Kitchen />} />
       </Route>
 

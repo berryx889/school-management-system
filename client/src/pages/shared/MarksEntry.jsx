@@ -14,7 +14,7 @@ function modeLabel(a) {
 
 export default function MarksEntry() {
   const { user } = useAuth();
-  const isAdmin = user.role === 'admin';
+  const isAdmin = ['super_admin', 'admin'].includes(user.role);
   const toast = useToast();
   const qc = useQueryClient();
   const fileRef = useRef(null);

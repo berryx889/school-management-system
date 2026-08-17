@@ -110,7 +110,7 @@ export default function SidebarLayout({ nav, brand: brandProp = 'OUR WORLD MODEL
           )}
           <div className="min-w-0 flex-1">
             <p className="font-bold text-slate-900 text-sm truncate leading-tight">{brand}</p>
-            <p className="text-[11px] text-slate-400 capitalize">{user?.role} portal</p>
+            <p className="text-[11px] text-slate-400 capitalize">{user?.role?.replaceAll('_', ' ')} portal</p>
           </div>
           <button onClick={() => setOpen(false)} className="lg:hidden text-slate-400 hover:text-slate-600 p-1">
             <IconX className="h-5 w-5" />
@@ -161,7 +161,7 @@ export default function SidebarLayout({ nav, brand: brandProp = 'OUR WORLD MODEL
             <Avatar name={user?.full_name} size={36} />
             <div className="min-w-0 flex-1">
               <p className="text-sm font-semibold text-slate-800 truncate">{user?.full_name}</p>
-              <p className="text-[11px] text-slate-400 capitalize">{user?.role}{me?.department && ` · ${me.department}`}</p>
+              <p className="text-[11px] text-slate-400 capitalize">{user?.role?.replaceAll('_', ' ')}{me?.department && ` · ${me.department}`}</p>
             </div>
             <button
               onClick={() => setPasswordModalOpen(true)}

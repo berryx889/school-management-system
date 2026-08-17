@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { format } from 'date-fns';
 import { api, apiErrorMessage } from '../../api/client.js';
@@ -14,18 +14,23 @@ function money(settings, n) {
   return `${cur} ${Number(n || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 }
 
-function AddExpenseModal({ open, onClose }) {
+function ExpenseModal({ open, onClose, expense }) {
   const toast = useToast();
   const qc = useQueryClient();
   const [form, setForm] = useState({ category: '', description: '', amount: '', expense_date: format(new Date(), 'yyyy-MM-dd') });
   const set = (k) => (e) => setForm((f) => ({ ...f, [k]: e.target.value }));
 
-  const create = useMutation({
-    mutationFn: () => api.post('/expenses', { ...form, amount: Number(form.amount) }),
+  useEffect(() => {
+    if (expense) setForm({ category: expense.category || '', description: expense.description || '', amount: expense.amount || '', expense_date: expense.expense_date?.slice(0, 10) || format(new Date(), 'yyyy-MM-dd') });
+    else if (open) setForm({ category: '', description: '', amount: '', expense_date: format(new Date(), 'yyyy-MM-dd') });
+  }, [expense, open]);
+
+  const save = useMutation({
+    mutationFn: () => expense ? api.put(`/expenses/${expense.id}`, { ...form, amount: Number(form.amount) }) : api.post('/expenses', { ...form, amount: Number(form.amount) }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['expenses'] });
       qc.invalidateQueries({ queryKey: ['income-statement'] });
-      toast('Expense recorded.', 'success');
+      toast(expense ? 'Expense updated.' : 'Expense recorded.', 'success');
       setForm({ category: '', description: '', amount: '', expense_date: format(new Date(), 'yyyy-MM-dd') });
       onClose();
     },
@@ -33,8 +38,8 @@ function AddExpenseModal({ open, onClose }) {
   });
 
   return (
-    <Modal open={open} onClose={onClose} title="Record an expense">
-      <form onSubmit={(e) => { e.preventDefault(); create.mutate(); }} className="space-y-4">
+    <Modal open={open} onClose={onClose} title={expense ? 'Edit expense' : 'Record an expense'}>
+      <form onSubmit={(e) => { e.preventDefault(); save.mutate(); }} className="space-y-4">
         <div>
           <label className="label" htmlFor="e-cat">Category</label>
           <input id="e-cat" className="input" list="expense-categories" value={form.category} onChange={set('category')} placeholder="e.g. Salaries" required autoFocus />
@@ -56,7 +61,7 @@ function AddExpenseModal({ open, onClose }) {
         </div>
         <div className="flex justify-end gap-3 pt-2">
           <button type="button" className="btn-secondary" onClick={onClose}>Cancel</button>
-          <button type="submit" className="btn-primary" disabled={create.isPending}>{create.isPending ? 'Saving…' : 'Record expense'}</button>
+          <button type="submit" className="btn-primary" disabled={save.isPending}>{save.isPending ? 'Saving…' : expense ? 'Save changes' : 'Record expense'}</button>
         </div>
       </form>
     </Modal>
@@ -65,6 +70,7 @@ function AddExpenseModal({ open, onClose }) {
 
 export default function Expenses() {
   const [addOpen, setAddOpen] = useState(false);
+  const [editing, setEditing] = useState(null);
   const toast = useToast();
   const qc = useQueryClient();
   const { data: settings } = useSettings();
@@ -156,7 +162,8 @@ export default function Expenses() {
                     <td className="font-medium text-slate-800">{e.category}</td>
                     <td className="text-slate-500">{e.description || '—'}</td>
                     <td className="text-right font-medium text-slate-800 tabular-nums whitespace-nowrap">{money(settings, e.amount)}</td>
-                    <td className="text-right">
+                    <td className="text-right whitespace-nowrap space-x-3">
+                      <button className="text-primary-600 font-medium" onClick={() => setEditing(e)}>Edit</button>
                       <button className="text-red-600 font-medium" onClick={() => remove.mutate(e.id)}>Delete</button>
                     </td>
                   </tr>
@@ -167,7 +174,8 @@ export default function Expenses() {
         )}
       </div>
 
-      <AddExpenseModal open={addOpen} onClose={() => setAddOpen(false)} />
+      <ExpenseModal open={addOpen} onClose={() => setAddOpen(false)} />
+      <ExpenseModal open={Boolean(editing)} expense={editing} onClose={() => setEditing(null)} />
     </div>
   );
 }

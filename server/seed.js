@@ -28,7 +28,7 @@ async function seed() {
   );
 
   const adminId = await upsertUser({
-    role: 'admin',
+    role: 'super_admin',
     username: 'admin',
     password: 'admin123',
     full_name: 'School Administrator',
@@ -177,7 +177,7 @@ async function seed() {
   }
 
   console.log('Seed complete.');
-  console.log('  admin / admin123');
+  console.log('  admin / admin123 (super admin)');
   console.log('  teacher1 / teacher123');
   console.log('  STU0001 / student123');
   console.log('  233200000099 / parent123 (parent)');

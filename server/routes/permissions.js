@@ -4,7 +4,7 @@ import { requireAuth, requireRole } from '../middleware/auth.js';
 import { auditFromReq } from '../utils/audit.js';
 
 const router = Router();
-const STAFF_ROLES = ['admin', 'teacher', 'kitchen', 'accountant'];
+const STAFF_ROLES = ['super_admin', 'admin', 'teacher', 'kitchen', 'accountant'];
 
 router.get('/', requireAuth, requireRole('admin'), async (req, res) => {
   const { user_id, class_id } = req.query;

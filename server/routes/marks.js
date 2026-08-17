@@ -22,7 +22,7 @@ async function loadAssessment(assessmentId) {
 // A teacher may enter marks for a class-subject they own OR one an admin has additionally
 // granted them via staff_permissions — additive, never in place of the owner's own right.
 async function canEnterMarks(user, assessment) {
-  if (user.role === 'admin') return true;
+  if (['super_admin', 'admin'].includes(user.role)) return true;
   if (user.role !== 'teacher') return false;
   if (assessment.teacher_id === user.id) return true;
   const grant = await pool.query(
