@@ -3,7 +3,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api, apiErrorMessage } from '../../api/client.js';
 import { Skeleton, SectionHeader, EmptyState } from '../../components/ui.jsx';
 import { useToast } from '../../components/Toast.jsx';
-import { IconEdit } from '../../components/Icon.jsx';
+import { IconEdit, IconZap } from '../../components/Icon.jsx';
 
 export default function RemarkSheet() {
   const toast = useToast();
@@ -36,6 +36,7 @@ export default function RemarkSheet() {
   });
 
   const [remarks, setRemarks] = useState({});
+  const [suggestions, setSuggestions] = useState({});
   useEffect(() => {
     if (!existingRemarks) return;
     const map = {};
@@ -53,6 +54,21 @@ export default function RemarkSheet() {
     onSuccess: () => {
       toast('Remarks saved.', 'success');
       qc.invalidateQueries({ queryKey: ['results', 'remarks', classId, termId] });
+    },
+    onError: (err) => toast(apiErrorMessage(err), 'error'),
+  });
+
+  const generateSuggestions = useMutation({
+    mutationFn: () => api.get('/results/remarks/suggestions', { params: { class_id: classId, term_id: termId } }).then((r) => r.data),
+    onSuccess: (rows) => {
+      const map = Object.fromEntries(rows.map((row) => [row.student_id, row]));
+      setSuggestions(map);
+      setRemarks((current) => {
+        const next = { ...current };
+        for (const row of rows) if (!(next[row.student_id] || '').trim()) next[row.student_id] = row.suggestion;
+        return next;
+      });
+      toast('Smart drafts generated. Review and edit them before saving.', 'success');
     },
     onError: (err) => toast(apiErrorMessage(err), 'error'),
   });
@@ -102,6 +118,7 @@ export default function RemarkSheet() {
               {remarkedCount}/{roster?.length ?? 0} students remarked
             </p>
             <div className="flex flex-wrap items-center gap-2">
+              <button className="btn-secondary text-sm" type="button" disabled={generateSuggestions.isPending || !termId} onClick={() => generateSuggestions.mutate()}><IconZap className="h-4 w-4" /> {generateSuggestions.isPending ? 'Generating…' : 'Generate smart remarks'}</button>
               {templates?.length > 0 && (
                 <select
                   className="input !py-1.5 !w-auto text-sm"
@@ -119,7 +136,7 @@ export default function RemarkSheet() {
             {roster?.map((s) => (
               <div key={s.id} className="p-4">
                 <div className="flex items-center justify-between gap-3 mb-2">
-                  <span className="font-medium text-slate-800">{s.full_name}</span>
+                  <div><span className="font-medium text-slate-800">{s.full_name}</span>{suggestions[s.id] && <p className="text-xs text-slate-400 mt-0.5">Average {suggestions[s.id].average}% · Position {suggestions[s.id].class_position} · Attendance {suggestions[s.id].attendance_rate == null ? 'not recorded' : `${suggestions[s.id].attendance_rate}%`}</p>}</div>
                   {templates?.length > 0 && (
                     <select
                       className="input !py-1 !w-auto text-xs"
@@ -141,10 +158,12 @@ export default function RemarkSheet() {
                   value={remarks[s.id] ?? ''}
                   onChange={(e) => setRemarks((r) => ({ ...r, [s.id]: e.target.value }))}
                 />
+                {suggestions[s.id] && remarks[s.id] !== suggestions[s.id].suggestion && <button type="button" className="text-xs text-primary-600 font-medium mt-1" onClick={() => setRemarks((r) => ({ ...r, [s.id]: suggestions[s.id].suggestion }))}>Use smart draft</button>}
               </div>
             ))}
           </div>
           <div className="p-4 border-t border-slate-100">
+            {Object.keys(suggestions).length > 0 && <p className="text-xs text-amber-700 bg-amber-50 rounded-xl px-3 py-2 mb-3">Smart remarks are drafts based on recorded marks and attendance. A teacher must review them for accuracy and tone before saving.</p>}
             <button className="btn-primary" onClick={() => save.mutate()} disabled={save.isPending}>
               {save.isPending ? 'Saving…' : 'Save remarks'}
             </button>

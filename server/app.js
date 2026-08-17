@@ -31,6 +31,7 @@ import notificationRoutes from './routes/notifications.js';
 import auditRoutes from './routes/audit.js';
 import trashRoutes from './routes/trash.js';
 import expenseRoutes from './routes/expenses.js';
+import houseRoutes from './routes/houses.js';
 import { globalLimiter, authLimiter } from './middleware/rateLimit.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -80,6 +81,7 @@ app.use('/api/notifications', notificationRoutes);
 app.use('/api/audit-logs', auditRoutes);
 app.use('/api/trash', trashRoutes);
 app.use('/api/expenses', expenseRoutes);
+app.use('/api/houses', houseRoutes);
 
 app.use((err, _req, res, _next) => {
   console.error(err);

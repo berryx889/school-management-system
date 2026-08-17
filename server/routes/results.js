@@ -269,6 +269,75 @@ async function canEditRemarksForClass(user, classId) {
   return grant.rows.length > 0;
 }
 
+function buildRemarkSuggestion(result, attendance, marksCount) {
+  const firstName = result.full_name?.split(/\s+/)[0] || 'The learner';
+  if (!marksCount) {
+    return `${firstName} has not yet accumulated enough recorded assessment data for a performance-based remark. Please review the learner’s participation and progress before completing this remark.`;
+  }
+  const ranked = [...result.subjects].sort((a, b) => b.total - a.total);
+  const strongest = ranked[0];
+  const weakest = ranked.at(-1);
+  const sentences = [];
+  if (result.average >= 80) sentences.push(`${firstName} has demonstrated excellent academic performance this term`);
+  else if (result.average >= 70) sentences.push(`${firstName} has shown very good and consistent academic progress this term`);
+  else if (result.average >= 60) sentences.push(`${firstName} is making steady academic progress and should continue working consistently`);
+  else if (result.average >= 50) sentences.push(`${firstName} has achieved a satisfactory result but can improve with more focused practice`);
+  else sentences.push(`${firstName} needs additional support and more consistent effort to strengthen academic performance`);
+
+  if (strongest?.subject_name) sentences.push(`The strongest performance was in ${strongest.subject_name}`);
+  if (weakest?.subject_name && weakest.total < 50 && weakest.subject_name !== strongest?.subject_name) {
+    sentences.push(`More attention is needed in ${weakest.subject_name}`);
+  }
+  if (result.class_position <= 3) sentences.push(`This placed the learner ${result.class_position === 1 ? 'first' : result.class_position === 2 ? 'second' : 'third'} in the class`);
+
+  const attendanceRate = attendance.total ? Math.round((attendance.present / attendance.total) * 100) : null;
+  if (attendanceRate != null) {
+    if (attendanceRate >= 95) sentences.push('Attendance has been excellent');
+    else if (attendanceRate >= 85) sentences.push('Attendance has been regular');
+    else sentences.push('Improved attendance will support better learning outcomes');
+  }
+  sentences.push(result.average >= 70 ? 'Keep up the commendable effort.' : 'With encouragement and consistent practice, further progress is achievable.');
+  return sentences.join('. ') + (sentences.at(-1).endsWith('.') ? '' : '.');
+}
+
+router.get('/remarks/suggestions', requireAuth, requireRole('admin', 'teacher'), async (req, res) => {
+  const { class_id, term_id } = req.query;
+  if (!class_id || !term_id) return res.status(400).json({ error: 'class_id and term_id are required' });
+  if (!(await canEditRemarksForClass(req.user, class_id))) {
+    return res.status(403).json({ error: 'You are not allowed to write remarks for this class' });
+  }
+  const results = await computeClassResults(class_id, term_id);
+  const attendanceRows = await pool.query(
+    `SELECT s.id AS student_id,
+       COUNT(a.id)::int AS total,
+       COUNT(a.id) FILTER (WHERE a.status IN ('present','late'))::int AS present
+     FROM students s JOIN academic_terms t ON t.id=$2
+     LEFT JOIN attendance a ON a.student_id=s.id AND a.date BETWEEN t.start_date AND t.end_date
+     WHERE s.class_id=$1 AND s.status='active' GROUP BY s.id`,
+    [class_id, term_id]
+  );
+  const markCounts = await pool.query(
+    `SELECT m.student_id, COUNT(m.id)::int AS count FROM marks m
+     JOIN assessments a ON a.id=m.assessment_id JOIN class_subjects cs ON cs.id=a.class_subject_id
+     WHERE cs.class_id=$1 AND a.term_id=$2 AND a.deleted_at IS NULL GROUP BY m.student_id`,
+    [class_id, term_id]
+  );
+  const attendanceByStudent = new Map(attendanceRows.rows.map((row) => [row.student_id, { total: Number(row.total), present: Number(row.present) }]));
+  const marksByStudent = new Map(markCounts.rows.map((row) => [row.student_id, Number(row.count)]));
+  res.json(results.students.map((student) => {
+    const attendance = attendanceByStudent.get(student.student_id) || { total: 0, present: 0 };
+    const marks_count = marksByStudent.get(student.student_id) || 0;
+    return {
+      student_id: student.student_id,
+      average: student.average,
+      class_position: student.class_position,
+      attendance_rate: attendance.total ? Math.round((attendance.present / attendance.total) * 100) : null,
+      marks_count,
+      suggestion: buildRemarkSuggestion(student, attendance, marks_count),
+    };
+  }));
+});
+
 router.get('/remarks', requireAuth, async (req, res) => {
   const { class_id, term_id } = req.query;
   if (!class_id || !term_id) return res.status(400).json({ error: 'class_id and term_id are required' });

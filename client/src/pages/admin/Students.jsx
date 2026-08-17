@@ -6,7 +6,7 @@ import { PageLoader, SectionHeader, EmptyState, Modal, Avatar, Badge, Skeleton }
 import { useToast } from '../../components/Toast.jsx';
 import { IconDownload, IconUpload, IconGraduationCap, IconEdit } from '../../components/Icon.jsx';
 
-function StudentDetailModal({ student, onClose, classes }) {
+function StudentDetailModal({ student, onClose, classes, houses }) {
   const [editing, setEditing] = useState(false);
   const [form, setForm] = useState({});
   const toast = useToast();
@@ -19,13 +19,18 @@ function StudentDetailModal({ student, onClose, classes }) {
       full_name: student.full_name || '', dob: student.dob?.slice(0, 10) || '',
       gender: student.gender || '', class_id: student.class_id || '', status: student.status || 'active',
       parent_name: student.parent_name || '', parent_phone: student.parent_phone || '',
+      house_id: student.house_id || '',
     });
   }, [student]);
 
   const save = useMutation({
-    mutationFn: () => api.put(`/students/${student.id}`, { ...form, dob: form.dob || null }),
+    mutationFn: async () => {
+      await api.put(`/students/${student.id}`, { ...form, dob: form.dob || null });
+      return api.post('/houses/assign', { student_id: student.id, house_id: form.house_id ? Number(form.house_id) : null });
+    },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['students'] });
+      qc.invalidateQueries({ queryKey: ['houses'] });
       toast('Student information updated.', 'success');
       setEditing(false);
       onClose();
@@ -49,6 +54,7 @@ function StudentDetailModal({ student, onClose, classes }) {
             <div><dt className="text-slate-400">Parent / guardian</dt><dd className="font-medium">{student.parent_name || '—'}</dd></div>
             <div><dt className="text-slate-400">Parent phone</dt><dd className="font-medium">{student.parent_phone || '—'}</dd></div>
             <div><dt className="text-slate-400">Student phone</dt><dd className="font-medium">{student.phone || '—'}</dd></div>
+            <div><dt className="text-slate-400">House</dt><dd className="font-medium" style={{ color: student.house_color || undefined }}>{student.house_name || 'Unassigned'}</dd></div>
             <div><dt className="text-slate-400">Status</dt><dd><Badge tone={student.status === 'active' ? 'green' : 'slate'}>{student.status}</Badge></dd></div>
           </dl>
           <button className="btn-primary w-full" onClick={() => setEditing(true)}><IconEdit className="h-4 w-4" /> Edit information</button>
@@ -61,6 +67,7 @@ function StudentDetailModal({ student, onClose, classes }) {
             <div><label className="label">Gender</label><select className="input" value={form.gender} onChange={(e) => setForm({ ...form, gender: e.target.value })}><option value="male">Male</option><option value="female">Female</option></select></div>
           </div>
           <div><label className="label">Class</label><select className="input" value={form.class_id} onChange={(e) => setForm({ ...form, class_id: e.target.value })}><option value="">Unassigned</option>{classes?.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}</select></div>
+          <div><label className="label">House</label><select className="input" value={form.house_id} onChange={(e) => setForm({ ...form, house_id: e.target.value })}><option value="">Unassigned</option>{houses?.map((h) => <option key={h.id} value={h.id}>{h.name}</option>)}</select></div>
           <div><label className="label">Parent / guardian name</label><input className="input" value={form.parent_name} onChange={(e) => setForm({ ...form, parent_name: e.target.value })} /></div>
           <div><label className="label">Parent phone</label><input className="input" value={form.parent_phone} onChange={(e) => setForm({ ...form, parent_phone: e.target.value })} /></div>
           <div><label className="label">Status</label><select className="input" value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value })}><option value="active">Active</option><option value="inactive">Inactive</option><option value="graduated">Graduated</option></select></div>
@@ -166,6 +173,7 @@ export default function Students() {
   });
 
   const { data: classes } = useQuery({ queryKey: ['classes'], queryFn: () => api.get('/classes').then((r) => r.data) });
+  const { data: houses } = useQuery({ queryKey: ['houses'], queryFn: () => api.get('/houses').then((r) => r.data) });
   const { data, isLoading } = useQuery({
     queryKey: ['students', search, classFilter],
     queryFn: () =>
@@ -305,7 +313,7 @@ export default function Students() {
       </div>
 
       <StudentFormModal open={modalOpen} onClose={() => setModalOpen(false)} classes={classes} />
-      <StudentDetailModal student={selectedStudent} onClose={() => setSelectedStudent(null)} classes={classes} />
+      <StudentDetailModal student={selectedStudent} onClose={() => setSelectedStudent(null)} classes={classes} houses={houses} />
 
       <Modal open={Boolean(resetResult)} onClose={() => setResetResult(null)} title="Password reset">
         <p className="text-sm text-slate-600 mb-3">

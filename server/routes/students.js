@@ -61,11 +61,12 @@ router.get('/', requireAuth, async (req, res) => {
   values.push(limit, offset);
 
   const { rows } = await pool.query(
-    `SELECT s.*, u.full_name, u.photo_url, u.phone, c.name AS class_name,
+    `SELECT s.*, u.full_name, u.photo_url, u.phone, c.name AS class_name, h.name AS house_name, h.color AS house_color,
             p.full_name AS parent_name, p.phone AS parent_phone
      FROM students s
      JOIN users u ON u.id = s.user_id
      LEFT JOIN classes c ON c.id = s.class_id
+     LEFT JOIN houses h ON h.id = s.house_id
      LEFT JOIN users p ON p.id = s.parent_id
      ${where}
      ORDER BY u.full_name
@@ -147,11 +148,12 @@ router.post('/promote', requireAuth, requireRole('admin'), async (req, res) => {
 
 router.get('/:id', requireAuth, async (req, res) => {
   const { rows } = await pool.query(
-    `SELECT s.*, u.full_name, u.photo_url, u.phone, c.name AS class_name,
+    `SELECT s.*, u.full_name, u.photo_url, u.phone, c.name AS class_name, h.name AS house_name, h.color AS house_color,
             p.full_name AS parent_name, p.phone AS parent_phone
      FROM students s
      JOIN users u ON u.id = s.user_id
      LEFT JOIN classes c ON c.id = s.class_id
+     LEFT JOIN houses h ON h.id = s.house_id
      LEFT JOIN users p ON p.id = s.parent_id
      WHERE s.id=$1`,
     [req.params.id]

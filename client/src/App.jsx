@@ -67,6 +67,7 @@ import ReportCards from './pages/shared/ReportCards.jsx';
 import Announcements from './pages/shared/Announcements.jsx';
 import Receipt from './pages/shared/Receipt.jsx';
 import RemarkSheet from './pages/shared/RemarkSheet.jsx';
+import HouseSystem from './pages/shared/HouseSystem.jsx';
 
 const ADMIN_NAV = [
   { to: '/admin', end: true, icon: IconHome, label: 'Dashboard' },
@@ -77,6 +78,7 @@ const ADMIN_NAV = [
     { to: '/admin/staff', icon: IconUsers, label: 'Staff directory' },
     { to: '/admin/permissions', icon: IconShield, label: 'Permissions' },
     { to: '/admin/classes', icon: IconBuilding, label: 'Classes' },
+    { to: '/admin/houses', icon: IconActivity, label: 'House system' },
     { to: '/admin/subjects', icon: IconBook, label: 'Subjects' },
     { to: '/admin/class-subjects', icon: IconLink, label: 'Subject teachers' },
   ] },
@@ -116,6 +118,7 @@ const TEACHER_NAV = [
   { to: '/teacher/attendance', icon: IconCalendar, label: 'Attendance' },
   { to: '/teacher/marks', icon: IconEdit, label: 'Marks entry' },
   { to: '/teacher/remarks', icon: IconFileText, label: 'Remarks' },
+  { to: '/teacher/houses', icon: IconActivity, label: 'House points' },
   { to: '/teacher/timetable', icon: IconCalendar, label: 'My timetable' },
   { to: '/teacher/chat', icon: IconMessageCircle, label: 'Parent chat' },
   { to: '/teacher/announcements', icon: IconMegaphone, label: 'Announcements' },
@@ -177,6 +180,7 @@ export default function App() {
         <Route path="classes" element={<Classes />} />
         <Route path="classes/structure-builder" element={<StructureBuilder />} />
         <Route path="classes/:id" element={<ClassDetail />} />
+        <Route path="houses" element={<HouseSystem />} />
         <Route path="subjects" element={<Subjects />} />
         <Route path="class-subjects" element={<ClassSubjects />} />
         <Route path="timetable" element={<AdminTimetable />} />
@@ -206,6 +210,7 @@ export default function App() {
         <Route path="attendance" element={<AttendanceMark />} />
         <Route path="marks" element={<MarksEntry />} />
         <Route path="remarks" element={<RemarkSheet />} />
+        <Route path="houses" element={<HouseSystem />} />
         <Route path="timetable" element={<TeacherTimetable />} />
         <Route path="chat" element={<TeacherChat />} />
         <Route path="announcements" element={<Announcements />} />
