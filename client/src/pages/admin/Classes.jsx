@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTeacherDirectory } from '../../hooks/useTeacherDirectory.js';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Link, useNavigate } from 'react-router-dom';
 import { api, apiErrorMessage } from '../../api/client.js';
@@ -16,7 +17,7 @@ export default function Classes() {
   const navigate = useNavigate();
 
   const { data: classes, isLoading } = useQuery({ queryKey: ['classes'], queryFn: () => api.get('/classes').then((r) => r.data) });
-  const { data: teachers } = useQuery({ queryKey: ['teachers'], queryFn: () => api.get('/teachers').then((r) => (Array.isArray(r.data?.data) ? r.data.data : [])) });
+  const { data: teachers } = useTeacherDirectory(true);
 
   const create = useMutation({
     mutationFn: (payload) => editing ? api.put(`/classes/${editing.id}`, payload) : api.post('/classes', payload),

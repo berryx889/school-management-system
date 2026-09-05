@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useTeacherDirectory } from '../../hooks/useTeacherDirectory.js';
 import { api, apiErrorMessage } from '../../api/client.js';
 import { Skeleton, SectionHeader, EmptyState, Modal, Avatar, Badge } from '../../components/ui.jsx';
 import { useToast } from '../../components/Toast.jsx';
@@ -12,7 +13,7 @@ export default function Teachers() {
   const toast = useToast();
   const qc = useQueryClient();
 
-  const { data, isLoading } = useQuery({ queryKey: ['teachers'], queryFn: () => api.get('/teachers').then((r) => r.data) });
+  const { data, isLoading, isError, error, refetch, isFetching } = useTeacherDirectory();
 
   const create = useMutation({
     mutationFn: (payload) => editing ? api.put(`/teachers/${editing.id}`, payload) : api.post('/teachers', payload),
@@ -69,7 +70,11 @@ export default function Teachers() {
               </div>
             ))}
           </div>
-        ) : data.data.length === 0 ? (
+        ) : isError ? (
+          <EmptyState icon={IconUser} title="We couldn’t load the teacher directory"
+            description={apiErrorMessage(error)}
+            action={<button className="btn-secondary" disabled={isFetching} onClick={() => refetch()}>{isFetching ? 'Trying again…' : 'Try again'}</button>} />
+        ) : !data?.data?.length ? (
           <EmptyState icon={IconUser} title="No teachers yet" action={<button className="btn-primary" onClick={() => setModalOpen(true)}>+ Add teacher</button>} />
         ) : (
           <div className="overflow-x-auto">

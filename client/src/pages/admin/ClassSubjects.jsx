@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTeacherDirectory } from '../../hooks/useTeacherDirectory.js';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api, apiErrorMessage } from '../../api/client.js';
 import { Skeleton, SectionHeader, EmptyState } from '../../components/ui.jsx';
@@ -14,7 +15,7 @@ export default function ClassSubjects() {
 
   const { data: classes } = useQuery({ queryKey: ['classes'], queryFn: () => api.get('/classes').then((r) => r.data) });
   const { data: subjects } = useQuery({ queryKey: ['subjects'], queryFn: () => api.get('/subjects').then((r) => r.data) });
-  const { data: teachers } = useQuery({ queryKey: ['teachers'], queryFn: () => api.get('/teachers').then((r) => r.data.data) });
+  const { data: teachers } = useTeacherDirectory(true);
   const { data: mappings, isLoading } = useQuery({
     queryKey: ['class-subjects', classId],
     queryFn: () => api.get('/class-subjects', { params: { class_id: classId || undefined } }).then((r) => r.data),
