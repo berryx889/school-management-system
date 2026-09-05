@@ -4,3 +4,4 @@ dist/
 build/
 *.log
 .DS_Store
+output/demo-student-accounts-*.md

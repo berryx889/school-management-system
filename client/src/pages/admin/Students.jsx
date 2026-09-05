@@ -149,6 +149,7 @@ function StudentFormModal({ open, onClose, classes }) {
 export default function Students() {
   const [search, setSearch] = useState('');
   const [classFilter, setClassFilter] = useState('');
+  const [page, setPage] = useState(1);
   const [modalOpen, setModalOpen] = useState(false);
   const [resetResult, setResetResult] = useState(null);
   const [toDelete, setToDelete] = useState(null);
@@ -175,10 +176,10 @@ export default function Students() {
   const { data: classes } = useQuery({ queryKey: ['classes'], queryFn: () => api.get('/classes').then((r) => r.data) });
   const { data: houses } = useQuery({ queryKey: ['houses'], queryFn: () => api.get('/houses').then((r) => r.data) });
   const { data, isLoading } = useQuery({
-    queryKey: ['students', search, classFilter],
+    queryKey: ['students', search, classFilter, page],
     queryFn: () =>
       api
-        .get('/students', { params: { search: search || undefined, class_id: classFilter || undefined, limit: 200 } })
+        .get('/students', { params: { search: search || undefined, class_id: classFilter || undefined, limit: 50, page } })
         .then((r) => r.data),
   });
 
@@ -241,8 +242,8 @@ export default function Students() {
       />
 
       <div className="flex flex-wrap gap-3 mb-4">
-        <input className="input max-w-xs" placeholder="Search by name or ID…" value={search} onChange={(e) => setSearch(e.target.value)} />
-        <select className="input max-w-xs" value={classFilter} onChange={(e) => setClassFilter(e.target.value)}>
+        <input className="input max-w-xs" placeholder="Search by name or ID…" value={search} onChange={(e) => { setSearch(e.target.value); setPage(1); }} />
+        <select className="input max-w-xs" value={classFilter} onChange={(e) => { setClassFilter(e.target.value); setPage(1); }}>
           <option value="">All classes</option>
           {classes?.map((c) => (
             <option key={c.id} value={c.id}>{c.name}</option>
@@ -312,6 +313,13 @@ export default function Students() {
         )}
       </div>
 
+      <nav aria-label="Student pages" className="flex flex-wrap justify-between items-center gap-3 mt-4">
+        <p className="text-sm text-slate-500">Page {page} of {Math.max(1, Math.ceil((data?.total || 0) / 50))} · 50 students per page</p>
+        <div className="flex gap-2">
+          <button className="btn-secondary" disabled={page === 1 || isLoading} onClick={() => setPage(p => p - 1)}>Previous</button>
+          <button className="btn-secondary" disabled={isLoading || !data || page * 50 >= data.total} onClick={() => setPage(p => p + 1)}>Next</button>
+        </div>
+      </nav>
       <StudentFormModal open={modalOpen} onClose={() => setModalOpen(false)} classes={classes} />
       <StudentDetailModal student={selectedStudent} onClose={() => setSelectedStudent(null)} classes={classes} houses={houses} />
 

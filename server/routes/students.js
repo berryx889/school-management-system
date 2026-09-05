@@ -38,10 +38,12 @@ async function nextStudentCode(client) {
   // the same student code before either transaction commits.
   await client.query("SELECT pg_advisory_xact_lock(71001, current_setting('app.school_id')::int)");
   const { rows } = await client.query(
-    "SELECT student_code FROM students ORDER BY id DESC LIMIT 1"
+    `SELECT student_code FROM students WHERE student_code ~ '^STU[0-9]+$'
+     ORDER BY substring(student_code FROM 4)::numeric DESC LIMIT 1`
   );
   const last = rows[0]?.student_code;
   const lastNum = last ? parseInt(last.replace(/\D/g, ''), 10) : 0;
+  if (!Number.isSafeInteger(lastNum + 1)) throw new Error('Student admission number is outside the supported range');
   return `STU${String(lastNum + 1).padStart(4, '0')}`;
 }
 
@@ -74,7 +76,7 @@ router.get('/', requireAuth, async (req, res) => {
      LEFT JOIN houses h ON h.id = s.house_id
      LEFT JOIN users p ON p.id = s.parent_id
      ${where}
-     ORDER BY u.full_name
+     ORDER BY u.full_name, s.id
      LIMIT $${values.length - 1} OFFSET $${values.length}`,
     values
   );
