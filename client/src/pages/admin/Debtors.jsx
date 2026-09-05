@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { api, apiErrorMessage } from '../../api/client.js';
 import { useAuth } from '../../auth/AuthContext.jsx';
+import { receiptPath } from '../../auth/roleRoutes.js';
 import { Skeleton, SectionHeader, EmptyState, Modal, Avatar } from '../../components/ui.jsx';
 import { useToast } from '../../components/Toast.jsx';
 import { IconSmartphone, IconCheckCircle, IconArrowLeft } from '../../components/Icon.jsx';
@@ -166,7 +167,7 @@ export default function Debtors() {
         qc.refetchQueries({ queryKey: ['student-invoices'], type: 'active' }),
       ]);
       setPayModal(null);
-      navigate(`/${user.role}/receipts/${res.data.id}`);
+      navigate(receiptPath(user.role, res.data.id));
     },
     onError: (err) => toast(apiErrorMessage(err), 'error'),
   });

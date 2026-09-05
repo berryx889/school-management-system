@@ -1,12 +1,13 @@
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext.jsx';
+import { dashboardPath } from '../auth/roleRoutes.js';
 import { IconArrowLeft, IconHome, IconSearch } from '../components/Icon.jsx';
 
 export default function NotFound() {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const home = user ? (user.role === 'super_admin' ? '/super-admin' : `/${user.role}`) : '/';
+  const home = dashboardPath(user?.role);
   useEffect(() => {
     const schoolName = document.documentElement.dataset.schoolName || 'OUR WORLD MODEL SCHOOL';
     document.title = `Page not found | ${schoolName}`;

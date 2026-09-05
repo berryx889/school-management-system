@@ -1,6 +1,7 @@
 import { lazy, Suspense, useEffect } from 'react';
 import { Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import { useAuth } from './auth/AuthContext.jsx';
+import { dashboardPath } from './auth/roleRoutes.js';
 import ProtectedRoute from './auth/ProtectedRoute.jsx';
 import { ParentProvider } from './auth/ParentContext.jsx';
 import SidebarLayout from './layouts/SidebarLayout.jsx';
@@ -181,7 +182,7 @@ function RoutePageTitle() {
 function RoleRedirect() {
   const { user } = useAuth();
   if (!user) return <Landing />;
-  return <Navigate to={user.role === 'super_admin' ? '/super-admin' : `/${user.role}`} replace />;
+  return <Navigate to={dashboardPath(user.role)} replace />;
 }
 
 function AdminLayout() {
@@ -195,6 +196,7 @@ export default function App() {
       <RoutePageTitle />
       <Routes>
       <Route path="/login" element={<Login />} />
+      <Route path="/super_admin" element={<Navigate to="/super-admin" replace />} />
       <Route path="/" element={<RoleRedirect />} />
 
       <Route path="/super-admin" element={<ProtectedRoute roles={['super_admin']}><SidebarLayout nav={SUPER_ADMIN_NAV} /></ProtectedRoute>}>

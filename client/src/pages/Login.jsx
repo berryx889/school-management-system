@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { GrainGradient } from '@paper-design/shaders-react';
 import { useAuth } from '../auth/AuthContext.jsx';
+import { dashboardPath } from '../auth/roleRoutes.js';
 import { api, apiErrorMessage } from '../api/client.js';
 import { usePublicBranding } from '../hooks/usePublicBranding.js';
 import { applyBrandColor, applyFavicon } from '../utils/brandColor.js';
@@ -179,7 +180,7 @@ function LoginForm({ portal, portalKey, onBack, onForgot, loading, setLoading, t
       const result = await login({ username, password, portal: portalKey, totp_code: need2fa ? totpCode : undefined });
       if (result.requires_2fa) { setNeed2fa(true); setLoading(false); return; }
       localStorage.setItem('sms_last_user', JSON.stringify({ name: result.full_name }));
-      navigate(`/${result.role}`);
+      navigate(dashboardPath(result.role), { replace: true });
     } catch (err) {
       toast(apiErrorMessage(err), 'error');
     } finally {
@@ -208,7 +209,7 @@ function LoginForm({ portal, portalKey, onBack, onForgot, loading, setLoading, t
       const { data } = await api.post('/auth/otp/verify', { phone: username, code: otpCode });
       await loginWithOtp(data.user, data.token);
       localStorage.setItem('sms_last_user', JSON.stringify({ name: data.user.full_name }));
-      navigate(`/${data.user.role}`);
+      navigate(dashboardPath(data.user.role), { replace: true });
     } catch (err) {
       toast(apiErrorMessage(err), 'error');
     } finally {
