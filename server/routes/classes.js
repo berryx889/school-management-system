@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { pool } from '../db/pool.js';
 import { requireAuth, requireRole } from '../middleware/auth.js';
+import { canAccessClass } from '../utils/access.js';
 
 const router = Router();
 
@@ -24,24 +25,25 @@ router.get('/:id', requireAuth, async (req, res) => {
 
 router.get('/:id/insights', requireAuth, async (req, res) => {
   const classId = req.params.id;
-  const [attendance, scores] = await Promise.all([
-    pool.query(
+  if (!(await canAccessClass(req.user, classId))) return res.status(403).json({ error: 'Forbidden' });
+  // Tenant requests intentionally share one RLS-scoped pg client; keep its queries
+  // sequential because node-postgres does not support concurrent queries per client.
+  const attendance = await pool.query(
       `SELECT COUNT(*) FILTER (WHERE a.status IN ('present','late'))::int AS present,
               COUNT(a.id)::int AS marked
        FROM students s LEFT JOIN attendance a ON a.student_id=s.id
          AND a.date >= CURRENT_DATE - INTERVAL '30 days'
        WHERE s.class_id=$1 AND s.status='active'`,
       [classId]
-    ),
-    pool.query(
+    );
+  const scores = await pool.query(
       `SELECT ROUND(AVG((m.score / NULLIF(a.max_score,0)) * 100),1) AS average_score,
               COUNT(m.id)::int AS marks_count
        FROM marks m JOIN assessments a ON a.id=m.assessment_id
        JOIN class_subjects cs ON cs.id=a.class_subject_id
        WHERE cs.class_id=$1 AND a.deleted_at IS NULL`,
       [classId]
-    ),
-  ]);
+    );
   const marked = Number(attendance.rows[0]?.marked || 0);
   const present = Number(attendance.rows[0]?.present || 0);
   res.json({

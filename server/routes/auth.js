@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import crypto from 'node:crypto';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { pool } from '../db/pool.js';
@@ -107,7 +108,7 @@ router.post('/otp/request', async (req, res) => {
   );
   if (!rows.length) return res.status(404).json({ error: 'No account found for this phone number' });
 
-  const code = String(Math.floor(100000 + Math.random() * 900000));
+  const code = String(crypto.randomInt(100000, 1000000));
   const expires_at = new Date(Date.now() + 10 * 60 * 1000);
   await pool.query(
     'INSERT INTO otp_codes (phone, code, expires_at, school_id) VALUES ($1,$2,$3,$4)',
@@ -124,13 +125,16 @@ router.post('/otp/verify', async (req, res) => {
   if (!schoolId) return res.status(400).json({ error: 'A school code is required to sign in' });
 
   const { rows } = await pool.query(
-    `SELECT * FROM otp_codes WHERE phone=$1 AND code=$2 AND school_id=$3 AND used=false AND expires_at > now()
-     ORDER BY created_at DESC LIMIT 1`,
+    `UPDATE otp_codes SET used=true
+     WHERE id = (
+       SELECT id FROM otp_codes
+       WHERE phone=$1 AND code=$2 AND school_id=$3 AND used=false AND expires_at > now()
+       ORDER BY created_at DESC LIMIT 1 FOR UPDATE SKIP LOCKED
+     )
+     RETURNING *`,
     [phone, code, schoolId]
   );
   if (!rows.length) return res.status(401).json({ error: 'Invalid or expired code' });
-
-  await pool.query('UPDATE otp_codes SET used=true WHERE id=$1', [rows[0].id]);
 
   const userRes = await pool.query(
     "SELECT * FROM users WHERE phone=$1 AND school_id=$2 AND role = ANY($3::user_role[])",
@@ -157,7 +161,7 @@ router.post('/forgot-password', async (req, res) => {
   }
 
   const phone = rows[0].phone;
-  const code = String(Math.floor(100000 + Math.random() * 900000));
+  const code = String(crypto.randomInt(100000, 1000000));
   const expires_at = new Date(Date.now() + 10 * 60 * 1000);
   await pool.query(
     'INSERT INTO otp_codes (phone, code, expires_at, school_id) VALUES ($1,$2,$3,$4)',
@@ -187,13 +191,16 @@ router.post('/reset-password', async (req, res) => {
   if (!user || !user.phone) return res.status(404).json({ error: 'Account not found' });
 
   const otp = (await pool.query(
-    `SELECT * FROM otp_codes WHERE phone=$1 AND code=$2 AND school_id=$3 AND used=false AND expires_at > now()
-     ORDER BY created_at DESC LIMIT 1`,
+    `UPDATE otp_codes SET used=true
+     WHERE id = (
+       SELECT id FROM otp_codes
+       WHERE phone=$1 AND code=$2 AND school_id=$3 AND used=false AND expires_at > now()
+       ORDER BY created_at DESC LIMIT 1 FOR UPDATE SKIP LOCKED
+     )
+     RETURNING *`,
     [user.phone, code, schoolId]
   )).rows[0];
   if (!otp) return res.status(401).json({ error: 'Invalid or expired code' });
-
-  await pool.query('UPDATE otp_codes SET used=true WHERE id=$1', [otp.id]);
   const password_hash = await bcrypt.hash(new_password, 10);
   await pool.query('UPDATE users SET password_hash=$1 WHERE id=$2', [password_hash, user.id]);
 

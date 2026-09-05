@@ -20,8 +20,14 @@ async function canAccessClassSubject(user, classSubjectId) {
   return grant.rows.length > 0;
 }
 
-router.get('/', requireAuth, async (req, res) => {
+router.get('/', requireAuth, requireRole('admin', 'teacher'), async (req, res) => {
   const { class_subject_id, term_id } = req.query;
+  if (req.user.role === 'teacher') {
+    if (!class_subject_id) return res.status(400).json({ error: 'class_subject_id is required for teachers' });
+    if (!(await canAccessClassSubject(req.user, class_subject_id))) {
+      return res.status(403).json({ error: 'Not assigned to this class-subject' });
+    }
+  }
   const values = [];
   const conditions = ['a.deleted_at IS NULL'];
   if (class_subject_id) { values.push(class_subject_id); conditions.push(`a.class_subject_id=$${values.length}`); }
@@ -42,6 +48,10 @@ router.post('/', requireAuth, requireRole('admin', 'teacher'), async (req, res) 
   const type = mode ? typeForMode(mode) : req.body.type;
   if (!class_subject_id || !term_id || !type || !title || !max_score || !weight) {
     return res.status(400).json({ error: 'class_subject_id, term_id, a valid mode (or type), title, max_score, weight are required' });
+  }
+  if (!Number.isFinite(Number(max_score)) || Number(max_score) <= 0 ||
+      !Number.isFinite(Number(weight)) || Number(weight) <= 0 || Number(weight) > 100) {
+    return res.status(400).json({ error: 'max_score must be positive and weight must be between 1 and 100' });
   }
   if (!(await canAccessClassSubject(req.user, class_subject_id))) {
     return res.status(403).json({ error: 'Not assigned to this class-subject' });
@@ -64,6 +74,12 @@ router.put('/:id', requireAuth, requireRole('admin', 'teacher'), async (req, res
     return res.status(403).json({ error: 'Not assigned to this class-subject' });
   }
   const { title, max_score, weight } = req.body;
+  if (max_score != null && (!Number.isFinite(Number(max_score)) || Number(max_score) <= 0)) {
+    return res.status(400).json({ error: 'max_score must be positive' });
+  }
+  if (weight != null && (!Number.isFinite(Number(weight)) || Number(weight) <= 0 || Number(weight) > 100)) {
+    return res.status(400).json({ error: 'weight must be between 1 and 100' });
+  }
   const { rows } = await pool.query(
     `UPDATE assessments SET title=COALESCE($1,title), max_score=COALESCE($2,max_score),
      weight=COALESCE($3,weight) WHERE id=$4 RETURNING *`,

@@ -209,7 +209,7 @@ export default function SidebarLayout({ nav, brand: brandProp = 'OUR WORLD MODEL
         </header>
 
         <main className="flex-1 p-4 sm:p-6 lg:px-8 lg:py-6 max-w-[1400px] w-full mx-auto animate-fade-in">
-          <ErrorBoundary resetKey={location.pathname}>
+          <ErrorBoundary key={location.pathname}>
             <Outlet />
           </ErrorBoundary>
         </main>

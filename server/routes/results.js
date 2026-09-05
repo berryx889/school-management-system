@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { pool } from '../db/pool.js';
 import { requireAuth, requireRole } from '../middleware/auth.js';
 import { auditFromReq } from '../utils/audit.js';
+import { canAccessClass, canViewStudent } from '../utils/access.js';
 
 const router = Router();
 
@@ -151,6 +152,7 @@ export async function computePromotionEligibility(classId, termId) {
 router.get('/broadsheet', requireAuth, requireRole('admin', 'teacher'), async (req, res) => {
   const { class_id, term_id } = req.query;
   if (!class_id || !term_id) return res.status(400).json({ error: 'class_id and term_id are required' });
+  if (!(await canAccessClass(req.user, class_id))) return res.status(403).json({ error: 'Forbidden' });
   const data = await computeClassResults(class_id, term_id);
   res.json(data);
 });
@@ -180,14 +182,7 @@ router.get('/student/:id', requireAuth, async (req, res) => {
   );
   if (!studentRes.rows.length) return res.status(404).json({ error: 'Not found' });
   const student = studentRes.rows[0];
-
-  if (req.user.role === 'student' && req.user.id !== undefined) {
-    const owner = await pool.query('SELECT user_id FROM students WHERE id=$1', [req.params.id]);
-    if (owner.rows[0]?.user_id !== req.user.id) return res.status(403).json({ error: 'Forbidden' });
-  }
-  if (req.user.role === 'parent') {
-    if (student.parent_id !== req.user.id) return res.status(403).json({ error: 'Forbidden' });
-  }
+  if (!(await canViewStudent(req.user, req.params.id))) return res.status(403).json({ error: 'Forbidden' });
 
   const release = await pool.query(
     'SELECT released FROM results_release WHERE term_id=$1 AND class_id=$2',

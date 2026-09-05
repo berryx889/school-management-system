@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import { api, apiErrorMessage } from '../../api/client.js';
-import { PageLoader, SectionHeader, EmptyState, Modal, Avatar, Badge, Skeleton } from '../../components/ui.jsx';
+import { SectionHeader, EmptyState, Modal, Avatar, Badge, Skeleton } from '../../components/ui.jsx';
 import { useToast } from '../../components/Toast.jsx';
 import { IconDownload, IconUpload, IconGraduationCap, IconEdit } from '../../components/Icon.jsx';
 

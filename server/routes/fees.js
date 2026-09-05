@@ -3,6 +3,7 @@ import { pool } from '../db/pool.js';
 import { requireAuth, requireRole } from '../middleware/auth.js';
 import { sendSms } from '../services/sms.js';
 import { getInvoiceBalance } from '../utils/finance.js';
+import { canViewStudent } from '../utils/access.js';
 
 async function getSettings() {
   const { rows } = await pool.query('SELECT * FROM school_settings LIMIT 1');
@@ -27,9 +28,13 @@ router.post('/structures', requireAuth, requireRole('admin', 'accountant'), asyn
   if (!term_id || !class_id || !item_name || amount == null) {
     return res.status(400).json({ error: 'term_id, class_id, item_name, amount are required' });
   }
+  const numericAmount = Number(amount);
+  if (!Number.isFinite(numericAmount) || numericAmount < 0) {
+    return res.status(400).json({ error: 'amount must be a non-negative number' });
+  }
   const { rows } = await pool.query(
     'INSERT INTO fee_structures (term_id, class_id, item_name, amount) VALUES ($1,$2,$3,$4) RETURNING *',
-    [term_id, class_id, item_name, amount]
+    [term_id, class_id, item_name, numericAmount]
   );
   res.status(201).json(rows[0]);
 });
@@ -97,7 +102,7 @@ router.post('/invoices/generate', requireAuth, requireRole('admin', 'accountant'
 
 router.patch('/invoices/:id/discount', requireAuth, requireRole('admin', 'accountant'), async (req, res) => {
   const { discount } = req.body;
-  if (discount == null || Number(discount) < 0) return res.status(400).json({ error: 'discount must be a non-negative number' });
+  if (discount == null || !Number.isFinite(Number(discount)) || Number(discount) < 0) return res.status(400).json({ error: 'discount must be a non-negative number' });
   const { rows } = await pool.query('UPDATE fee_invoices SET discount=$1 WHERE id=$2 RETURNING *', [discount, req.params.id]);
   if (!rows.length) return res.status(404).json({ error: 'Not found' });
   const settings = await getSettings();
@@ -117,10 +122,7 @@ router.get('/invoices', requireAuth, async (req, res) => {
   const { student_id, term_id } = req.query;
   if (!student_id) return res.status(400).json({ error: 'student_id is required' });
 
-  if (req.user.role === 'parent') {
-    const owner = await pool.query('SELECT parent_id FROM students WHERE id=$1', [student_id]);
-    if (owner.rows[0]?.parent_id !== req.user.id) return res.status(403).json({ error: 'Forbidden' });
-  }
+  if (!(await canViewStudent(req.user, student_id, { accountant: true, teacher: false }))) return res.status(403).json({ error: 'Forbidden' });
 
   const values = [student_id];
   let where = 'WHERE student_id=$1';

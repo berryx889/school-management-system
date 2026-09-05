@@ -85,5 +85,9 @@ app.use('/api/houses', houseRoutes);
 
 app.use((err, _req, res, _next) => {
   console.error(err);
-  res.status(err.status || 500).json({ error: err.message || 'Server error' });
+  const status = err.status || 500;
+  const message = status >= 500 && process.env.NODE_ENV === 'production'
+    ? 'Server error'
+    : (err.message || 'Server error');
+  res.status(status).json({ error: message });
 });

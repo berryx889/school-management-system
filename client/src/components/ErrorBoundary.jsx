@@ -8,12 +8,6 @@ export default class ErrorBoundary extends Component {
     return { hasError: true };
   }
 
-  componentDidUpdate(prevProps) {
-    if (prevProps.resetKey !== this.props.resetKey && this.state.hasError) {
-      this.setState({ hasError: false });
-    }
-  }
-
   componentDidCatch(error) {
     console.error(error);
   }

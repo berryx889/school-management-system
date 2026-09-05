@@ -2,8 +2,7 @@ import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api, apiErrorMessage } from '../../api/client.js';
 import { useToast } from '../../components/Toast.jsx';
-import { SectionHeader, EmptyState, Badge } from '../../components/ui.jsx';
-import { IconBell, IconMegaphone } from '../../components/Icon.jsx';
+import { SectionHeader } from '../../components/ui.jsx';
 
 export default function Notifications() {
   const toast = useToast();

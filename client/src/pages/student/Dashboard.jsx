@@ -4,7 +4,7 @@ import { format } from 'date-fns';
 import { useAuth } from '../../auth/AuthContext.jsx';
 import { api } from '../../api/client.js';
 import { Avatar, Skeleton } from '../../components/ui.jsx';
-import { IconCalendar, IconBarChart, IconMegaphone, IconArrowRight } from '../../components/Icon.jsx';
+import { IconCalendar, IconBarChart, IconMegaphone } from '../../components/Icon.jsx';
 
 const QUICK_LINKS = [
   { to: '/student/attendance', icon: IconCalendar, label: 'Attendance', tone: 'bg-primary-50 text-primary-600' },

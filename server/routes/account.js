@@ -82,6 +82,11 @@ router.post('/change-password', requireAuth, async (req, res) => {
 
 // Admin resets any user's password to a fresh temporary one (per PRD 5.1).
 router.post('/reset-password/:userId', requireAuth, requireRole('admin'), async (req, res) => {
+  const target = await pool.query('SELECT role FROM users WHERE id=$1', [req.params.userId]);
+  if (!target.rows.length) return res.status(404).json({ error: 'Not found' });
+  if (target.rows[0].role === 'super_admin' && req.user.role !== 'super_admin') {
+    return res.status(403).json({ error: 'Only a Super Admin can reset a Super Admin password' });
+  }
   const tempPassword = crypto.randomBytes(6).toString('base64url');
   const hash = await bcrypt.hash(tempPassword, 10);
   const { rows } = await pool.query(
@@ -89,7 +94,6 @@ router.post('/reset-password/:userId', requireAuth, requireRole('admin'), async 
      WHERE id=$2 RETURNING id, username, full_name, role`,
     [hash, req.params.userId]
   );
-  if (!rows.length) return res.status(404).json({ error: 'Not found' });
   res.json({ ...rows[0], temp_password: tempPassword });
 });
 

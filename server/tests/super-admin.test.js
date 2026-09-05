@@ -48,3 +48,11 @@ test('ordinary admin cannot create a Super Admin account', async () => {
   });
   assert.equal(res.status, 403);
 });
+
+test('ordinary admin cannot reset a Super Admin password', async () => {
+  const { rows } = await pool.query("SELECT id FROM users WHERE role='super_admin' AND school_id=1 LIMIT 1");
+  const res = await request(ctx.baseUrl, `/account/reset-password/${rows[0].id}`, {
+    method: 'POST', token: adminToken,
+  });
+  assert.equal(res.status, 403);
+});

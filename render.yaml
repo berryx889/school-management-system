@@ -14,6 +14,10 @@ services:
       # Neon connection string (Pooled). Set in the Render dashboard — never commit it.
       - key: DATABASE_URL
         sync: false
+      # Restricted application role used for tenant-scoped requests. This role must not own
+      # tables and must not have SUPERUSER/BYPASSRLS, otherwise PostgreSQL RLS is bypassed.
+      - key: DATABASE_APP_URL
+        sync: false
       # Signing secret for JWTs — Render generates a strong value.
       - key: JWT_SECRET
         generateValue: true

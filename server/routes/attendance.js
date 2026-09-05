@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { pool } from '../db/pool.js';
 import { requireAuth, requireRole } from '../middleware/auth.js';
+import { canAccessClass, canViewStudent, isAdmin } from '../utils/access.js';
 
 const router = Router();
 
@@ -63,6 +64,27 @@ router.post('/manual', requireAuth, requireRole('admin', 'teacher'), async (req,
   if (!class_id || !date || !Array.isArray(records)) {
     return res.status(400).json({ error: 'class_id, date and records[] are required' });
   }
+  if (!(await canAccessClass(req.user, class_id))) {
+    return res.status(403).json({ error: 'You are not assigned to this class' });
+  }
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+    return res.status(400).json({ error: 'date must use YYYY-MM-DD format' });
+  }
+
+  const roster = await pool.query(
+    `SELECT id FROM students WHERE class_id=$1 AND status='active'`,
+    [class_id]
+  );
+  const rosterIds = new Set(roster.rows.map((row) => row.id));
+  const allowedStatuses = new Set(['present', 'absent', 'late', 'excused']);
+  for (const record of records) {
+    if (!rosterIds.has(Number(record.student_id))) {
+      return res.status(400).json({ error: `Student ${record.student_id} is not active in this class` });
+    }
+    if (!allowedStatuses.has(record.status)) {
+      return res.status(400).json({ error: `Invalid attendance status for student ${record.student_id}` });
+    }
+  }
 
   const settings = await pool.query('SELECT attendance_edit_cutoff FROM school_settings LIMIT 1');
   const cutoff = settings.rows[0]?.attendance_edit_cutoff || '10:00:00';
@@ -96,6 +118,8 @@ router.get('/', requireAuth, async (req, res) => {
   const { class_id, date, student_id, month } = req.query;
 
   if (student_id && month) {
+    if (!/^\d{4}-\d{2}$/.test(month)) return res.status(400).json({ error: 'month must use YYYY-MM format' });
+    if (!(await canViewStudent(req.user, student_id))) return res.status(403).json({ error: 'Forbidden' });
     const { rows } = await pool.query(
       `SELECT * FROM attendance WHERE student_id=$1 AND to_char(date,'YYYY-MM')=$2 ORDER BY date`,
       [student_id, month]
@@ -104,6 +128,9 @@ router.get('/', requireAuth, async (req, res) => {
   }
 
   if (class_id && date) {
+    if (!(isAdmin(req.user) || await canAccessClass(req.user, class_id))) {
+      return res.status(403).json({ error: 'Forbidden' });
+    }
     const { rows } = await pool.query(
       `SELECT a.*, s.id AS student_id, u.full_name, u.photo_url, s.student_code
        FROM students s

@@ -6,7 +6,9 @@ import { requireAuth, requireRole } from '../middleware/auth.js';
 const router = Router();
 
 router.get('/', requireAuth, async (req, res) => {
-  const { page = 1, limit = 50, search } = req.query;
+  const { search } = req.query;
+  const page = Math.max(1, Number.parseInt(req.query.page, 10) || 1);
+  const limit = Math.min(200, Math.max(1, Number.parseInt(req.query.limit, 10) || 50));
   const offset = (page - 1) * limit;
   const values = [];
   let where = "WHERE role='teacher' AND deleted_at IS NULL";

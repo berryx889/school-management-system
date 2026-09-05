@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import { format } from 'date-fns';
 import { useParentChild } from '../../auth/ParentContext.jsx';
-import { Avatar, Skeleton } from '../../components/ui.jsx';
+import { Avatar } from '../../components/ui.jsx';
 import ChildSwitcher from './ChildSwitcher.jsx';
 import { IconCalendar, IconBarChart, IconCreditCard, IconTrendingUp, IconMegaphone, IconMessageCircle } from '../../components/Icon.jsx';
 

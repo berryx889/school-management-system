@@ -1,13 +1,13 @@
 import { useQuery } from '@tanstack/react-query';
 import { PieChart, Pie, Cell, ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts';
 import { api } from '../../api/client.js';
-import { StatCard, PageLoader, EmptyState, SkeletonCard } from '../../components/ui.jsx';
+import { StatCard, EmptyState, SkeletonCard } from '../../components/ui.jsx';
 import { useAuth } from '../../auth/AuthContext.jsx';
 import { format } from 'date-fns';
 import {
-  IconGraduationCap, IconUser, IconCheckCircle, IconAlertTriangle, IconClock, IconWallet,
+  IconGraduationCap, IconUser, IconCheckCircle, IconAlertTriangle, IconWallet,
   IconReceipt, IconClipboardList, IconTrendingUp, IconCreditCard, IconMegaphone,
-  IconUnlock, IconSmartphone, IconBuilding, IconZap,
+  IconSmartphone, IconBuilding,
 } from '../../components/Icon.jsx';
 
 function ChartCard({ title, children, className = '' }) {
@@ -15,24 +15,6 @@ function ChartCard({ title, children, className = '' }) {
     <div className={`card p-6 ${className}`}>
       <h3 className="text-[15px] font-bold text-slate-800 mb-4">{title}</h3>
       {children}
-    </div>
-  );
-}
-
-function ActivityItem({ icon: Icon, label, value, tone = 'primary' }) {
-  const tones = {
-    primary: 'bg-primary-50 text-primary-600',
-    green: 'bg-emerald-50 text-emerald-600',
-    amber: 'bg-amber-50 text-amber-600',
-    red: 'bg-red-50 text-red-600',
-  };
-  return (
-    <div className="flex items-center gap-3 py-3">
-      <div className={`h-9 w-9 rounded-xl flex items-center justify-center shrink-0 ${tones[tone]}`}>
-        <Icon className="h-4 w-4" />
-      </div>
-      <span className="text-sm text-slate-600 flex-1">{label}</span>
-      <span className="text-sm font-bold text-slate-800 tabular-nums">{value}</span>
     </div>
   );
 }

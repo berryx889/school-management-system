@@ -36,7 +36,7 @@ export default function MobileLayout({ tabs }) {
       </header>
 
       <main className="flex-1 max-w-lg w-full mx-auto pb-24 px-4 pt-5 animate-fade-in">
-        <ErrorBoundary resetKey={location.pathname}>
+        <ErrorBoundary key={location.pathname}>
           <Outlet />
         </ErrorBoundary>
       </main>

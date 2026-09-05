@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { format } from 'date-fns';
 import { useAuth } from '../../auth/AuthContext.jsx';
 import { api } from '../../api/client.js';
-import { PageLoader, SkeletonCard } from '../../components/ui.jsx';
+import { SkeletonCard } from '../../components/ui.jsx';
 import { IconCalendar, IconEdit, IconBook, IconArrowRight } from '../../components/Icon.jsx';
 
 export default function TeacherDashboard() {

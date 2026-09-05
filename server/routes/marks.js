@@ -6,7 +6,7 @@ import { requireAuth, requireRole } from '../middleware/auth.js';
 import { auditFromReq } from '../utils/audit.js';
 
 const router = Router();
-const upload = multer({ storage: multer.memoryStorage() });
+const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 5 * 1024 * 1024, files: 1 } });
 
 // Loads the assessment plus its owning class-subject, or null.
 async function loadAssessment(assessmentId) {
@@ -72,9 +72,12 @@ async function saveScores(assessment, entries, userId) {
   return saved;
 }
 
-router.get('/', requireAuth, async (req, res) => {
+router.get('/', requireAuth, requireRole('admin', 'teacher'), async (req, res) => {
   const { assessment_id } = req.query;
   if (!assessment_id) return res.status(400).json({ error: 'assessment_id is required' });
+  const assessment = await loadAssessment(assessment_id);
+  if (!assessment) return res.status(404).json({ error: 'Assessment not found' });
+  if (!(await canEnterMarks(req.user, assessment))) return res.status(403).json({ error: 'You are not assigned to this class-subject' });
   const { rows } = await pool.query(
     `SELECT m.*, u.full_name, s.student_code FROM marks m
      JOIN students s ON s.id = m.student_id

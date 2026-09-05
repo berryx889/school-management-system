@@ -8,7 +8,7 @@ import {
   IconHome, IconGraduationCap, IconUser, IconUsers, IconBuilding, IconBook, IconLink, IconCalendar,
   IconCamera, IconUtensils, IconEdit, IconBarChart, IconFileText, IconUnlock, IconWallet,
   IconClipboardList, IconMegaphone, IconSettings, IconCreditCard, IconMessageCircle, IconTrendingUp,
-  IconInbox, IconShield, IconBell, IconCommand, IconActivity, IconTrash,
+  IconShield, IconBell, IconActivity, IconTrash,
 } from './components/Icon.jsx';
 
 import Landing from './pages/Landing.jsx';

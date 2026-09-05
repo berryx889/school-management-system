@@ -9,7 +9,7 @@ import { requireAuth, requireRole } from '../middleware/auth.js';
 import { computePromotionEligibility } from './results.js';
 
 const router = Router();
-const upload = multer({ storage: multer.memoryStorage() });
+const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 5 * 1024 * 1024, files: 1 } });
 
 function normalizePhone(phone) {
   const digits = String(phone).replace(/\D/g, '');
@@ -34,6 +34,9 @@ async function findOrCreateParent(client, { phone, name }) {
 }
 
 async function nextStudentCode(client) {
+  // Serialize code allocation per tenant so simultaneous admissions cannot generate
+  // the same student code before either transaction commits.
+  await client.query("SELECT pg_advisory_xact_lock(71001, current_setting('app.school_id')::int)");
   const { rows } = await client.query(
     "SELECT student_code FROM students ORDER BY id DESC LIMIT 1"
   );
@@ -49,7 +52,9 @@ router.get('/', requireAuth, async (req, res) => {
     return res.status(403).json({ error: 'Forbidden' });
   }
 
-  const { class_id, search, page = 1, limit = 100 } = req.query;
+  const { class_id, search } = req.query;
+  const page = Math.max(1, Number.parseInt(req.query.page, 10) || 1);
+  const limit = Math.min(200, Math.max(1, Number.parseInt(req.query.limit, 10) || 100));
   const offset = (page - 1) * limit;
   const values = [];
   const conditions = ["s.status != 'deleted'"];

@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { pool } from '../db/pool.js';
 import { requireAuth } from '../middleware/auth.js';
 import { getInvoiceBalance } from '../utils/finance.js';
+import { canViewStudent } from '../utils/access.js';
 
 const router = Router();
 
@@ -23,10 +24,7 @@ router.get('/:paymentId', requireAuth, async (req, res) => {
   if (!rows.length) return res.status(404).json({ error: 'Not found' });
   const receipt = rows[0];
 
-  if (req.user.role === 'parent') {
-    const owner = await pool.query('SELECT parent_id FROM students WHERE id=$1', [receipt.student_id]);
-    if (owner.rows[0]?.parent_id !== req.user.id) return res.status(403).json({ error: 'Forbidden' });
-  }
+  if (!(await canViewStudent(req.user, receipt.student_id, { accountant: true, teacher: false }))) return res.status(403).json({ error: 'Forbidden' });
 
   const balanceInfo = await getInvoiceBalance(
     { id: receipt.invoice_id, total_due: receipt.total_due, discount: receipt.discount, due_date: receipt.due_date },

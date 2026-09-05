@@ -77,3 +77,17 @@ test('accountant is rejected from admin-only academic/settings routes', async ()
   });
   assert.equal(promote.status, 403);
 });
+
+test('invalid fee amounts and overpayments are rejected cleanly', async () => {
+  const invalidFee = await request(ctx.baseUrl, '/fees/structures', {
+    method: 'POST', token: accountantToken,
+    body: { term_id: termId, class_id: 4, item_name: 'Invalid negative fee', amount: -1 },
+  });
+  assert.equal(invalidFee.status, 400);
+
+  const overpay = await request(ctx.baseUrl, '/payments/manual', {
+    method: 'POST', token: accountantToken,
+    body: { invoice_id: invoiceId, amount: 1000000, method: 'cash' },
+  });
+  assert.equal(overpay.status, 400);
+});
