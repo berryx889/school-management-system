@@ -1,5 +1,7 @@
 import express from 'express';
 import cors from 'cors';
+import helmet from 'helmet';
+import crypto from 'node:crypto';
 import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -43,6 +45,16 @@ export const app = express();
 // audit logging see the real client IP from X-Forwarded-For rather than the proxy's.
 app.set('trust proxy', 1);
 
+app.disable('x-powered-by');
+app.use(helmet({
+  crossOriginResourcePolicy: { policy: 'cross-origin' },
+  contentSecurityPolicy: false,
+}));
+app.use((req, res, next) => {
+  req.requestId = req.headers['x-request-id'] || crypto.randomUUID();
+  res.setHeader('X-Request-Id', req.requestId);
+  next();
+});
 app.use(cors({ origin: process.env.CLIENT_URL || '*' }));
 
 // Paystack webhook needs the raw body for signature verification, so mount it before json parsing.
@@ -83,11 +95,23 @@ app.use('/api/trash', trashRoutes);
 app.use('/api/expenses', expenseRoutes);
 app.use('/api/houses', houseRoutes);
 
-app.use((err, _req, res, _next) => {
+app.use('/api', (req, res) => {
+  res.status(404).json({
+    error: 'We could not find that service. Please check the address and try again.',
+    error_code: 'API_NOT_FOUND',
+    request_id: req.requestId,
+  });
+});
+
+app.use((err, req, res, _next) => {
   console.error(err);
   const status = err.status || 500;
   const message = status >= 500 && process.env.NODE_ENV === 'production'
     ? 'Server error'
     : (err.message || 'Server error');
-  res.status(status).json({ error: message });
+  res.status(status).json({
+    error: message,
+    error_code: status >= 500 ? 'SERVER_ERROR' : 'REQUEST_ERROR',
+    request_id: req.requestId,
+  });
 });

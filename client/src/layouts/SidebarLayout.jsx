@@ -102,7 +102,7 @@ export default function SidebarLayout({ nav, brand: brandProp = 'OUR WORLD MODEL
         {/* Brand */}
         <div className="h-16 flex items-center gap-3 px-5 shrink-0">
           {settings?.logo_url ? (
-            <img src={settings.logo_url} alt="" className="h-9 w-9 rounded-xl object-contain shrink-0 ring-2 ring-accent-400" />
+            <img src={settings.logo_url} alt={`${settings?.name || 'School'} logo`} className="h-9 w-9 rounded-xl object-contain shrink-0 ring-2 ring-accent-400" />
           ) : (
             <div className="h-9 w-9 rounded-xl bg-primary-600 text-white flex items-center justify-center font-bold text-sm shrink-0 ring-2 ring-accent-400">
               {brand[0]}

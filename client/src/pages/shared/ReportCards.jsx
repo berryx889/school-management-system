@@ -17,7 +17,7 @@ function ReportCardPage({ result, settings }) {
         <img src={settings.report_card_watermark_url} alt="" className="absolute inset-0 m-auto max-h-[60%] opacity-10 pointer-events-none" />
       )}
       <div className="text-center border-b-2 pb-4 mb-4" style={{ borderColor: primary }}>
-        {settings?.logo_url && <img src={settings.logo_url} alt="" className="h-14 mx-auto mb-2" />}
+        {settings?.logo_url && <img src={settings.logo_url} alt={`${settings?.name || 'School'} logo`} className="h-14 mx-auto mb-2" />}
         <h1 className="text-xl font-bold text-slate-900">{settings?.name}</h1>
         <p className="text-xs text-slate-500">{settings?.address} · {settings?.phone}</p>
         {settings?.motto && <p className="text-xs italic text-slate-400 mt-1">"{settings.motto}"</p>}

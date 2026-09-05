@@ -65,17 +65,19 @@ export function EmptyState({ icon: Icon = IconInbox, title, description, action 
 
 export function Spinner({ className = '' }) {
   return (
-    <svg className={`animate-spin h-5 w-5 text-primary-600 ${className}`} viewBox="0 0 24 24" fill="none">
-      <circle className="opacity-20" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" />
-      <path className="opacity-80" fill="currentColor" d="M4 12a8 8 0 018-8v3a5 5 0 00-5 5H4z" />
-    </svg>
+    <span className={`school-spinner ${className}`} role="status" aria-label="Loading">
+      <span className="school-spinner__ring" />
+      <span className="school-spinner__book" aria-hidden="true"><i /><i /></span>
+    </span>
   );
 }
 
-export function PageLoader() {
+export function PageLoader({ label = 'Loading school information…', fullScreen = false }) {
   return (
-    <div className="flex items-center justify-center py-24">
-      <Spinner className="h-6 w-6" />
+    <div className={`flex flex-col items-center justify-center px-6 text-center ${fullScreen ? 'min-h-screen bg-surface' : 'py-24'}`} aria-live="polite">
+      <Spinner className="h-16 w-16" />
+      <p className="mt-5 text-sm font-semibold text-slate-700">{label}</p>
+      <p className="mt-1 text-xs text-slate-400">Please wait a moment</p>
     </div>
   );
 }

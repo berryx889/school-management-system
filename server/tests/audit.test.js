@@ -27,6 +27,9 @@ test('a successful login is recorded in the audit trail', async () => {
   assert.ok(r.data.total >= 1);
   assert.ok(r.data.data.every((e) => e.action === 'auth.login'));
   assert.ok(r.data.data[0].created_at, 'has a timestamp');
+  assert.equal(r.data.data[0].action_label, 'Successful sign-in');
+  assert.match(r.data.data[0].description, /signed in successfully/i);
+  assert.match(r.data.data[0].actor_display, /Super Admin|Administrator/);
 });
 
 test('a failed login is recorded with no actor leak', async () => {
@@ -73,4 +76,11 @@ test('a non-admin cannot read the audit log', async () => {
   const teacherToken = await login(ctx.baseUrl, 'teacher1', 'teacher123', 'teacher');
   const r = await request(ctx.baseUrl, '/audit-logs', { token: teacherToken });
   assert.equal(r.status, 403);
+});
+
+test('audit action filters are returned with human-readable labels', async () => {
+  const r = await request(ctx.baseUrl, '/audit-logs/actions', { token: adminToken });
+  assert.equal(r.status, 200);
+  const login = r.data.find((item) => item.value === 'auth.login');
+  assert.equal(login.label, 'Successful sign-in');
 });

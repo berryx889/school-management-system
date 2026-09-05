@@ -1,9 +1,12 @@
-import { Navigate, Route, Routes } from 'react-router-dom';
+import { lazy, Suspense, useEffect } from 'react';
+import { Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import { useAuth } from './auth/AuthContext.jsx';
 import ProtectedRoute from './auth/ProtectedRoute.jsx';
 import { ParentProvider } from './auth/ParentContext.jsx';
 import SidebarLayout from './layouts/SidebarLayout.jsx';
 import MobileLayout from './layouts/MobileLayout.jsx';
+import { PageLoader } from './components/ui.jsx';
+import NotFound from './pages/NotFound.jsx';
 import {
   IconHome, IconGraduationCap, IconUser, IconUsers, IconBuilding, IconBook, IconLink, IconCalendar,
   IconCamera, IconUtensils, IconEdit, IconBarChart, IconFileText, IconUnlock, IconWallet,
@@ -14,60 +17,60 @@ import {
 import Landing from './pages/Landing.jsx';
 import Login from './pages/Login.jsx';
 
-import AdminDashboard from './pages/admin/Dashboard.jsx';
-import Students from './pages/admin/Students.jsx';
-import PromoteStudents from './pages/admin/PromoteStudents.jsx';
-import StudentQrCard from './pages/admin/StudentQrCard.jsx';
-import Teachers from './pages/admin/Teachers.jsx';
-import StaffDirectory from './pages/admin/StaffDirectory.jsx';
-import Permissions from './pages/admin/Permissions.jsx';
-import Classes from './pages/admin/Classes.jsx';
-import ClassDetail from './pages/admin/ClassDetail.jsx';
-import StructureBuilder from './pages/admin/StructureBuilder.jsx';
-import Subjects from './pages/admin/Subjects.jsx';
-import ClassSubjects from './pages/admin/ClassSubjects.jsx';
-import AdminTimetable from './pages/admin/Timetable.jsx';
-import AcademicTerms from './pages/admin/AcademicTerms.jsx';
-import ResultsRelease from './pages/admin/ResultsRelease.jsx';
-import RemarksSetup from './pages/admin/RemarksSetup.jsx';
-import FeeStructures from './pages/admin/FeeStructures.jsx';
-import Debtors from './pages/admin/Debtors.jsx';
-import AdminSettings from './pages/admin/Settings.jsx';
-import Expenses from './pages/admin/Expenses.jsx';
-import AuditLog from './pages/admin/AuditLog.jsx';
-import Trash from './pages/admin/Trash.jsx';
-import AdminNotifications from './pages/admin/Notifications.jsx';
-import SuperAdminDashboard from './pages/superadmin/Dashboard.jsx';
+const AdminDashboard = lazy(() => import('./pages/admin/Dashboard.jsx'));
+const Students = lazy(() => import('./pages/admin/Students.jsx'));
+const PromoteStudents = lazy(() => import('./pages/admin/PromoteStudents.jsx'));
+const StudentQrCard = lazy(() => import('./pages/admin/StudentQrCard.jsx'));
+const Teachers = lazy(() => import('./pages/admin/Teachers.jsx'));
+const StaffDirectory = lazy(() => import('./pages/admin/StaffDirectory.jsx'));
+const Permissions = lazy(() => import('./pages/admin/Permissions.jsx'));
+const Classes = lazy(() => import('./pages/admin/Classes.jsx'));
+const ClassDetail = lazy(() => import('./pages/admin/ClassDetail.jsx'));
+const StructureBuilder = lazy(() => import('./pages/admin/StructureBuilder.jsx'));
+const Subjects = lazy(() => import('./pages/admin/Subjects.jsx'));
+const ClassSubjects = lazy(() => import('./pages/admin/ClassSubjects.jsx'));
+const AdminTimetable = lazy(() => import('./pages/admin/Timetable.jsx'));
+const AcademicTerms = lazy(() => import('./pages/admin/AcademicTerms.jsx'));
+const ResultsRelease = lazy(() => import('./pages/admin/ResultsRelease.jsx'));
+const RemarksSetup = lazy(() => import('./pages/admin/RemarksSetup.jsx'));
+const FeeStructures = lazy(() => import('./pages/admin/FeeStructures.jsx'));
+const Debtors = lazy(() => import('./pages/admin/Debtors.jsx'));
+const AdminSettings = lazy(() => import('./pages/admin/Settings.jsx'));
+const Expenses = lazy(() => import('./pages/admin/Expenses.jsx'));
+const AuditLog = lazy(() => import('./pages/admin/AuditLog.jsx'));
+const Trash = lazy(() => import('./pages/admin/Trash.jsx'));
+const AdminNotifications = lazy(() => import('./pages/admin/Notifications.jsx'));
+const SuperAdminDashboard = lazy(() => import('./pages/superadmin/Dashboard.jsx'));
 
-import TeacherDashboard from './pages/teacher/Dashboard.jsx';
-import AttendanceMark from './pages/teacher/AttendanceMark.jsx';
-import TeacherTimetable from './pages/teacher/Timetable.jsx';
-import TeacherChat from './pages/teacher/ChatPage.jsx';
+const TeacherDashboard = lazy(() => import('./pages/teacher/Dashboard.jsx'));
+const AttendanceMark = lazy(() => import('./pages/teacher/AttendanceMark.jsx'));
+const TeacherTimetable = lazy(() => import('./pages/teacher/Timetable.jsx'));
+const TeacherChat = lazy(() => import('./pages/teacher/ChatPage.jsx'));
 
-import StudentDashboard from './pages/student/Dashboard.jsx';
-import StudentAttendance from './pages/student/Attendance.jsx';
-import StudentResults from './pages/student/Results.jsx';
-import StudentTimetable from './pages/student/Timetable.jsx';
-import StudentNotices from './pages/student/Notices.jsx';
+const StudentDashboard = lazy(() => import('./pages/student/Dashboard.jsx'));
+const StudentAttendance = lazy(() => import('./pages/student/Attendance.jsx'));
+const StudentResults = lazy(() => import('./pages/student/Results.jsx'));
+const StudentTimetable = lazy(() => import('./pages/student/Timetable.jsx'));
+const StudentNotices = lazy(() => import('./pages/student/Notices.jsx'));
 
-import ParentDashboard from './pages/parent/Dashboard.jsx';
-import ParentAttendance from './pages/parent/Attendance.jsx';
-import ParentResults from './pages/parent/Results.jsx';
-import ParentTimetable from './pages/parent/Timetable.jsx';
-import ParentNotices from './pages/parent/Notices.jsx';
-import ParentFees from './pages/parent/Fees.jsx';
-import ParentChat from './pages/parent/ChatPage.jsx';
-import ParentProgress from './pages/parent/Progress.jsx';
+const ParentDashboard = lazy(() => import('./pages/parent/Dashboard.jsx'));
+const ParentAttendance = lazy(() => import('./pages/parent/Attendance.jsx'));
+const ParentResults = lazy(() => import('./pages/parent/Results.jsx'));
+const ParentTimetable = lazy(() => import('./pages/parent/Timetable.jsx'));
+const ParentNotices = lazy(() => import('./pages/parent/Notices.jsx'));
+const ParentFees = lazy(() => import('./pages/parent/Fees.jsx'));
+const ParentChat = lazy(() => import('./pages/parent/ChatPage.jsx'));
+const ParentProgress = lazy(() => import('./pages/parent/Progress.jsx'));
 
-import GateScanner from './pages/shared/GateScanner.jsx';
-import Kitchen from './pages/shared/Kitchen.jsx';
-import MarksEntry from './pages/shared/MarksEntry.jsx';
-import Broadsheet from './pages/shared/Broadsheet.jsx';
-import ReportCards from './pages/shared/ReportCards.jsx';
-import Announcements from './pages/shared/Announcements.jsx';
-import Receipt from './pages/shared/Receipt.jsx';
-import RemarkSheet from './pages/shared/RemarkSheet.jsx';
-import HouseSystem from './pages/shared/HouseSystem.jsx';
+const GateScanner = lazy(() => import('./pages/shared/GateScanner.jsx'));
+const Kitchen = lazy(() => import('./pages/shared/Kitchen.jsx'));
+const MarksEntry = lazy(() => import('./pages/shared/MarksEntry.jsx'));
+const Broadsheet = lazy(() => import('./pages/shared/Broadsheet.jsx'));
+const ReportCards = lazy(() => import('./pages/shared/ReportCards.jsx'));
+const Announcements = lazy(() => import('./pages/shared/Announcements.jsx'));
+const Receipt = lazy(() => import('./pages/shared/Receipt.jsx'));
+const RemarkSheet = lazy(() => import('./pages/shared/RemarkSheet.jsx'));
+const HouseSystem = lazy(() => import('./pages/shared/HouseSystem.jsx'));
 
 const ADMIN_NAV = [
   { to: '/admin', end: true, icon: IconHome, label: 'Dashboard' },
@@ -148,6 +151,33 @@ const PARENT_TABS = [
   { to: '/parent/notices', icon: IconMegaphone, label: 'More' },
 ];
 
+const PAGE_NAMES = {
+  admin: 'Admin dashboard', accountant: 'Finance dashboard', audit: 'Audit history', attendance: 'Attendance', announcements: 'Announcements',
+  broadsheet: 'Broadsheet', chat: 'Messages', classes: 'Classes', debtors: 'Fees and debtors',
+  expenses: 'Expenses', fees: 'Fees', houses: 'House system', kitchen: 'Kitchen headcount',
+  login: 'Sign in', marks: 'Marks entry', notices: 'Notices', notifications: 'Notifications',
+  parent: 'Parent dashboard', permissions: 'Staff permissions', progress: 'Learning progress', receipts: 'Payment receipt', 'report-cards': 'Report cards',
+  remarks: 'Report remarks', results: 'Results', settings: 'Settings', staff: 'Staff directory',
+  student: 'Student dashboard', students: 'Students', subjects: 'Subjects', teacher: 'Teacher dashboard', teachers: 'Teachers', timetable: 'Timetable',
+  trash: 'Trash', structures: 'Fee structures', 'super-admin': 'Super Admin command center',
+};
+
+function RoutePageTitle() {
+  const { pathname } = useLocation();
+  useEffect(() => {
+    const update = () => {
+      const parts = pathname.split('/').filter(Boolean);
+      const pageName = [...parts].reverse().map((part) => PAGE_NAMES[part]).find(Boolean);
+      const schoolName = document.documentElement.dataset.schoolName || 'OUR WORLD MODEL SCHOOL';
+      document.title = pageName ? `${pageName} | ${schoolName}` : schoolName;
+    };
+    update();
+    window.addEventListener('school-brand-change', update);
+    return () => window.removeEventListener('school-brand-change', update);
+  }, [pathname]);
+  return null;
+}
+
 function RoleRedirect() {
   const { user } = useAuth();
   if (!user) return <Landing />;
@@ -161,7 +191,9 @@ function AdminLayout() {
 
 export default function App() {
   return (
-    <Routes>
+    <Suspense fallback={<PageLoader fullScreen label="Opening your school portal…" />}>
+      <RoutePageTitle />
+      <Routes>
       <Route path="/login" element={<Login />} />
       <Route path="/" element={<RoleRedirect />} />
 
@@ -256,7 +288,8 @@ export default function App() {
         <Route path="receipts/:paymentId" element={<Receipt />} />
       </Route>
 
-      <Route path="*" element={<Navigate to="/" replace />} />
-    </Routes>
+        <Route path="*" element={<NotFound />} />
+      </Routes>
+    </Suspense>
   );
 }

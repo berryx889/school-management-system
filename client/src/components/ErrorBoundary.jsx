@@ -1,11 +1,11 @@
 import { Component } from 'react';
-import { IconAlertTriangle } from './Icon.jsx';
+import { IconAlertTriangle, IconArrowLeft, IconHome } from './Icon.jsx';
 
 export default class ErrorBoundary extends Component {
-  state = { hasError: false };
+  state = { hasError: false, reference: null };
 
   static getDerivedStateFromError() {
-    return { hasError: true };
+    return { hasError: true, reference: `ERR-${Date.now().toString(36).toUpperCase()}` };
   }
 
   componentDidCatch(error) {
@@ -14,19 +14,30 @@ export default class ErrorBoundary extends Component {
 
   render() {
     if (this.state.hasError) {
+      const offline = typeof navigator !== 'undefined' && !navigator.onLine;
       return (
-        <div className="flex flex-col items-center justify-center text-center py-24 px-6">
-          <div className="h-14 w-14 rounded-2xl bg-amber-50 text-amber-500 flex items-center justify-center mb-4">
-            <IconAlertTriangle className="h-7 w-7" />
+        <section className="flex flex-col items-center justify-center text-center py-20 px-6" role="alert" aria-labelledby="page-error-title">
+          <div className="relative h-20 w-20 mb-6">
+            <div className="absolute inset-0 rounded-3xl bg-amber-100 rotate-6" />
+            <div className="absolute inset-1 rounded-3xl bg-white text-amber-600 flex items-center justify-center shadow-card">
+              <IconAlertTriangle className="h-8 w-8" />
+            </div>
           </div>
-          <p className="font-semibold text-slate-800">Something went wrong loading this page</p>
-          <p className="text-sm text-slate-500 mt-1 max-w-sm">
-            The server may be unreachable. Check your connection and try again.
+          <h1 id="page-error-title" className="text-2xl font-bold text-slate-900">
+            {offline ? 'You appear to be offline' : 'This page could not finish loading'}
+          </h1>
+          <p className="text-sm text-slate-500 mt-2 max-w-md leading-relaxed">
+            {offline
+              ? 'Reconnect to the internet, then try this page again. Your existing school records are safe.'
+              : 'This may be a temporary connection or server problem. Your saved school records have not been removed.'}
           </p>
-          <button className="btn-primary mt-4" onClick={() => location.reload()}>
-            Reload
-          </button>
-        </div>
+          <p className="mt-3 text-xs text-slate-400">Support reference: {this.state.reference}</p>
+          <div className="mt-6 flex flex-col sm:flex-row gap-3">
+            <button className="btn-secondary" onClick={() => history.back()}><IconArrowLeft className="h-4 w-4" /> Go back</button>
+            <button className="btn-primary" onClick={() => location.reload()}>Try this page again</button>
+            <a className="btn-ghost" href="/"><IconHome className="h-4 w-4" /> Dashboard</a>
+          </div>
+        </section>
       );
     }
     return this.props.children;

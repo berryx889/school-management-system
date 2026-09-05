@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { format } from 'date-fns';
+import { format, formatDistanceToNow } from 'date-fns';
 import { api } from '../../api/client.js';
 import { Skeleton, SectionHeader, EmptyState, Badge } from '../../components/ui.jsx';
-import { IconActivity } from '../../components/Icon.jsx';
+import { IconActivity, IconAlertTriangle } from '../../components/Icon.jsx';
 
 // Colour the action by what kind of thing happened, so the log scans at a glance.
 function toneFor(action) {
@@ -24,7 +24,7 @@ export default function AuditLog() {
     queryFn: () => api.get('/audit-logs/actions').then((r) => r.data),
   });
 
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ['audit-logs', action],
     queryFn: () => api.get('/audit-logs', { params: { ...(action ? { action } : {}), limit: 100 } }).then((r) => r.data),
   });
@@ -37,7 +37,7 @@ export default function AuditLog() {
         action={
           <select className="input" value={action} onChange={(e) => setAction(e.target.value)}>
             <option value="">All actions</option>
-            {actions.map((a) => <option key={a} value={a}>{a}</option>)}
+            {actions.map((a) => <option key={a.value || a} value={a.value || a}>{a.label || a}</option>)}
           </select>
         }
       />
@@ -53,7 +53,14 @@ export default function AuditLog() {
               </div>
             ))}
           </div>
-        ) : !data.data.length ? (
+        ) : isError ? (
+          <EmptyState
+            icon={IconAlertTriangle}
+            title="We couldn’t load the activity history"
+            description="Check your connection and try again. No audit records were changed."
+            action={<button className="btn-secondary" onClick={() => refetch()}>Try again</button>}
+          />
+        ) : !data?.data?.length ? (
           <EmptyState icon={IconActivity} title="No activity yet" description="Sensitive actions will appear here as they happen." />
         ) : (
           <div className="overflow-x-auto">
@@ -61,20 +68,31 @@ export default function AuditLog() {
               <thead>
                 <tr>
                   <th>When</th>
-                  <th>Who</th>
-                  <th>Action</th>
-                  <th>Details</th>
-                  <th className="hidden lg:table-cell">IP</th>
+                  <th>Done by</th>
+                  <th>Event</th>
+                  <th>What happened</th>
                 </tr>
               </thead>
               <tbody>
                 {data.data.map((e) => (
                   <tr key={e.id}>
-                    <td className="whitespace-nowrap text-slate-500 tabular-nums">{format(new Date(e.created_at), 'd MMM, HH:mm')}</td>
-                    <td className="text-slate-700">{e.actor_label || <span className="text-slate-400">—</span>}</td>
-                    <td><Badge tone={toneFor(e.action)}>{e.action}</Badge></td>
-                    <td className="text-slate-600">{e.summary}</td>
-                    <td className="hidden lg:table-cell text-slate-400 font-mono text-xs">{e.ip || '—'}</td>
+                    <td className="whitespace-nowrap align-top">
+                      <p className="text-slate-700 font-medium">{formatDistanceToNow(new Date(e.created_at), { addSuffix: true })}</p>
+                      <p className="text-xs text-slate-400 tabular-nums mt-0.5">{format(new Date(e.created_at), 'd MMM yyyy, h:mm a')}</p>
+                    </td>
+                    <td className="text-slate-700 align-top">{e.actor_display}</td>
+                    <td className="align-top"><Badge tone={toneFor(e.action)}>{e.action_label}</Badge></td>
+                    <td className="text-slate-600 min-w-64">
+                      <p>{e.description}</p>
+                      <details className="mt-2 text-xs text-slate-400">
+                        <summary className="cursor-pointer hover:text-slate-600">View technical details</summary>
+                        <div className="mt-2 rounded-xl bg-slate-50 p-3 space-y-1 font-mono break-all">
+                          <p>Event code: {e.action}</p>
+                          {e.entity_type && <p>Record: {e.entity_type}{e.entity_id ? ` ${e.entity_id}` : ''}</p>}
+                          <p>Network address: {e.ip || 'Not available'}</p>
+                        </div>
+                      </details>
+                    </td>
                   </tr>
                 ))}
               </tbody>

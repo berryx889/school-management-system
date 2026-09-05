@@ -46,7 +46,7 @@ export default function Landing() {
   const Logo = () => (
     <span className="nav-logo" style={{ cursor: 'default' }}>
       {branding?.logo_url
-        ? <img src={branding.logo_url} alt="" className="logo-mark" style={{ objectFit: 'contain', background: 'transparent', padding: 0 }} />
+        ? <img src={branding.logo_url} alt={`${branding.name || 'School'} logo`} className="logo-mark" style={{ objectFit: 'contain', background: 'transparent', padding: 0 }} />
         : <span className="logo-mark">{initials}</span>}
       <span className="logo-text">{name}</span>
     </span>

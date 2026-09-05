@@ -56,6 +56,10 @@
   html, body, #root {
     height: 100%;
   }
+  html, body {
+    max-width: 100%;
+    overflow-x: hidden;
+  }
   body {
     @apply bg-surface text-slate-800 antialiased;
     font-family: var(--font-sans);
@@ -136,6 +140,41 @@
   .badge {
     @apply inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold;
   }
+  .school-spinner {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 4rem;
+    height: 4rem;
+  }
+  .school-spinner__ring {
+    position: absolute;
+    inset: 0;
+    border: 3px solid var(--color-primary-100);
+    border-top-color: var(--color-primary-600);
+    border-right-color: var(--color-accent-500);
+    border-radius: 999px;
+    animation: school-spin 0.9s cubic-bezier(.5,.1,.4,.9) infinite;
+  }
+  .school-spinner__book {
+    width: 1.75rem;
+    height: 1.2rem;
+    display: flex;
+    gap: 2px;
+    transform: translateY(1px);
+  }
+  .school-spinner__book i {
+    width: 50%;
+    height: 100%;
+    background: var(--color-primary-600);
+    border-radius: 5px 1px 2px 5px;
+    animation: book-page 1.2s ease-in-out infinite alternate;
+  }
+  .school-spinner__book i:last-child {
+    border-radius: 1px 5px 5px 2px;
+    animation-delay: .18s;
+  }
   .table-card table {
     @apply w-full text-sm;
   }
@@ -201,6 +240,13 @@
 }
 
 @layer utilities {
+  @keyframes school-spin {
+    to { transform: rotate(360deg); }
+  }
+  @keyframes book-page {
+    from { transform: perspective(30px) rotateY(0); opacity: .72; }
+    to { transform: perspective(30px) rotateY(-12deg); opacity: 1; }
+  }
   @keyframes drift {
     0%, 100% { transform: translate(0, 0) scale(1); }
     50% { transform: translate(28px, -22px) scale(1.08); }
@@ -268,6 +314,15 @@
   }
   .animate-grow-width {
     animation: grow-width 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
   }
 }
 

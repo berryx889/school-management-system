@@ -59,7 +59,7 @@ export default function ClassDetail() {
       {/* Print-only letterhead */}
       <div className="hidden print:block mb-4 text-center">
         <div className="flex items-center justify-center gap-3">
-          {settings?.logo_url && <img src={settings.logo_url} alt="" className="h-14 w-14 object-contain" />}
+          {settings?.logo_url && <img src={settings.logo_url} alt={`${settings?.name || 'School'} logo`} className="h-14 w-14 object-contain" />}
           <div>
             <h1 className="text-xl font-bold uppercase">{schoolName}</h1>
             <p className="text-sm">Class List</p>

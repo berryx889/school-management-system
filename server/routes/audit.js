@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { pool } from '../db/pool.js';
 import { requireAuth, requireRole } from '../middleware/auth.js';
+import { actionLabel, presentAuditEntry } from '../utils/auditPresentation.js';
 
 const router = Router();
 
@@ -28,13 +29,13 @@ router.get('/', requireAuth, requireRole('admin'), async (req, res) => {
      LIMIT $${values.length - 1} OFFSET $${values.length}`,
     values
   );
-  res.json({ data: rows, total });
+  res.json({ data: rows.map(presentAuditEntry), total });
 });
 
 // Distinct actions present in this school's log — powers the filter dropdown.
 router.get('/actions', requireAuth, requireRole('admin'), async (_req, res) => {
   const { rows } = await pool.query('SELECT DISTINCT action FROM audit_logs ORDER BY action');
-  res.json(rows.map((r) => r.action));
+  res.json(rows.map((r) => ({ value: r.action, label: actionLabel(r.action) })));
 });
 
 export default router;

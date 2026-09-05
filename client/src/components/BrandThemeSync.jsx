@@ -20,7 +20,10 @@ export default function BrandThemeSync() {
   }, [data?.favicon_url]);
 
   useEffect(() => {
-    if (data?.name) document.title = data.name;
+    if (data?.name) {
+      document.documentElement.dataset.schoolName = data.name;
+      window.dispatchEvent(new Event('school-brand-change'));
+    }
   }, [data?.name]);
 
   return null;

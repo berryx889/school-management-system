@@ -1,0 +1,10 @@
+User-agent: *
+Allow: /
+Disallow: /admin/
+Disallow: /super-admin/
+Disallow: /teacher/
+Disallow: /student/
+Disallow: /parent/
+Disallow: /accountant/
+Disallow: /kitchen/
+Disallow: /api/

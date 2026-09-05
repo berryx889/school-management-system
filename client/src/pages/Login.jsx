@@ -72,7 +72,7 @@ function BrandPanel({ branding }) {
         <div>
           <div className="flex items-center gap-3 mb-16">
             {branding?.logo_url ? (
-              <img src={branding.logo_url} alt="" className="h-10 w-10 rounded-xl object-contain bg-white/20 backdrop-blur-sm" />
+              <img src={branding.logo_url} alt={`${branding.name || 'School'} logo`} className="h-10 w-10 rounded-xl object-contain bg-white/20 backdrop-blur-sm" />
             ) : (
               <div className="h-10 w-10 rounded-xl bg-white/20 backdrop-blur-sm text-white flex items-center justify-center text-sm font-bold">
                 {name[0]}
@@ -118,7 +118,7 @@ function PortalPicker({ onChoose, branding }) {
       </Link>
       <div className="flex items-center gap-2.5 mb-10 lg:hidden">
         {branding?.logo_url ? (
-          <img src={branding.logo_url} alt="" className="h-8 w-8 rounded-lg object-contain bg-white" />
+          <img src={branding.logo_url} alt={`${branding.name || 'School'} logo`} className="h-8 w-8 rounded-lg object-contain bg-white" />
         ) : (
           <div className="h-8 w-8 rounded-lg flex items-center justify-center text-sm font-bold text-white" style={{ background: '#6B21A8' }}>
             {name[0]}

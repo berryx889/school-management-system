@@ -19,7 +19,7 @@ export default function MobileLayout({ tabs }) {
       <header className="h-14 bg-white/80 backdrop-blur-md border-b flex items-center justify-between px-4 sticky top-0 z-20 no-print" style={{ borderColor: '#EBE5DC' }}>
         <div className="flex items-center gap-2.5 min-w-0">
           {settings?.logo_url ? (
-            <img src={settings.logo_url} alt="" className="h-7 w-7 rounded-lg object-contain shrink-0" />
+            <img src={settings.logo_url} alt={`${settings?.name || 'School'} logo`} className="h-7 w-7 rounded-lg object-contain shrink-0" />
           ) : (
             <div className="h-7 w-7 rounded-lg bg-primary-600 text-white flex items-center justify-center font-bold text-xs shrink-0">
               {(settings?.name || 'B')[0]}

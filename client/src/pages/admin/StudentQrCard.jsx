@@ -59,14 +59,14 @@ export default function StudentQrCard() {
 
           <div className="id-tag__header" style={{ background: primary }}>
             <div className="id-tag__crest">
-              {settings?.logo_url && <img src={settings.logo_url} alt="" className="id-tag__logo" />}
+              {settings?.logo_url && <img src={settings.logo_url} alt={`${settings?.name || 'School'} logo`} className="id-tag__logo" />}
               <span className="id-tag__school">{schoolName}</span>
             </div>
             {settings?.motto && <p className="id-tag__motto">{settings.motto}</p>}
           </div>
 
           <div className="id-tag__body">
-            {data.photo_url && <img src={data.photo_url} alt="" className="id-tag__photo" />}
+            {data.photo_url && <img src={data.photo_url} alt={`Portrait of ${data.full_name}`} className="id-tag__photo" />}
             <p className="id-tag__name">{data.full_name}</p>
             <p className="id-tag__meta">{data.class_name || 'Unassigned'}</p>
             <div className="id-tag__qr">
