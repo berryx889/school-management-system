@@ -46,7 +46,7 @@ export default function Learning({ kind: fixedKind }) {
   const toast = useToast();
   const client = useQueryClient();
   const classes = useQuery({
-    queryKey: ["learning-classes"],
+    queryKey: ["learning-classes", user.id, user.school_id],
     queryFn: () => api.get("/learning/classes").then((r) => r.data),
     enabled: !student,
   });

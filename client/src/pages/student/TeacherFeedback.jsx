@@ -3,10 +3,12 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { api, apiErrorMessage } from "../../api/client.js";
 import { PageLoader, EmptyState, SectionHeader } from "../../components/ui.jsx";
 import { useToast } from "../../components/Toast.jsx";
+import { useAuth } from "../../auth/AuthContext.jsx";
 
 export default function TeacherFeedback({ admin = false }) {
+  const { user } = useAuth();
   const q = useQuery({
-    queryKey: ["teacher-feedback", admin],
+    queryKey: ["teacher-feedback", admin, user.id, user.school_id],
     queryFn: () =>
       api
         .get(admin ? "/learning/feedback" : "/learning/teachers")
