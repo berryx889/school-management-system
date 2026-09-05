@@ -1,6 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
+import learningRoutes from './routes/learning.js';
 import crypto from 'node:crypto';
 import dotenv from 'dotenv';
 import path from 'path';
@@ -94,6 +95,7 @@ app.use('/api/audit-logs', auditRoutes);
 app.use('/api/trash', trashRoutes);
 app.use('/api/expenses', expenseRoutes);
 app.use('/api/houses', houseRoutes);
+app.use('/api/learning', learningRoutes);
 
 app.use('/api', (req, res) => {
   res.status(404).json({

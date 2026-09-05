@@ -1,4 +1,5 @@
 const ACTION_LABELS = {
+  'learning.publish': 'Learning activity published or updated',
   'account.2fa_disabled': 'Two-step verification turned off',
   'account.2fa_enabled': 'Two-step verification turned on',
   'auth.login': 'Successful sign-in',

@@ -4,9 +4,16 @@ import { format } from 'date-fns';
 import { useAuth } from '../../auth/AuthContext.jsx';
 import { api } from '../../api/client.js';
 import { Avatar, Skeleton } from '../../components/ui.jsx';
-import { IconCalendar, IconBarChart, IconMegaphone } from '../../components/Icon.jsx';
+import { IconCalendar, IconBarChart, IconMegaphone, IconBook, IconUser, IconWallet, IconEdit, IconCamera, IconMessageCircle, IconFileText } from '../../components/Icon.jsx';
 
 const QUICK_LINKS = [
+  { to: '/student/profile', icon: IconUser, label: 'My profile', tone: 'bg-primary-50 text-primary-600' },
+  { to: '/student/finance', icon: IconWallet, label: 'Finance', tone: 'bg-emerald-50 text-emerald-600' },
+  { to: '/student/homework', icon: IconEdit, label: 'Homework', tone: 'bg-blue-50 text-blue-600' },
+  { to: '/student/library', icon: IconBook, label: 'My library', tone: 'bg-amber-50 text-amber-600' },
+  { to: '/student/examinations', icon: IconFileText, label: 'Examinations', tone: 'bg-primary-50 text-primary-600' },
+  { to: '/student/online-classes', icon: IconCamera, label: 'Online classes', tone: 'bg-blue-50 text-blue-600' },
+  { to: '/student/rate-teachers', icon: IconMessageCircle, label: 'Rate teachers', tone: 'bg-amber-50 text-amber-600' },
   { to: '/student/attendance', icon: IconCalendar, label: 'Attendance', tone: 'bg-primary-50 text-primary-600' },
   { to: '/student/results', icon: IconBarChart, label: 'Results', tone: 'bg-blue-50 text-blue-600' },
   { to: '/student/timetable', icon: IconCalendar, label: 'Timetable', tone: 'bg-amber-50 text-amber-600' },
@@ -59,7 +66,7 @@ export default function StudentDashboard() {
         </div>
       </div>
 
-      <div className="grid grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-3">
         {QUICK_LINKS.map((q) => (
           <Link key={q.to} to={q.to} className="card card-hover p-4 flex flex-col items-center gap-2.5 text-center">
             <span className={`h-11 w-11 rounded-xl flex items-center justify-center ${q.tone}`}>

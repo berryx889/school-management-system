@@ -62,6 +62,10 @@ const ParentNotices = lazy(() => import('./pages/parent/Notices.jsx'));
 const ParentFees = lazy(() => import('./pages/parent/Fees.jsx'));
 const ParentChat = lazy(() => import('./pages/parent/ChatPage.jsx'));
 const ParentProgress = lazy(() => import('./pages/parent/Progress.jsx'));
+const Learning = lazy(() => import('./pages/shared/Learning.jsx'));
+const StudentProfile = lazy(() => import('./pages/student/Profile.jsx'));
+const StudentFinance = lazy(() => import('./pages/student/Finance.jsx'));
+const TeacherFeedback = lazy(() => import('./pages/student/TeacherFeedback.jsx'));
 
 const GateScanner = lazy(() => import('./pages/shared/GateScanner.jsx'));
 const Kitchen = lazy(() => import('./pages/shared/Kitchen.jsx'));
@@ -75,6 +79,8 @@ const HouseSystem = lazy(() => import('./pages/shared/HouseSystem.jsx'));
 
 const ADMIN_NAV = [
   { to: '/admin', end: true, icon: IconHome, label: 'Dashboard' },
+  { to: '/admin/learning', icon: IconBook, label: 'Learning centre' },
+  { to: '/admin/teacher-feedback', icon: IconMessageCircle, label: 'Student feedback' },
   { label: 'People', icon: IconUsers, items: [
     { to: '/admin/students', icon: IconGraduationCap, label: 'Students' },
     { to: '/admin/students/promote', icon: IconTrendingUp, label: 'Promote students' },
@@ -118,6 +124,7 @@ const SUPER_ADMIN_NAV = [
 
 const TEACHER_NAV = [
   { to: '/teacher', end: true, icon: IconHome, label: 'Dashboard' },
+  { to: '/teacher/learning', icon: IconBook, label: 'Learning centre' },
   { to: '/teacher/gate-scanner', icon: IconCamera, label: 'Gate scanner' },
   { to: '/teacher/attendance', icon: IconCalendar, label: 'Attendance' },
   { to: '/teacher/marks', icon: IconEdit, label: 'Marks entry' },
@@ -138,10 +145,17 @@ const ACCOUNTANT_NAV = [
 
 const STUDENT_TABS = [
   { to: '/student', end: true, icon: IconHome, label: 'Home' },
+  { to: '/student/profile', icon: IconUser, label: 'My profile' },
+  { to: '/student/finance', icon: IconWallet, label: 'Finance' },
   { to: '/student/attendance', icon: IconCalendar, label: 'Attendance' },
   { to: '/student/results', icon: IconBarChart, label: 'Results' },
   { to: '/student/timetable', icon: IconCalendar, label: 'Timetable' },
-  { to: '/student/notices', icon: IconMegaphone, label: 'More' },
+  { to: '/student/rate-teachers', icon: IconMessageCircle, label: 'Rate teachers' },
+  { to: '/student/library', icon: IconBook, label: 'My library' },
+  { to: '/student/examinations', icon: IconFileText, label: 'Examinations' },
+  { to: '/student/online-classes', icon: IconCamera, label: 'Online classes' },
+  { to: '/student/homework', icon: IconEdit, label: 'Homework' },
+  { to: '/student/notices', icon: IconMegaphone, label: 'Noticeboard' },
 ];
 
 const PARENT_TABS = [
@@ -153,6 +167,8 @@ const PARENT_TABS = [
 ];
 
 const PAGE_NAMES = {
+  profile: 'My profile', finance: 'Finance', learning: 'Learning centre', 'rate-teachers': 'Rate teachers',
+  library: 'My library', examinations: 'Examinations', 'online-classes': 'Online classes', homework: 'Homework', 'teacher-feedback': 'Student feedback',
   admin: 'Admin dashboard', accountant: 'Finance dashboard', audit: 'Audit history', attendance: 'Attendance', announcements: 'Announcements',
   broadsheet: 'Broadsheet', chat: 'Messages', classes: 'Classes', debtors: 'Fees and debtors',
   expenses: 'Expenses', fees: 'Fees', houses: 'House system', kitchen: 'Kitchen headcount',
@@ -205,6 +221,8 @@ export default function App() {
 
       <Route path="/admin" element={<ProtectedRoute roles={['super_admin', 'admin']}><AdminLayout /></ProtectedRoute>}>
         <Route index element={<AdminDashboard />} />
+        <Route path="learning" element={<Learning />} />
+        <Route path="teacher-feedback" element={<TeacherFeedback admin />} />
         <Route path="students" element={<Students />} />
         <Route path="students/promote" element={<PromoteStudents />} />
         <Route path="students/:id/qr-card" element={<StudentQrCard />} />
@@ -240,6 +258,7 @@ export default function App() {
 
       <Route path="/teacher" element={<ProtectedRoute roles={['teacher']}><SidebarLayout nav={TEACHER_NAV} /></ProtectedRoute>}>
         <Route index element={<TeacherDashboard />} />
+        <Route path="learning" element={<Learning />} />
         <Route path="gate-scanner" element={<GateScanner />} />
         <Route path="attendance" element={<AttendanceMark />} />
         <Route path="marks" element={<MarksEntry />} />
@@ -261,8 +280,16 @@ export default function App() {
         <Route path="receipts/:paymentId" element={<Receipt />} />
       </Route>
 
-      <Route path="/student" element={<ProtectedRoute roles={['student']}><MobileLayout tabs={STUDENT_TABS} /></ProtectedRoute>}>
+      <Route path="/student" element={<ProtectedRoute roles={['student']}><SidebarLayout nav={STUDENT_TABS} /></ProtectedRoute>}>
         <Route index element={<StudentDashboard />} />
+        <Route path="profile" element={<StudentProfile />} />
+        <Route path="finance" element={<StudentFinance />} />
+        <Route path="receipts/:paymentId" element={<Receipt />} />
+        <Route path="rate-teachers" element={<TeacherFeedback />} />
+        <Route path="library" element={<Learning kind="library" />} />
+        <Route path="examinations" element={<Learning kind="examinations" />} />
+        <Route path="online-classes" element={<Learning kind="online-classes" />} />
+        <Route path="homework" element={<Learning kind="homework" />} />
         <Route path="attendance" element={<StudentAttendance />} />
         <Route path="results" element={<StudentResults />} />
         <Route path="timetable" element={<StudentTimetable />} />
